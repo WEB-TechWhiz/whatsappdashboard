@@ -16,15 +16,28 @@ const analyticsRoutes = require("./routes/analytics.routes");
 const settingsRoutes = require("./routes/settings.routes");
 const integrationsRoutes = require("./routes/integrations.routes");
 const automationRoutes = require("./routes/automation/workflows.routes");
+const webhookRoutes = require("./routes/automation/webhooks.routes");
+const leadsAutomationRoutes = require("./routes/automation/leads.routes");
 
 const app = express();
 
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN, credentials: true }));
+
+// Webhook routes need raw body for signature verification
+app.use("/api/v1/webhooks", express.raw({ type: "application/json", limit: "1mb" }));
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === "object") {
+    req.rawBody = JSON.stringify(req.body);
+  }
+  next();
+});
+
 app.use(express.json({ limit: "1mb" }));
 app.use(pinoHttp({ logger }));
 
 const API_PREFIX = "/api/v1";
+app.use(`${API_PREFIX}/webhooks`, webhookRoutes);
 app.use(API_PREFIX, authRoutes);
 app.use(API_PREFIX, conversationsRoutes);
 app.use(API_PREFIX, leadsRoutes);
@@ -32,6 +45,7 @@ app.use(API_PREFIX, analyticsRoutes);
 app.use(API_PREFIX, settingsRoutes);
 app.use(API_PREFIX, integrationsRoutes);
 app.use(`${API_PREFIX}/automation`, automationRoutes);
+app.use(`${API_PREFIX}/automation/leads`, leadsAutomationRoutes);
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
