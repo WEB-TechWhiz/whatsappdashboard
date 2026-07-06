@@ -18,6 +18,7 @@ const integrationsRoutes = require("./routes/integrations.routes");
 const automationRoutes = require("./routes/automation/workflows.routes");
 const webhookRoutes = require("./routes/automation/webhooks.routes");
 const leadsAutomationRoutes = require("./routes/automation/leads.routes");
+const escalationsRoutes = require("./routes/automation/escalations.routes");
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use(API_PREFIX, settingsRoutes);
 app.use(API_PREFIX, integrationsRoutes);
 app.use(`${API_PREFIX}/automation`, automationRoutes);
 app.use(`${API_PREFIX}/automation/leads`, leadsAutomationRoutes);
+app.use(`${API_PREFIX}/automation/escalations`, escalationsRoutes);
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
