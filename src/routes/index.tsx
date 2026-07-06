@@ -17,6 +17,9 @@ import {
   Workflow,
   ShieldCheck,
   Gauge,
+  Twitter,
+  Linkedin,
+  Youtube,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -265,8 +268,118 @@ function CTA() {
 
 function Footer() {
   return (
-    <footer className="border-t py-10 text-center text-xs text-muted-foreground">
-      © {new Date().getFullYear()} Flowly. All rights reserved.
+    <footer className="border-t bg-muted/20">
+      <div className="mx-auto max-w-6xl px-6 py-16">
+        <div className="grid gap-10 md:grid-cols-5">
+          <div className="md:col-span-2">
+            <Link to="/" className="flex items-center gap-2 font-semibold">
+              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <MessageSquare className="h-4 w-4" />
+              </span>
+              Flowly
+            </Link>
+            <p className="mt-4 max-w-xs text-sm text-muted-foreground">
+              One-click automations that connect the tools your team already uses.
+            </p>
+            <form
+              onSubmit={(e) => e.preventDefault()}
+              className="mt-5 flex max-w-sm items-center gap-2"
+            >
+              <input
+                type="email"
+                required
+                placeholder="you@company.com"
+                className="h-10 flex-1 rounded-full border bg-background px-4 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <Button type="submit" size="sm" className="h-10 rounded-full px-4">
+                Subscribe
+              </Button>
+            </form>
+          </div>
+          <FooterCol
+            title="Product"
+            links={[
+              { label: "Features", href: "#features" },
+              { label: "Integrations", href: "#integrations" },
+              { label: "Pricing", href: "#pricing" },
+              { label: "Changelog", href: "#" },
+            ]}
+          />
+          <FooterCol
+            title="Company"
+            links={[
+              { label: "About", href: "#" },
+              { label: "Customers", href: "#" },
+              { label: "Careers", href: "#" },
+              { label: "Contact", href: "#" },
+            ]}
+          />
+          <FooterCol
+            title="Resources"
+            links={[
+              { label: "Docs", href: "#" },
+              { label: "Blog", href: "#" },
+              { label: "Community", href: "#" },
+              { label: "Support", href: "#" },
+            ]}
+          />
+        </div>
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
+          <p>© {new Date().getFullYear()} Flowly, Inc. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <a href="#" className="hover:text-foreground">Privacy</a>
+            <a href="#" className="hover:text-foreground">Terms</a>
+            <a href="#" className="hover:text-foreground">Security</a>
+          </div>
+          <div className="flex items-center gap-3">
+            <SocialIcon Icon={Twitter} label="Twitter" />
+            <SocialIcon Icon={Linkedin} label="LinkedIn" />
+            <SocialIcon Icon={Github} label="GitHub" />
+            <SocialIcon Icon={Youtube} label="YouTube" />
+          </div>
+        </div>
+      </div>
     </footer>
+  );
+}
+
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: { label: string; href: string }[];
+}) {
+  return (
+    <div>
+      <h4 className="text-sm font-semibold">{title}</h4>
+      <ul className="mt-4 space-y-3 text-sm text-muted-foreground">
+        {links.map((l) => (
+          <li key={l.label}>
+            <a href={l.href} className="hover:text-foreground">
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function SocialIcon({
+  Icon,
+  label,
+}: {
+  Icon: React.ComponentType<{ className?: string }>;
+  label: string;
+}) {
+  return (
+    <a
+      href="#"
+      aria-label={label}
+      className="flex h-8 w-8 items-center justify-center rounded-full border bg-card text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <Icon className="h-4 w-4" />
+    </a>
   );
 }
