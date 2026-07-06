@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
-import { Send, Paperclip, Smile, Phone, MoreVertical, Search, Loader2 } from "lucide-react";
+import { Send, Paperclip, Smile, Phone, MoreVertical, Search, Loader2, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, getSocket } from "@/lib/api";
