@@ -21,13 +21,21 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-const items = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  badge?: string;
+};
+
+const items: NavItem[] = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, exact: true },
   { title: "Conversations", url: "/dashboard/conversations", icon: MessageSquare, badge: "5" },
   { title: "Leads", url: "/dashboard/leads", icon: Users },
   { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
   { title: "Settings", url: "/dashboard/settings", icon: Settings },
-] as const;
+];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -58,7 +66,7 @@ export function AppSidebar() {
                     <Link to={item.url}>
                       <item.icon />
                       <span>{item.title}</span>
-                      {"badge" in item && item.badge ? (
+                      {item.badge ? (
                         <Badge className="ml-auto h-5 px-1.5 text-[10px] group-data-[collapsible=icon]:hidden">
                           {item.badge}
                         </Badge>
