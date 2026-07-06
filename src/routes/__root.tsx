@@ -79,11 +79,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "WhatsApp CRM — Leads, Conversations & Insights" },
       { name: "description", content: "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time." },
-      { property: "og:title", content: "WhatsApp CRM Dashboard" },
-      { property: "og:description", content: "Track leads, conversations, and revenue in real time." },
+      { property: "og:title", content: "WhatsApp CRM — Leads, Conversations & Insights" },
+      { property: "og:description", content: "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "WhatsApp CRM — Leads, Conversations & Insights" },
+      { name: "twitter:description", content: "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9f43cb06-cdce-4b49-8e46-2af49acda605" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/9f43cb06-cdce-4b49-8e46-2af49acda605" },
     ],
     links: [
       {
