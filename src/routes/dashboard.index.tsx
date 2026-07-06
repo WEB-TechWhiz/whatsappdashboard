@@ -14,41 +14,14 @@ import {
   CalendarRange,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch, getSocket } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardOverview,
 });
-
-const bigStats = [
-  {
-    label: "Leaks",
-    value: "3",
-    hint: "Unread > 5 mins",
-    icon: AlertTriangle,
-    tone: "danger" as const,
-  },
-  {
-    label: "Today's Cash",
-    value: "$1,250",
-    hint: "↑ 12% from yesterday",
-    icon: DollarSign,
-    tone: "success" as const,
-  },
-  {
-    label: "On Deck",
-    value: "5",
-    hint: "Follow-ups due in 2 hrs",
-    icon: Clock,
-    tone: "warning" as const,
-  },
-];
-
-const smallStats = [
-  { label: "Weekly Bookings", value: "12", icon: Calendar },
-  { label: "Monthly Bookings", value: "47", icon: CalendarDays },
-  { label: "Annual Bookings", value: "512", icon: CalendarRange },
-  { label: "Hot Leads", value: "8", icon: Flame },
-];
 
 const toneStyles: Record<string, string> = {
   danger: "bg-danger/10 text-danger",
@@ -57,19 +30,134 @@ const toneStyles: Record<string, string> = {
 };
 
 function DashboardOverview() {
+  const queryClient = useQueryClient();
+  const [range, setRange] = useState<"today" | "week" | "month">("today");
+
+  // Fetch overview metrics from backend
+  const { data: overview, isLoading: loadingOverview } = useQuery({
+    queryKey: ["analytics-overview", range],
+    queryFn: () => apiFetch(`/analytics/overview?range=${range}`),
+    refetchInterval: 15000,
+  });
+
+  // Fetch recent activity logs from backend
+  const { data: activities, isLoading: loadingActivity } = useQuery({
+    queryKey: ["analytics-activity"],
+    queryFn: () => apiFetch("/analytics/activity?limit=10"),
+    refetchInterval: 15000,
+  });
+
+  const { data: summary, isLoading: loadingSummary } = useQuery({
+    queryKey: ["analytics-summary"],
+    queryFn: () => apiFetch("/analytics/summary"),
+    refetchInterval: 15000,
+  });
+
+  // Listen to realtime socket updates
+  useEffect(() => {
+    try {
+      const socket = getSocket();
+
+      const handleRealtimeUpdate = () => {
+        queryClient.invalidateQueries({ queryKey: ["analytics-overview"] });
+        queryClient.invalidateQueries({ queryKey: ["analytics-activity"] });
+        queryClient.invalidateQueries({ queryKey: ["analytics-summary"] });
+      };
+
+      socket.on("message:new", handleRealtimeUpdate);
+      socket.on("lead:created", handleRealtimeUpdate);
+      socket.on("lead:updated", handleRealtimeUpdate);
+
+      return () => {
+        socket.off("message:new", handleRealtimeUpdate);
+        socket.off("lead:created", handleRealtimeUpdate);
+        socket.off("lead:updated", handleRealtimeUpdate);
+      };
+    } catch (err) {
+      console.warn("Realtime updates not available:", err);
+    }
+  }, [queryClient]);
+
+  const bigStats = [
+    {
+      label: "Leaks",
+      value: overview?.leaks ?? 0,
+      hint: "Unread > 5 mins",
+      icon: AlertTriangle,
+      tone: "danger" as const,
+    },
+    {
+      label: "Today's Cash",
+      value: overview?.todaysCash ? `$${Number(overview.todaysCash).toLocaleString()}` : "$0",
+      hint: "Cash collections from booked leads",
+      icon: DollarSign,
+      tone: "success" as const,
+    },
+    {
+      label: "On Deck",
+      value: overview?.onDeck ?? 0,
+      hint: "Follow-ups due in 2 hrs",
+      icon: Clock,
+      tone: "warning" as const,
+    },
+  ];
+
+  const smallStats = [
+    { label: "Weekly Bookings", value: summary?.weeklyBookings ?? 0, icon: Calendar },
+    { label: "Monthly Bookings", value: summary?.monthlyBookings ?? 0, icon: CalendarDays },
+    { label: "Annual Bookings", value: summary?.annualBookings ?? 0, icon: CalendarRange },
+    { label: "Hot Leads", value: summary?.hotLeads ?? 0, icon: Flame },
+  ];
+
+  const getTagFromActivityType = (type: string) => {
+    switch (type) {
+      case "demo_booked":
+        return "Booking";
+      case "pricing_requested":
+        return "Hot";
+      case "lead_created":
+        return "Lead";
+      case "status_changed":
+        return "Status";
+      case "message_received":
+        return "Reply";
+      default:
+        return "Event";
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-sm text-muted-foreground">
-            What matters most, right now.
-          </p>
+          <p className="text-sm text-muted-foreground">What matters most, right now.</p>
         </div>
         <div className="flex gap-1 rounded-md border bg-card p-1">
-          <Button size="sm" variant="default" className="h-7">Today</Button>
-          <Button size="sm" variant="ghost" className="h-7">Week</Button>
-          <Button size="sm" variant="ghost" className="h-7">Month</Button>
+          <Button
+            size="sm"
+            variant={range === "today" ? "default" : "ghost"}
+            className="h-7"
+            onClick={() => setRange("today")}
+          >
+            Today
+          </Button>
+          <Button
+            size="sm"
+            variant={range === "week" ? "default" : "ghost"}
+            className="h-7"
+            onClick={() => setRange("week")}
+          >
+            Week
+          </Button>
+          <Button
+            size="sm"
+            variant={range === "month" ? "default" : "ghost"}
+            className="h-7"
+            onClick={() => setRange("month")}
+          >
+            Month
+          </Button>
         </div>
       </div>
 
@@ -87,13 +175,20 @@ function DashboardOverview() {
                   <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                     {s.label}
                   </CardTitle>
-                  <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", toneStyles[s.tone])}>
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-lg",
+                      toneStyles[s.tone],
+                    )}
+                  >
                     <s.icon className="h-4 w-4" />
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-bold tracking-tight">{s.value}</div>
+                <div className="text-4xl font-bold tracking-tight">
+                  {loadingOverview ? "..." : s.value}
+                </div>
                 <p className="mt-1 text-xs text-muted-foreground">{s.hint}</p>
               </CardContent>
             </Card>
@@ -111,7 +206,7 @@ function DashboardOverview() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{s.value}</div>
+              <div className="text-2xl font-semibold">{loadingSummary ? "..." : s.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -126,25 +221,29 @@ function DashboardOverview() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="divide-y">
-              {[
-                { who: "Ayesha K.", what: "booked a demo", when: "2m ago", tag: "Booking" },
-                { who: "Marcus L.", what: "replied to follow-up", when: "9m ago", tag: "Reply" },
-                { who: "Priya S.", what: "went cold — 3 days", when: "1h ago", tag: "Leak" },
-                { who: "Jorge M.", what: "requested pricing", when: "3h ago", tag: "Hot" },
-              ].map((r, i) => (
-                <li key={i} className="flex items-center justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="text-sm">
-                      <span className="font-medium">{r.who}</span>{" "}
-                      <span className="text-muted-foreground">{r.what}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">{r.when}</p>
-                  </div>
-                  <Badge variant="secondary">{r.tag}</Badge>
-                </li>
-              ))}
-            </ul>
+            {loadingActivity ? (
+              <p className="text-sm text-muted-foreground py-4">Loading activity logs...</p>
+            ) : activities && activities.length > 0 ? (
+              <ul className="divide-y">
+                {activities.map((r: any, i: number) => (
+                  <li key={r.id || i} className="flex items-center justify-between gap-3 py-3">
+                    <div className="min-w-0">
+                      <p className="text-sm">
+                        <span className="font-medium text-foreground">{r.description}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(r.time), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <Badge variant="secondary">{getTagFromActivityType(r.type)}</Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted-foreground py-4 text-center">
+                No recent activity found.
+              </p>
+            )}
           </CardContent>
         </Card>
         <Card>
@@ -153,14 +252,14 @@ function DashboardOverview() {
           </CardHeader>
           <CardContent className="space-y-4">
             {[
-              { label: "Response rate", value: 82 },
-              { label: "Booking rate", value: 34 },
-              { label: "Cold recovery", value: 21 },
+              { label: "Response rate", value: overview?.responseRate ?? 0 },
+              { label: "Booking rate", value: overview?.bookingRate ?? 0 },
+              { label: "Cold recovery (Est.)", value: 21 },
             ].map((p) => (
               <div key={p.label}>
                 <div className="flex justify-between text-xs mb-1">
                   <span className="text-muted-foreground">{p.label}</span>
-                  <span className="font-medium">{p.value}%</span>
+                  <span className="font-medium">{loadingOverview ? "..." : `${p.value}%`}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
                   <motion.div

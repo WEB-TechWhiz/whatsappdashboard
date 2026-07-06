@@ -55,10 +55,10 @@ function Nav() {
         </nav>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link to="/dashboard">Sign in</Link>
+            <Link to="/login">Sign in</Link>
           </Button>
           <Button asChild size="sm">
-            <Link to="/dashboard">Book a demo</Link>
+            <Link to="/signup">Start free</Link>
           </Button>
         </div>
       </div>
@@ -168,7 +168,7 @@ function AutomationHub() {
         </p>
         <div className="mt-6 flex justify-center">
           <Button asChild size="lg" className="rounded-full bg-foreground text-background hover:bg-foreground/90">
-            <Link to="/dashboard">
+            <Link to="/signup">
               Book a demo <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
@@ -255,7 +255,7 @@ function CTA() {
         </p>
         <div className="mt-6 flex justify-center gap-3">
           <Button asChild size="lg" variant="secondary" className="rounded-full">
-            <Link to="/dashboard">Start free</Link>
+            <Link to="/signup">Start free</Link>
           </Button>
           <Button asChild size="lg" variant="ghost" className="rounded-full text-background hover:bg-background/10 hover:text-background">
             <Link to="/dashboard">Book a demo</Link>
