@@ -1,6 +1,10 @@
 const logger = require("../../utils/logger");
 const db = require("../../database");
 const { v4: uuidv4 } = require("uuid");
+const leadCaptureWorkflow = require("./workflows/lead-capture");
+const appointmentBookingWorkflow = require("./workflows/appointment-booking");
+const productInquiryWorkflow = require("./workflows/product-inquiry");
+const { FAQWorkflow, FeedbackWorkflow } = require("./workflows/faq-feedback");
 
 /**
  * Workflow Engine Service
@@ -210,159 +214,99 @@ class WorkflowEngine {
     conversationId,
   ) {
     const config = rule.workflow_config;
-    const steps = [];
 
     try {
+      // Get metadata needed for workflows
+      const [connections] = await db.query(
+        `SELECT access_token, phone_number_id FROM whatsapp_connections
+         WHERE workspace_id = ? LIMIT 1`,
+        [workspaceId],
+      );
+
+      const accessToken = connections[0]?.access_token || process.env.WHATSAPP_ACCESS_TOKEN;
+      const phoneNumberId = connections[0]?.phone_number_id || process.env.WHATSAPP_PHONE_ID;
+
       switch (rule.workflow_type) {
         case "lead_capture":
-          return await this.executeLCaptureFlow(analysis, steps);
+          return await leadCaptureWorkflow.execute({
+            workspaceId,
+            conversationId,
+            phoneNumber,
+            senderName: "Customer",
+            analysis,
+            accessToken,
+            phoneNumberId,
+          });
 
         case "appointment_booking":
-          return await this.executeBookingFlow(analysis, steps);
+          return await appointmentBookingWorkflow.execute({
+            workspaceId,
+            conversationId,
+            phoneNumber,
+            senderName: "Customer",
+            analysis,
+            accessToken,
+            phoneNumberId,
+          });
 
         case "product_inquiry":
-          return await this.executeProductFlow(analysis, steps);
+          return await productInquiryWorkflow.execute({
+            workspaceId,
+            conversationId,
+            phoneNumber,
+            senderName: "Customer",
+            message: analysis?.message_content || "",
+            analysis,
+            accessToken,
+            phoneNumberId,
+          });
 
         case "faq":
-          return await this.executeFAQFlow(analysis, steps);
+          return await FAQWorkflow.execute({
+            workspaceId,
+            conversationId,
+            phoneNumber,
+            message: analysis?.message_content || "",
+            analysis,
+            accessToken,
+            phoneNumberId,
+          });
 
         case "feedback_collection":
-          return await this.executeFeedbackFlow(analysis, steps);
+          return await FeedbackWorkflow.execute({
+            workspaceId,
+            conversationId,
+            phoneNumber,
+            senderName: "Customer",
+            accessToken,
+            phoneNumberId,
+          });
 
         default:
           return {
             status: "completed",
             message: "Workflow type not implemented",
-            steps,
+            steps: [],
           };
       }
     } catch (error) {
       logger.error("[Workflow] Error in workflow steps:", error);
-      steps.push({
-        step_name: "error_handler",
-        status: "failed",
-        error: error.message,
-      });
 
       return {
         status: "failed",
         message: error.message,
-        steps,
+        steps: [
+          {
+            step_name: "error_handler",
+            status: "failed",
+            error: error.message,
+          },
+        ],
       };
     }
   }
 
-  /**
-   * Lead Capture Workflow
-   * @private
-   */
-  async executeLCaptureFlow(analysis, steps) {
-    steps.push({
-      step_name: "extract_lead_info",
-      status: "completed",
-      extracted: {
-        name: analysis.entities.name || "Unknown",
-        email: analysis.entities.email || null,
-        phone: analysis.entities.phone || null,
-        interest: analysis.entities.product_interest || null,
-      },
-    });
 
-    return {
-      status: "completed",
-      message:
-        "Lead captured successfully. Follow-up message queued for sending.",
-      steps,
-    };
-  }
-
-  /**
-   * Appointment Booking Workflow
-   * @private
-   */
-  async executeBookingFlow(analysis, steps) {
-    if (analysis.should_escalate) {
-      steps.push({
-        step_name: "check_escalation",
-        status: "escalated",
-        reason: analysis.escalation_reason,
-      });
-
-      return {
-        status: "escalated",
-        message: "Complex booking request. Routing to agent.",
-        steps,
-      };
-    }
-
-    steps.push({
-      step_name: "show_availability",
-      status: "pending",
-      action: "Send WhatsApp Flow with calendar",
-    });
-
-    return {
-      status: "completed",
-      message: "Booking flow initiated. Customer will see availability.",
-      steps,
-    };
-  }
-
-  /**
-   * Product Inquiry Workflow
-   * @private
-   */
-  async executeProductFlow(analysis, steps) {
-    const product = analysis.entities.product_interest;
-
-    steps.push({
-      step_name: "lookup_product",
-      status: "completed",
-      product,
-    });
-
-    return {
-      status: "completed",
-      message: "Product information queued for sending.",
-      steps,
-    };
-  }
-
-  /**
-   * FAQ Workflow
-   * @private
-   */
-  async executeFAQFlow(analysis, steps) {
-    steps.push({
-      step_name: "search_faq",
-      status: "completed",
-      keywords: analysis.key_phrases,
-    });
-
-    return {
-      status: "completed",
-      message: "FAQ response queued for sending.",
-      steps,
-    };
-  }
-
-  /**
-   * Feedback Collection Workflow
-   * @private
-   */
-  async executeFeedbackFlow(analysis, steps) {
-    steps.push({
-      step_name: "trigger_feedback_flow",
-      status: "pending",
-      action: "Send WhatsApp Flow for feedback collection",
-    });
-
-    return {
-      status: "completed",
-      message: "Feedback flow will be sent to customer.",
-      steps,
-    };
-  }
 
   /**
    * Record workflow execution result
