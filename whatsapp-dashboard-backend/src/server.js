@@ -15,6 +15,7 @@ const leadsRoutes = require("./routes/leads.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
 const settingsRoutes = require("./routes/settings.routes");
 const integrationsRoutes = require("./routes/integrations.routes");
+const automationRoutes = require("./routes/automation/workflows.routes");
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use(API_PREFIX, leadsRoutes);
 app.use(API_PREFIX, analyticsRoutes);
 app.use(API_PREFIX, settingsRoutes);
 app.use(API_PREFIX, integrationsRoutes);
+app.use(`${API_PREFIX}/automation`, automationRoutes);
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 

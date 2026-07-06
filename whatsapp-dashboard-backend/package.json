@@ -10,6 +10,7 @@
     "migrate": "psql $DATABASE_URL -f db/schema.sql"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
