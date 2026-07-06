@@ -17,6 +17,9 @@ import {
   Workflow,
   ShieldCheck,
   Gauge,
+  Twitter,
+  Linkedin,
+  Youtube,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
