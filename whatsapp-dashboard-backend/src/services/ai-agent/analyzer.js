@@ -1,5 +1,5 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const logger = require("../../utils/logger");
+const logger = require("../../config/logger");
 
 /**
  * AI Agent Service for message analysis and intent detection

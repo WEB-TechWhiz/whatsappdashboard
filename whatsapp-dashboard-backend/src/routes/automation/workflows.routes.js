@@ -1,12 +1,12 @@
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
-const { requireAuth } = require("../../middleware/auth");
+const requireAuth = require("../../middleware/auth");
 const { validateRequest } = require("../../middleware/validation");
 const z = require("zod");
 const db = require("../../database");
 const aiAnalyzer = require("../../services/ai-agent/analyzer");
 const workflowEngine = require("../../services/ai-agent/workflow-engine");
-const logger = require("../../utils/logger");
+const logger = require("../../config/logger");
 
 const router = express.Router();
 

@@ -1,5 +1,5 @@
-const logger = require("../../utils/logger");
-const db = require("../../../database");
+const logger = require("../../config/logger");
+const db = require("../../database");
 const { v4: uuidv4 } = require("uuid");
 const leadCaptureWorkflow = require("./workflows/lead-capture");
 const appointmentBookingWorkflow = require("./workflows/appointment-booking");

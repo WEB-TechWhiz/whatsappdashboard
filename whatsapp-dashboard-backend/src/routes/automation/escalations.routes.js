@@ -1,10 +1,10 @@
 const express = require("express");
-const { requireAuth } = require("../../middleware/auth");
+const requireAuth = require("../../middleware/auth");
 const z = require("zod");
 const { validateRequest } = require("../../middleware/validation");
 const routingEngine = require("../../services/ai-agent/routing-engine");
 const db = require("../../database");
-const logger = require("../../utils/logger");
+const logger = require("../../config/logger");
 
 const router = express.Router();
 
