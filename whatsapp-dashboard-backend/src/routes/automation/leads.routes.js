@@ -1,9 +1,9 @@
 const express = require("express");
-const { requireAuth } = require("../../middleware/auth");
-const z = require("zod");
-const { validateRequest } = require("../../middleware/validation");
+const requireAuth = require("../../middleware/auth");
+const { z } = require("zod");
+const { validateRequest } = require("../../middleware/validate");
 const leadCaptureWorkflow = require("../../services/ai-agent/workflows/lead-capture");
-const logger = require("../../utils/logger");
+const logger = require("../../config/logger");
 
 const router = express.Router();
 

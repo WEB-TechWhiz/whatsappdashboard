@@ -1,5 +1,5 @@
-const logger = require("../../../utils/logger");
-const db = require("../../../database");
+const logger = require("../../../config/logger");
+const db = require("../../../config/db");
 const { v4: uuidv4 } = require("uuid");
 const webhookHandler = require("../webhook-handler");
 

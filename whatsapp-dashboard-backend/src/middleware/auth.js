@@ -15,6 +15,8 @@ function requireAuth(req, res, next) {
     // Everything downstream trusts req.workspaceId — it comes ONLY from the
     // verified token, never from req.body/req.params/req.query.
     req.workspaceId = payload.workspaceId;
+    req.workspace = { id: payload.workspaceId };
+    req.user = { id: payload.workspaceId };
     next();
   } catch (err) {
     throw new UnauthorizedError("Invalid or expired token");

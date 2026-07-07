@@ -1,8 +1,8 @@
 const express = require("express");
 const crypto = require("crypto");
-const logger = require("../../utils/logger");
+const logger = require("../../config/logger");
 const webhookHandler = require("../../services/ai-agent/webhook-handler");
-const db = require("../../database");
+const db = require("../../config/db");
 
 const router = express.Router();
 

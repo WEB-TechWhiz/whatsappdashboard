@@ -13,3 +13,4 @@ function validate(schema) {
 }
 
 module.exports = validate;
+module.exports.validateRequest = validate;
