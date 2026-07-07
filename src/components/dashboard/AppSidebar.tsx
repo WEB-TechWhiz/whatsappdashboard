@@ -7,6 +7,30 @@ import {
   BarChart3,
   MessageCircle,
   LogOut,
+  UserCircle2,
+  Target,
+  Handshake,
+  BookUser,
+  CalendarCheck,
+  CalendarDays,
+  ListChecks,
+  Sparkles,
+  Mail,
+  Send,
+  Megaphone,
+  Rocket,
+  FileText,
+  CreditCard,
+  Package,
+  Wrench,
+  Boxes,
+  UsersRound,
+  FileBarChart,
+  Workflow,
+  Zap,
+  BookOpen,
+  Files,
+  ChevronRight,
 } from "lucide-react";
 import {
   Sidebar,
@@ -14,64 +38,117 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { apiFetch, auth } from "@/lib/api";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { auth } from "@/lib/api";
+
+type NavItem = {
+  title: string;
+  url: string;
+  icon: any;
+  badge?: string;
+  exact?: boolean;
+  children?: { title: string; url: string }[];
+};
+
+type NavGroup = { label: string; items: NavItem[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Overview",
+    items: [
+      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, exact: true },
+    ],
+  },
+  {
+    label: "CRM",
+    items: [
+      {
+        title: "CRM",
+        url: "/dashboard/crm",
+        icon: UserCircle2,
+        children: [
+          { title: "Customers", url: "/dashboard/crm/customers" },
+          { title: "Leads", url: "/dashboard/leads" },
+          { title: "Opportunities", url: "/dashboard/crm/opportunities" },
+          { title: "Contacts", url: "/dashboard/crm/contacts" },
+        ],
+      },
+      { title: "Appointments", url: "/dashboard/appointments", icon: CalendarCheck },
+      { title: "Calendar", url: "/dashboard/calendar", icon: CalendarDays },
+      { title: "Tasks", url: "/dashboard/tasks", icon: ListChecks, badge: "7" },
+    ],
+  },
+  {
+    label: "AI & Comms",
+    items: [
+      { title: "AI Center", url: "/dashboard/ai", icon: Sparkles },
+      {
+        title: "Communication",
+        url: "/dashboard/communication",
+        icon: MessageSquare,
+        badge: "12",
+        children: [
+          { title: "WhatsApp", url: "/dashboard/conversations" },
+          { title: "Email", url: "/dashboard/communication/email" },
+          { title: "SMS", url: "/dashboard/communication/sms" },
+        ],
+      },
+      { title: "Marketing", url: "/dashboard/marketing", icon: Megaphone },
+      { title: "Campaigns", url: "/dashboard/campaigns", icon: Rocket },
+    ],
+  },
+  {
+    label: "Revenue",
+    items: [
+      { title: "Invoices", url: "/dashboard/invoices", icon: FileText },
+      { title: "Payments", url: "/dashboard/payments", icon: CreditCard },
+      { title: "Products", url: "/dashboard/products", icon: Package },
+      { title: "Services", url: "/dashboard/services", icon: Wrench },
+      { title: "Inventory", url: "/dashboard/inventory", icon: Boxes },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { title: "Employees", url: "/dashboard/employees", icon: UsersRound },
+      { title: "Reports", url: "/dashboard/reports", icon: FileBarChart },
+      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+      { title: "Workflow Builder", url: "/dashboard/workflows", icon: Workflow },
+      { title: "Automation", url: "/dashboard/automation", icon: Zap },
+    ],
+  },
+  {
+    label: "Resources",
+    items: [
+      { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen },
+      { title: "Documents", url: "/dashboard/documents", icon: Files },
+      { title: "Settings", url: "/dashboard/settings", icon: Settings },
+    ],
+  },
+];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  // Fetch workspace profile details
-  const { data: profile } = useQuery({
-    queryKey: ["workspace-profile"],
-    queryFn: () => apiFetch("/workspace/profile"),
-    enabled: auth.isAuthenticated(),
-  });
-
-  // Fetch conversations to calculate dynamic unread badge count
-  const { data: conversations } = useQuery({
-    queryKey: ["conversations"],
-    queryFn: () => apiFetch("/conversations"),
-    enabled: auth.isAuthenticated(),
-    refetchInterval: 10000, // poll periodically for updates in sidebar
-  });
-
-  const totalUnread = conversations?.reduce((acc: number, c: any) => acc + (c.unread || 0), 0) || 0;
-
-  const items = [
-    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, exact: true },
-    {
-      title: "Conversations",
-      url: "/dashboard/conversations",
-      icon: MessageSquare,
-      badge: totalUnread > 0 ? String(totalUnread) : undefined,
-    },
-    { title: "Leads", url: "/dashboard/leads", icon: Users },
-    { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-    { title: "Settings", url: "/dashboard/settings", icon: Settings },
-  ];
-
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
 
-  const initials = profile?.name
-    ? profile.name
-        .split(" ")
-        .map((n: string) => n[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase()
-    : "AD";
-
   const handleLogout = async () => {
-    await auth.logout();
+    try {
+      await auth.logout();
+    } catch {}
     window.location.href = "/login";
   };
 
@@ -83,45 +160,80 @@ export function AppSidebar() {
             <MessageCircle className="h-5 w-5" />
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-            <span className="text-sm font-semibold leading-none">{profile?.name || "WhatsApp CRM"}</span>
-            <span className="text-xs text-muted-foreground mt-1">Team workspace</span>
+            <span className="text-sm font-semibold leading-none">Flowly CRM</span>
+            <span className="text-xs text-muted-foreground mt-1">Acme Wellness</span>
           </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url, item.exact)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
-                      {item.badge ? (
-                        <Badge className="ml-auto h-5 px-1.5 text-[10px] group-data-[collapsible=icon]:hidden bg-danger text-danger-foreground">
-                          {item.badge}
-                        </Badge>
-                      ) : null}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {NAV_GROUPS.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  if (item.children) {
+                    const anyActive = item.children.some((c) => isActive(c.url));
+                    return (
+                      <Collapsible key={item.title} defaultOpen={anyActive} className="group/collapsible">
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton tooltip={item.title}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                              {item.badge ? (
+                                <Badge className="ml-auto h-5 px-1.5 text-[10px] group-data-[collapsible=icon]:hidden bg-danger text-danger-foreground">
+                                  {item.badge}
+                                </Badge>
+                              ) : null}
+                              <ChevronRight className="ml-auto h-4 w-4 transition-transform group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {item.children.map((c) => (
+                                <SidebarMenuSubItem key={c.title}>
+                                  <SidebarMenuSubButton asChild isActive={isActive(c.url)}>
+                                    <Link to={c.url}>{c.title}</Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    );
+                  }
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={isActive(item.url, item.exact)} tooltip={item.title}>
+                        <Link to={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                          {item.badge ? (
+                            <Badge className="ml-auto h-5 px-1.5 text-[10px] group-data-[collapsible=icon]:hidden bg-danger text-danger-foreground">
+                              {item.badge}
+                            </Badge>
+                          ) : null}
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter className="border-t">
         <div className="flex items-center justify-between w-full p-1">
           <div className="flex items-center gap-2 min-w-0">
             <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                {initials}
-              </AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">AD</AvatarFallback>
             </Avatar>
             <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-              <span className="text-sm font-medium truncate">{profile?.name || "Admin"}</span>
-              <span className="text-xs text-muted-foreground truncate">{profile?.email || "admin@example.com"}</span>
+              <span className="text-sm font-medium truncate">Admin</span>
+              <span className="text-xs text-muted-foreground truncate">admin@flowly.io</span>
             </div>
           </div>
           <Button
