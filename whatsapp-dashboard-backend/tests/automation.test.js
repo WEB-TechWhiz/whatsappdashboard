@@ -92,11 +92,7 @@ describe("WhatsApp Automation System", () => {
         key_phrases: ["Enterprise", "budget"],
       };
 
-      const leadData = leadCaptureWorkflow.extractLeadData(
-        testPhoneNumber,
-        "John Doe",
-        analysis,
-      );
+      const leadData = leadCaptureWorkflow.extractLeadData(testPhoneNumber, "John Doe", analysis);
 
       assert.equal(leadData.phone, testPhoneNumber);
       assert.equal(leadData.name, "John Doe");
@@ -114,8 +110,7 @@ describe("WhatsApp Automation System", () => {
         budget: "$5000",
       };
 
-      const completeness =
-        leadCaptureWorkflow.calculateLeadCompleteness(leadData);
+      const completeness = leadCaptureWorkflow.calculateLeadCompleteness(leadData);
 
       assert(completeness > 0.8);
       console.log("✓ Lead completeness calculation passed");

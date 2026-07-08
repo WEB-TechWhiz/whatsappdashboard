@@ -1,11 +1,19 @@
-const logger = require("../../config/logger");
-const db = require("../../config/db");
-const { v4: uuidv4 } = require("uuid");
-const leadCaptureWorkflow = require("./workflows/lead-capture");
-const appointmentBookingWorkflow = require("./workflows/appointment-booking");
-const productInquiryWorkflow = require("./workflows/product-inquiry");
-const { FAQWorkflow, FeedbackWorkflow } = require("./workflows/faq-feedback");
+// const logger = require("../../utils/logger");
+import logger from "../../config/logger.js";
+// const db = require("../../database");
+import db from "../../database.js";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
 
+// const leadCaptureWorkflow = require("./workflows/lead-capture");
+import leadCaptureWorkflow from "./workflows/lead-capture.js";
+// const appointmentBookingWorkflow = require("./workflows/appointment-booking");
+import appointmentBookingWorkflow from "./workflows/appointment-booking.js";
+// const productInquiryWorkflow = require("./workflows/product-inquiry");
+import productInquiryWorkflow from "./workflows/product-inquiry.js";
+// const { FAQWorkflow, FeedbackWorkflow } = require("./workflows/faq-feedback");
+// import {FAQWorkflow,FeedbackWorkflow} from "./workflows/faq-feedback.js"
+import { faqWorkflow, feedbackWorkflow } from "./workflows/faq-feedback.js";
 /**
  * Workflow Engine Service
  * Orchestrates automation workflows based on AI analysis
@@ -17,14 +25,7 @@ class WorkflowEngine {
    * @returns {Promise<Object>} Workflow execution result
    */
   async executeWorkflow(params) {
-    const {
-      workspaceId,
-      conversationId,
-      messageId,
-      phoneNumber,
-      message,
-      analysis,
-    } = params;
+    const { workspaceId, conversationId, messageId, phoneNumber, message, analysis } = params;
 
     const startTime = Date.now();
 
@@ -33,9 +34,7 @@ class WorkflowEngine {
       const rule = await this.findMatchingRule(workspaceId, analysis);
 
       if (!rule) {
-        logger.info(
-          `[Workflow] No matching rule for intent: ${analysis.intent}`,
-        );
+        logger.info(`[Workflow] No matching rule for intent: ${analysis.intent}`);
         return {
           executed: false,
           reason: "No matching workflow rule",
@@ -54,7 +53,13 @@ class WorkflowEngine {
 
       // 3. Start workflow execution
       const executionId = uuidv4();
-      await this.recordExecutionStart(executionId, workspaceId, rule.id, conversationId, analysisId);
+      await this.recordExecutionStart(
+        executionId,
+        workspaceId,
+        rule.id,
+        conversationId,
+        analysisId,
+      );
 
       // 4. Execute workflow steps
       const result = await this.executeWorkflowSteps(
@@ -66,18 +71,12 @@ class WorkflowEngine {
       );
 
       // 5. Record execution result
-      await this.recordExecutionResult(
-        executionId,
-        result,
-        Date.now() - startTime,
-      );
+      await this.recordExecutionResult(executionId, result, Date.now() - startTime);
 
       // 6. Update automation usage metrics
       await this.updateUsageMetrics(workspaceId, rule.workflow_type, result.status);
 
-      logger.info(
-        `[Workflow] Executed ${rule.workflow_type} in ${Date.now() - startTime}ms`,
-      );
+      logger.info(`[Workflow] Executed ${rule.workflow_type} in ${Date.now() - startTime}ms`);
 
       return {
         executed: true,
@@ -130,14 +129,7 @@ class WorkflowEngine {
    * Record message analysis in database
    * @private
    */
-  async recordAnalysis(
-    workspaceId,
-    conversationId,
-    messageId,
-    phoneNumber,
-    message,
-    analysis,
-  ) {
+  async recordAnalysis(workspaceId, conversationId, messageId, phoneNumber, message, analysis) {
     const analysisId = uuidv4();
 
     try {
@@ -176,26 +168,13 @@ class WorkflowEngine {
    * Record workflow execution start
    * @private
    */
-  async recordExecutionStart(
-    executionId,
-    workspaceId,
-    ruleId,
-    conversationId,
-    analysisId,
-  ) {
+  async recordExecutionStart(executionId, workspaceId, ruleId, conversationId, analysisId) {
     try {
       await db.query(
         `INSERT INTO workflow_executions
          (id, workspace_id, automation_rule_id, conversation_id, analysis_id, status, input_data)
          VALUES (?, ?, ?, ?, ?, 'running', ?)`,
-        [
-          executionId,
-          workspaceId,
-          ruleId,
-          conversationId,
-          analysisId,
-          JSON.stringify({}),
-        ],
+        [executionId, workspaceId, ruleId, conversationId, analysisId, JSON.stringify({})],
       );
     } catch (error) {
       logger.error("[Workflow] Error recording execution start:", error);
@@ -206,13 +185,7 @@ class WorkflowEngine {
    * Execute workflow-specific steps
    * @private
    */
-  async executeWorkflowSteps(
-    workspaceId,
-    rule,
-    analysis,
-    phoneNumber,
-    conversationId,
-  ) {
+  async executeWorkflowSteps(workspaceId, rule, analysis, phoneNumber, conversationId) {
     const config = rule.workflow_config;
 
     try {
@@ -262,7 +235,7 @@ class WorkflowEngine {
           });
 
         case "faq":
-          return await FAQWorkflow.execute({
+          return await faqWorkflow.execute({
             workspaceId,
             conversationId,
             phoneNumber,
@@ -273,7 +246,7 @@ class WorkflowEngine {
           });
 
         case "feedback_collection":
-          return await FeedbackWorkflow.execute({
+          return await feedbackWorkflow.execute({
             workspaceId,
             conversationId,
             phoneNumber,
@@ -306,8 +279,6 @@ class WorkflowEngine {
     }
   }
 
-
-
   /**
    * Record workflow execution result
    * @private
@@ -319,7 +290,13 @@ class WorkflowEngine {
          SET status = ?, execution_duration_ms = ?, 
              output_data = ?, steps_executed = ?, completed_at = NOW()
          WHERE id = ?`,
-        [result.status, duration, JSON.stringify(result), JSON.stringify(result.steps), executionId],
+        [
+          result.status,
+          duration,
+          JSON.stringify(result),
+          JSON.stringify(result.steps),
+          executionId,
+        ],
       );
     } catch (error) {
       logger.error("[Workflow] Error recording result:", error);
@@ -410,4 +387,5 @@ class WorkflowEngine {
   }
 }
 
-module.exports = new WorkflowEngine();
+// module.exports = new WorkflowEngine();
+export default WorkflowEngine;

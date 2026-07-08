@@ -1,13 +1,22 @@
-const express = require("express");
-const { v4: uuidv4 } = require("uuid");
-const requireAuth = require("../../middleware/auth");
-const { validateRequest } = require("../../middleware/validate.js");
-const { z } = require("zod");
-const db = require("../../config/db.js");
+// const express = require("express");
+import express from "express";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
+// const requireAuth = require("../../middleware/auth");
+import requireAuth from "../../middleware/auth.js";
+// const { validateRequest } = require("../../middleware/validate.js");
+import { validateRequest } from "../../middleware/validate.js";
+// const { z } = require("zod");
+import z from "zod";
+// const db = require("../../config/db.js");
 // const db = require("../../../db")
-const aiAnalyzer = require("../../services/ai-agent/analyzer");
-const workflowEngine = require("../../services/ai-agent/workflow-engine");
-const logger = require("../../config/logger.js");
+import db from "../../database.js";
+// const aiAnalyzer = require("../../services/ai-agent/analyzer");
+import aiAnalyzer from "../../services/ai-agent/analyzer.js";
+// const workflowEngine = require("../../services/ai-agent/workflow-engine");
+import workflowEngine from "../../services/ai-agent/workflow-engine.js";
+// const logger = require("../../config/logger.js");
+import logger from "../../config/logger.js";
 
 const router = express.Router();
 
@@ -47,12 +56,7 @@ router.post(
     z.object({
       name: z.string().min(1).max(255),
       description: z.string().optional(),
-      trigger_type: z.enum([
-        "message_received",
-        "keyword_match",
-        "time_based",
-        "manual",
-      ]),
+      trigger_type: z.enum(["message_received", "keyword_match", "time_based", "manual"]),
       workflow_type: z.enum([
         "lead_capture",
         "appointment_booking",
@@ -68,14 +72,8 @@ router.post(
   async (req, res) => {
     try {
       const workspaceId = req.workspace.id;
-      const {
-        name,
-        description,
-        trigger_type,
-        workflow_type,
-        trigger_keywords,
-        workflow_config,
-      } = req.body;
+      const { name, description, trigger_type, workflow_type, trigger_keywords, workflow_config } =
+        req.body;
 
       const ruleId = uuidv4();
 
@@ -300,11 +298,7 @@ router.get("/executions", async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const offset = parseInt(req.query.offset) || 0;
 
-    const executions = await workflowEngine.getExecutionHistory(
-      workspaceId,
-      limit,
-      offset,
-    );
+    const executions = await workflowEngine.getExecutionHistory(workspaceId, limit, offset);
 
     res.json({ success: true, data: executions });
   } catch (error) {
@@ -358,4 +352,4 @@ router.get("/analyses", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

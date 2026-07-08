@@ -1,9 +1,15 @@
-const express = require("express");
-const crypto = require("crypto");
-const logger = require("../../config/logger");
-const webhookHandler = require("../../services/ai-agent/webhook-handler");
-const db = require("../../config/db");
+// const express = require("express");
+import express from "express";
+// const crypto = require("crypto");
+import crypto from "crypto";
+// const logger = require("../../config/logger");
+import logger from "../../config/logger.js";
+// const webhookHandler = require("../../services/ai-agent/webhook-handler");
+import webhookHandler from "../../services/ai-agent/webhook-handler.js";
+// const db = require("../../config/db");
+import db from "../../database.js";
 
+// const router = express.Router();
 const router = express.Router();
 
 /**
@@ -29,7 +35,7 @@ function verifyWebhookSignature(req, signature) {
 /**
  * POST /webhooks/whatsapp
  * Receives incoming WhatsApp messages from Meta
- * 
+ *
  * This is the main entry point for:
  * - Incoming customer messages
  * - Message delivery confirmations
@@ -86,7 +92,7 @@ router.post("/whatsapp", async (req, res) => {
 /**
  * GET /webhooks/whatsapp
  * Webhook verification challenge from Meta
- * 
+ *
  * Meta sends this to verify the webhook is responding correctly
  */
 router.get("/whatsapp", (req, res) => {
@@ -132,4 +138,4 @@ async function handleMessageStatus(status) {
   }
 }
 
-module.exports = router;
+export default router;

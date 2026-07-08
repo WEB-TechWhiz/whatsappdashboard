@@ -1,11 +1,19 @@
-const express = require("express");
-const requireAuth = require("../../middleware/auth");
-const { z } = require("zod");
-const { validateRequest } = require("../../middleware/validate");
-const routingEngine = require("../../services/ai-agent/routing-engine");
-const db = require("../../config/db");
-const logger = require("../../config/logger");
+// const express = require("express");
+import express from "express";
+// const requireAuth = require("../../middleware/auth");
+import requireAuth from "../../middleware/auth.js";
+// const { z } = require("zod");
+import z from "zod";
+// const { validateRequest } = require("../../middleware/validate");
+import { validateRequest } from "../../middleware/validate.js";
+// const routingEngine = require("../../services/ai-agent/routing-engine");
+import routingEngine from "../../services/ai-agent/routing-engine.js";
+// const db = require("../../config/db");
+import db from "../../database.js";
+// const logger = require("../../config/logger");
+import logger from "../../config/logger.js";
 
+// const router = express.Router();
 const router = express.Router();
 
 // Apply authentication middleware
@@ -21,11 +29,7 @@ router.get("/", async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const offset = parseInt(req.query.offset) || 0;
 
-    const escalations = await routingEngine.getActiveEscalations(
-      workspaceId,
-      limit,
-      offset,
-    );
+    const escalations = await routingEngine.getActiveEscalations(workspaceId, limit, offset);
 
     res.json({ success: true, data: escalations });
   } catch (error) {
@@ -43,10 +47,7 @@ router.get("/:escalationId", async (req, res) => {
     const workspaceId = req.workspace.id;
     const { escalationId } = req.params;
 
-    const escalation = await routingEngine.getEscalationDetails(
-      workspaceId,
-      escalationId,
-    );
+    const escalation = await routingEngine.getEscalationDetails(workspaceId, escalationId);
 
     if (!escalation) {
       return res.status(404).json({ error: "Escalation not found" });
@@ -181,4 +182,4 @@ router.get("/wait-time/estimate", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

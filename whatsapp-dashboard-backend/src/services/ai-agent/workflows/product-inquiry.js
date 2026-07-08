@@ -1,7 +1,10 @@
-const logger = require("../../../config/logger");
-const db = require("../../../config/db");
-const { v4: uuidv4 } = require("uuid");
-const webhookHandler = require("../webhook-handler");
+// const logger = require("../../../config/logger");
+import logger from "../../../config/logger.js";
+// const db = require("../../../config/db");
+import db from "../../../database.js";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
+import webhookHandler from "../webhook-handler.js";
 
 /**
  * Product Inquiry Workflow
@@ -27,8 +30,10 @@ class ProductInquiryWorkflow {
 
     try {
       // Step 1: Extract product interest
-      const productInterest = analysis?.entities?.product_interest ||
-        this.extractProductFromMessage(message) || "general";
+      const productInterest =
+        analysis?.entities?.product_interest ||
+        this.extractProductFromMessage(message) ||
+        "general";
 
       steps.push({
         step_name: "extract_product_interest",
@@ -190,8 +195,7 @@ class ProductInquiryWorkflow {
    */
   async searchProducts(workspaceId, searchTerm, limit = 5) {
     try {
-      let query =
-        `SELECT id, name, description, price, image_url, category FROM products 
+      let query = `SELECT id, name, description, price, image_url, category FROM products 
          WHERE workspace_id = ? AND status = 'active'`;
       const params = [workspaceId];
 
@@ -286,11 +290,7 @@ class ProductInquiryWorkflow {
         );
 
         // Generate payment link
-        const paymentLink = await this.generatePaymentLink(
-          orderId,
-          product,
-          phoneNumber,
-        );
+        const paymentLink = await this.generatePaymentLink(orderId, product, phoneNumber);
 
         return {
           status: "success",
@@ -347,10 +347,9 @@ class ProductInquiryWorkflow {
 
       // Get associated product if selected
       if (inquiry.selected_product_id) {
-        const [products] = await db.query(
-          `SELECT * FROM products WHERE id = ?`,
-          [inquiry.selected_product_id],
-        );
+        const [products] = await db.query(`SELECT * FROM products WHERE id = ?`, [
+          inquiry.selected_product_id,
+        ]);
         inquiry.product = products[0] || null;
       }
 
@@ -412,4 +411,5 @@ class ProductInquiryWorkflow {
   }
 }
 
-module.exports = new ProductInquiryWorkflow();
+// module.exports = new ProductInquiryWorkflow();
+export default ProductInquiryWorkflow;

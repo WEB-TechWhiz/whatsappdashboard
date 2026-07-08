@@ -1,7 +1,10 @@
-const logger = require("../../../config/logger");
-const db = require("../../../config/db");
-const { v4: uuidv4 } = require("uuid");
-const webhookHandler = require("../webhook-handler");
+// const logger = require("../../../config/logger");
+import logger from "../../../config/logger.js";
+// const db = require("../../../config/db");
+import db from "../../../database.js";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
+import webhookHandler from "../webhook-handler.js";
 
 /**
  * Lead Capture Workflow
@@ -34,10 +37,7 @@ class LeadCaptureWorkflow {
       });
 
       // Step 2: Check if lead already exists
-      const existingLead = await this.findExistingLead(
-        workspaceId,
-        phoneNumber,
-      );
+      const existingLead = await this.findExistingLead(workspaceId, phoneNumber);
       steps.push({
         step_name: "check_duplicate",
         status: "completed",
@@ -138,12 +138,9 @@ class LeadCaptureWorkflow {
     return {
       phone: phoneNumber,
       name: senderName || analysis?.entities?.name || "Unknown",
-      email:
-        analysis?.entities?.email || "",
-      interest:
-        analysis?.entities?.product_interest || analysis?.key_phrases?.[0] || "",
-      budget:
-        analysis?.entities?.budget || "",
+      email: analysis?.entities?.email || "",
+      interest: analysis?.entities?.product_interest || analysis?.key_phrases?.[0] || "",
+      budget: analysis?.entities?.budget || "",
       message_content: analysis?.action_required || "",
       intent: analysis?.intent || "inquiry",
       sentiment: analysis?.sentiment || "neutral",
@@ -231,16 +228,11 @@ class LeadCaptureWorkflow {
    */
   generateQualificationMessage(leadData) {
     let message = `Thanks for reaching out${leadData.name ? ", " + leadData.name : ""}! 👋\n\n`;
-    message +=
-      "To help you better, could you please tell us more about your needs?\n\n";
-    message +=
-      "1. What product/service interests you most?\n";
-    message +=
-      "2. What's your timeline?\n";
-    message +=
-      "3. What's your budget range?\n\n";
-    message +=
-      "Reply with any details, or reply 'DETAILS' to fill out a form.";
+    message += "To help you better, could you please tell us more about your needs?\n\n";
+    message += "1. What product/service interests you most?\n";
+    message += "2. What's your timeline?\n";
+    message += "3. What's your budget range?\n\n";
+    message += "Reply with any details, or reply 'DETAILS' to fill out a form.";
 
     return message;
   }
@@ -277,13 +269,9 @@ class LeadCaptureWorkflow {
 
       // Update lead status based on information completeness
       const completeness = this.calculateLeadCompleteness(updateData);
-      const newStatus =
-        completeness > 0.7 ? "ready_for_sales" : "qualified";
+      const newStatus = completeness > 0.7 ? "ready_for_sales" : "qualified";
 
-      await db.query(
-        `UPDATE leads SET status = ? WHERE id = ?`,
-        [newStatus, leadId],
-      );
+      await db.query(`UPDATE leads SET status = ? WHERE id = ?`, [newStatus, leadId]);
 
       return {
         status: "completed",
@@ -318,10 +306,10 @@ class LeadCaptureWorkflow {
    */
   async getLeadDetails(workspaceId, leadId) {
     try {
-      const [leads] = await db.query(
-        `SELECT * FROM leads WHERE id = ? AND workspace_id = ?`,
-        [leadId, workspaceId],
-      );
+      const [leads] = await db.query(`SELECT * FROM leads WHERE id = ? AND workspace_id = ?`, [
+        leadId,
+        workspaceId,
+      ]);
 
       if (leads.length === 0) return null;
 
@@ -401,4 +389,5 @@ class LeadCaptureWorkflow {
   }
 }
 
-module.exports = new LeadCaptureWorkflow();
+// module.exports = new LeadCaptureWorkflow();
+export default LeadCaptureWorkflow;

@@ -1,5 +1,7 @@
-const jwt = require("jsonwebtoken");
-const { UnauthorizedError } = require("../utils/errors");
+// const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+// const { UnauthorizedError } = require("../utils/errors");
+import { UnauthorizedError } from "../utils/errors.js";
 
 function requireAuth(req, res, next) {
   const header = req.headers.authorization;
@@ -23,4 +25,5 @@ function requireAuth(req, res, next) {
   }
 }
 
-module.exports = requireAuth;
+// module.exports = requireAuth;
+export default requireAuth;

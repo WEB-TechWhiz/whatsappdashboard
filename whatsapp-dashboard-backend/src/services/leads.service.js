@@ -1,6 +1,7 @@
-const pool = require("../config/db");
-const { NotFoundError } = require("../utils/errors");
-
+// const pool = require("../config/db");
+import pool from "../config/db.js";
+// const { NotFoundError } = require("../utils/errors");
+import { NotFoundError } from "../utils/errors.js";
 function toLeadDTO(row) {
   return {
     id: row.id,
@@ -34,7 +35,7 @@ async function listLeads(workspaceId, { status, search }) {
      FROM contacts c
      WHERE c.workspace_id = $1 ${where}
      ORDER BY c.updated_at DESC`,
-    params
+    params,
   );
 
   return rows.map(toLeadDTO);
@@ -45,23 +46,23 @@ async function createLead(workspaceId, { name, phone, source, status, value }) {
     `INSERT INTO contacts (workspace_id, name, phone, source, status, deal_value)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [workspaceId, name, phone, source, status, value]
+    [workspaceId, name, phone, source, status, value],
   );
 
   await pool.query(
     `INSERT INTO activity_log (workspace_id, contact_id, type, description)
      VALUES ($1, $2, 'lead_created', $3)`,
-    [workspaceId, rows[0].id, `New lead: ${name}`]
+    [workspaceId, rows[0].id, `New lead: ${name}`],
   );
 
   return toLeadDTO(rows[0]);
 }
 
 async function updateLead(workspaceId, contactId, { status, value }) {
-  const existing = await pool.query(
-    `SELECT * FROM contacts WHERE id = $1 AND workspace_id = $2`,
-    [contactId, workspaceId]
-  );
+  const existing = await pool.query(`SELECT * FROM contacts WHERE id = $1 AND workspace_id = $2`, [
+    contactId,
+    workspaceId,
+  ]);
   if (existing.rows.length === 0) throw new NotFoundError("Lead");
 
   const fields = [];
@@ -82,7 +83,7 @@ async function updateLead(workspaceId, contactId, { status, value }) {
     `UPDATE contacts SET ${fields.join(", ")}
      WHERE id = $${params.length - 1} AND workspace_id = $${params.length}
      RETURNING *`,
-    params
+    params,
   );
 
   const updated = rows[0];
@@ -90,24 +91,25 @@ async function updateLead(workspaceId, contactId, { status, value }) {
   // Assumption: a booking snapshot is recorded whenever status flips TO 'Booked'.
   // This is what powers "Today's Cash" and the weekly bookings chart.
   if (status === "Booked" && existing.rows[0].status !== "Booked") {
-    await pool.query(
-      `INSERT INTO bookings (workspace_id, contact_id, value) VALUES ($1, $2, $3)`,
-      [workspaceId, contactId, updated.deal_value]
-    );
+    await pool.query(`INSERT INTO bookings (workspace_id, contact_id, value) VALUES ($1, $2, $3)`, [
+      workspaceId,
+      contactId,
+      updated.deal_value,
+    ]);
     await pool.query(
       `INSERT INTO activity_log (workspace_id, contact_id, type, description)
        VALUES ($1, $2, 'demo_booked', $3)`,
-      [workspaceId, contactId, `${updated.name} booked`]
+      [workspaceId, contactId, `${updated.name} booked`],
     );
   } else if (status !== undefined) {
     await pool.query(
       `INSERT INTO activity_log (workspace_id, contact_id, type, description)
        VALUES ($1, $2, 'status_changed', $3)`,
-      [workspaceId, contactId, `${updated.name} moved to ${status}`]
+      [workspaceId, contactId, `${updated.name} moved to ${status}`],
     );
   }
 
   return toLeadDTO(updated);
 }
 
-module.exports = { listLeads, createLead, updateLead };
+export { listLeads, createLead, updateLead };

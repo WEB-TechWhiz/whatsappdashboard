@@ -1,4 +1,5 @@
-const { z } = require("zod");
+// const { z } = require("zod");
+import z from "zod";
 
 const login = z.object({
   email: z.string().email(),
@@ -71,7 +72,7 @@ const inboundWhatsappMessage = z.object({
   source: z.enum(["Instagram", "Website", "Facebook", "Referral"]).default("Website"),
 });
 
-module.exports = {
+export {
   login,
   signup,
   refreshToken,

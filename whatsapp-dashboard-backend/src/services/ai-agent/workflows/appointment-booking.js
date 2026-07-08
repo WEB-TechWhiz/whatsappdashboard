@@ -1,7 +1,10 @@
-const logger = require("../../../config/logger");
-const db = require("../../../config/db");
-const { v4: uuidv4 } = require("uuid");
-const webhookHandler = require("../webhook-handler");
+// const logger = require("../../../config/logger");
+import logger from "../../../config/logger.js";
+// const db = require("../../../config/db");
+import db from "../../../database.js";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
+import webhookHandler from "../webhook-handler.js";
 
 /**
  * Appointment Booking Workflow
@@ -350,13 +353,7 @@ class AppointmentBookingWorkflow {
    * Confirm appointment booking
    */
   async confirmBooking(params) {
-    const {
-      workspaceId,
-      appointmentId,
-      selectedSlot,
-      customerName,
-      phoneNumber,
-    } = params;
+    const { workspaceId, appointmentId, selectedSlot, customerName, phoneNumber } = params;
 
     try {
       // Update appointment with selected time
@@ -367,9 +364,7 @@ class AppointmentBookingWorkflow {
         [selectedSlot, appointmentId, workspaceId],
       );
 
-      logger.info(
-        `[Appointment Booking] Appointment confirmed: ${appointmentId}`,
-      );
+      logger.info(`[Appointment Booking] Appointment confirmed: ${appointmentId}`);
 
       return {
         status: "success",
@@ -408,10 +403,9 @@ class AppointmentBookingWorkflow {
       );
 
       // Mark reminder as sent
-      await db.query(
-        `UPDATE appointments SET reminder_sent_at = NOW() WHERE id = ?`,
-        [appointmentId],
-      );
+      await db.query(`UPDATE appointments SET reminder_sent_at = NOW() WHERE id = ?`, [
+        appointmentId,
+      ]);
 
       return { success: true };
     } catch (error) {
@@ -473,4 +467,4 @@ class AppointmentBookingWorkflow {
   }
 }
 
-module.exports = new AppointmentBookingWorkflow();
+export default new AppointmentBookingWorkflow();

@@ -1,14 +1,24 @@
-const crypto = require("crypto");
-const express = require("express");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const rateLimit = require("express-rate-limit");
-const pool = require("../config/db");
-const asyncHandler = require("../utils/asyncHandler");
-const validate = require("../middleware/validate");
-const requireAuth = require("../middleware/auth");
-const schemas = require("../validators/schemas");
-const { AppError, ConflictError, UnauthorizedError } = require("../utils/errors");
+// const crypto = require("crypto");
+import crypto from "crypto";
+// const express = require("express");
+import express from "express";
+// const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
+// const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+// const rateLimit = require("express-rate-limit");
+import rateLimit from "express-rate-limit";
+// const pool = require("../config/db");
+import pool from "../config/db.js";
+// const asyncHandler = require("../utils/asyncHandler");
+import asyncHandler from "../utils/asyncHandler.js";
+// const validate = require("../middleware/validate");
+import validate from "../middleware/validate.js";
+// const requireAuth = require("../middleware/auth");
+import requireAuth from "../middleware/auth.js";
+// const schemas = require("../validators/schemas");
+import * as schemas from "../validators/schemas.js";
+import { AppError, ConflictError, UnauthorizedError } from "../utils/errors.js";
 
 const router = express.Router();
 
@@ -295,4 +305,4 @@ router.get(
   }),
 );
 
-module.exports = router;
+export default router;

@@ -1,5 +1,7 @@
-const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
+// const { Server } = require("socket.io");
+import { Server } from "socket.io";
+// const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
 let io;
 
@@ -47,4 +49,4 @@ function emitToWorkspace(workspaceId, event, payload) {
   io.to(workspaceRoom(workspaceId)).emit(event, payload);
 }
 
-module.exports = { initSocket, emitToWorkspace };
+export { initSocket, emitToWorkspace };

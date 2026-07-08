@@ -1,5 +1,7 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const logger = require("../../config/logger");
+// const { GoogleGenerativeAI } = require("@google/generative-ai");
+import { GoogleGenerativeAI } from "@google/generative-ai";
+// const logger = require("../../config/logger");
+import logger from "../../config/logger.js";
 
 /**
  * AI Agent Service for message analysis and intent detection
@@ -24,10 +26,7 @@ class AIAnalyzer {
     const { message, senderName, phoneNumber, businessContext } = params;
 
     try {
-      const analysisPrompt = this.buildAnalysisPrompt(
-        message,
-        businessContext,
-      );
+      const analysisPrompt = this.buildAnalysisPrompt(message, businessContext);
 
       const response = await this.model.generateContent({
         contents: [{ role: "user", parts: [{ text: analysisPrompt }] }],
@@ -39,15 +38,11 @@ class AIAnalyzer {
         },
       });
 
-      const analysisText =
-        response.response.candidates[0].content.parts[0].text;
+      const analysisText = response.response.candidates[0].content.parts[0].text;
       const analysis = this.parseAnalysisResponse(analysisText);
 
       // Add confidence score based on response quality
-      analysis.confidence_score = this.calculateConfidenceScore(
-        message,
-        analysis,
-      );
+      analysis.confidence_score = this.calculateConfidenceScore(message, analysis);
       analysis.sender_name = senderName;
       analysis.phone_number = phoneNumber;
 
@@ -264,4 +259,5 @@ Respond with ONLY the response message, nothing else.`;
   }
 }
 
-module.exports = new AIAnalyzer();
+// module.exports = new AIAnalyzer();
+export default AIAnalyzer;

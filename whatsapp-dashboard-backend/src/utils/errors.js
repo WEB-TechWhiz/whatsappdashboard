@@ -32,4 +32,4 @@ class ConflictError extends AppError {
   }
 }
 
-module.exports = { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError };
+export { AppError, ValidationError, UnauthorizedError, NotFoundError, ConflictError };

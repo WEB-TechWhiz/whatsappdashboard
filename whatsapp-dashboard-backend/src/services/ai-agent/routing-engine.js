@@ -1,7 +1,8 @@
-const logger = require("../../config/logger");
-const db = require("../../config/db");
-const { v4: uuidv4 } = require("uuid");
-const webhookHandler = require("./webhook-handler");
+import logger from "../../config/logger.js";
+import db from "../../database.js";
+import { v4 as uuidv4 } from "uuid";
+import webhookHandler from "./webhook-handler.js";
+import { de } from "date-fns/locale/de";
 
 /**
  * Human Routing & Escalation Engine
@@ -20,8 +21,7 @@ class RoutingEngine {
       () => analysis.should_escalate,
 
       // Negative sentiment with high confidence
-      () =>
-        analysis.sentiment === "negative" && analysis.confidence_score > 0.8,
+      () => analysis.sentiment === "negative" && analysis.confidence_score > 0.8,
 
       // Intent unknown or classified as complaint
       () => ["unknown", "complaint"].includes(analysis.intent),
@@ -101,19 +101,11 @@ class RoutingEngine {
       });
 
       // Step 5: Send acknowledgment to customer
-      const acknowledgment =
-        `Thanks for your message! An agent will respond shortly. Your case #${escalationId.substring(0, 8).toUpperCase()}.`;
+      const acknowledgment = `Thanks for your message! An agent will respond shortly. Your case #${escalationId.substring(0, 8).toUpperCase()}.`;
 
-      await webhookHandler.sendMessage(
-        phoneNumber,
-        acknowledgment,
-        accessToken,
-        phoneNumberId,
-      );
+      await webhookHandler.sendMessage(phoneNumber, acknowledgment, accessToken, phoneNumberId);
 
-      logger.info(
-        `[Routing] Conversation routed to agent ${agent.id}: ${escalationId}`,
-      );
+      logger.info(`[Routing] Conversation routed to agent ${agent.id}: ${escalationId}`);
 
       return {
         routed: true,
@@ -151,9 +143,7 @@ class RoutingEngine {
          GROUP BY u.id
          ORDER BY active_conversations ASC
          LIMIT 1`,
-        specialty
-          ? [workspaceId, `%${specialty}%`]
-          : [workspaceId],
+        specialty ? [workspaceId, `%${specialty}%`] : [workspaceId],
       );
 
       return agents[0] || null;
@@ -186,9 +176,7 @@ class RoutingEngine {
   async notifyAgent(agent, context) {
     try {
       // Send via email
-      logger.info(
-        `[Routing] Would send email to ${agent.email} about ${context.customerName}`,
-      );
+      logger.info(`[Routing] Would send email to ${agent.email} about ${context.customerName}`);
 
       // In production, integrate with email service
       // await emailService.sendEscalationNotification(agent.email, context);
@@ -405,4 +393,5 @@ class RoutingEngine {
   }
 }
 
-module.exports = new RoutingEngine();
+// module.exports = new RoutingEngine();
+export default RoutingEngine;

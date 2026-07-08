@@ -1,4 +1,5 @@
-const Redis = require("ioredis");
+// const Redis = require("ioredis");
+import Redis from "ioredis";
 
 // Point this at the SAME Redis instance your WhatsApp automation backend
 // (session state machine + BullMQ) already uses — no need for a second instance.
@@ -10,4 +11,5 @@ redis.on("error", (err) => {
   console.error("Redis connection error:", err);
 });
 
-module.exports = redis;
+// module.exports = redis;
+export default redis;

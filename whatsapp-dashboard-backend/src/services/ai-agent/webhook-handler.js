@@ -1,8 +1,14 @@
-const logger = require("../../config/logger");
-const db = require("../../config/db");
-const aiAnalyzer = require("./analyzer");
-const workflowEngine = require("./workflow-engine");
-const { v4: uuidv4 } = require("uuid");
+// const logger = require("../../utils/logger");
+import logger from "../../config/logger.js";
+// const db = require("../../database");
+import db from "../../database.js";
+// const aiAnalyzer = require("./analyzer");
+// import aiAnalyzer from './analyzer.js'
+import aiAnalyzer from "./analyzer.js";
+// const workflowEngine = require("./workflow-engine");
+import workflowEngine from "./workflow-engine.js";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Webhook Handler for incoming WhatsApp messages
@@ -21,36 +27,25 @@ class WebhookHandler {
         this.parseWebhookMessage(webhookData);
 
       if (!phoneNumber || !message) {
-        logger.warn(
-          "[Webhook] Invalid webhook data - missing phoneNumber or message",
-        );
+        logger.warn("[Webhook] Invalid webhook data - missing phoneNumber or message");
         return { processed: false, reason: "Invalid webhook data" };
       }
 
       // Find workspace and conversation
-      const { workspaceId, conversationId } =
-        await this.findOrCreateConversation(
-          phoneNumber,
-          senderName,
-          senderPhoneId,
-        );
+      const { workspaceId, conversationId } = await this.findOrCreateConversation(
+        phoneNumber,
+        senderName,
+        senderPhoneId,
+      );
 
       if (!workspaceId) {
-        logger.warn(
-          `[Webhook] No workspace found for phone ${phoneNumber}`,
-        );
+        logger.warn(`[Webhook] No workspace found for phone ${phoneNumber}`);
         return { processed: false, reason: "Workspace not found" };
       }
 
       // Create message record
       const messageId = uuidv4();
-      await this.recordMessage(
-        messageId,
-        conversationId,
-        message,
-        phoneNumber,
-        workspaceId,
-      );
+      await this.recordMessage(messageId, conversationId, message, phoneNumber, workspaceId);
 
       // Trigger AI analysis and workflow
       const result = await workflowEngine.executeWorkflow({
@@ -87,12 +82,9 @@ class WebhookHandler {
   parseWebhookMessage(webhookData) {
     try {
       // Meta webhook structure for messages
-      const message =
-        webhookData?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-      const contact =
-        webhookData?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0];
-      const metadata =
-        webhookData?.entry?.[0]?.changes?.[0]?.value?.metadata;
+      const message = webhookData?.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+      const contact = webhookData?.entry?.[0]?.changes?.[0]?.value?.contacts?.[0];
+      const metadata = webhookData?.entry?.[0]?.changes?.[0]?.value?.metadata;
 
       if (!message || !metadata) {
         return {};
@@ -219,34 +211,27 @@ class WebhookHandler {
    */
   async sendMessage(phoneNumber, message, accessToken, phoneNumberId) {
     try {
-      const response = await fetch(
-        `https://graph.instagram.com/v18.0/${phoneNumberId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to: phoneNumber,
-            type: "text",
-            text: { body: message },
-          }),
+      const response = await fetch(`https://graph.instagram.com/v18.0/${phoneNumberId}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: phoneNumber,
+          type: "text",
+          text: { body: message },
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(
-          `WhatsApp API error: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`WhatsApp API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
 
-      logger.info(
-        `[Webhook] Message sent to ${phoneNumber}: ${data.messages[0].id}`,
-      );
+      logger.info(`[Webhook] Message sent to ${phoneNumber}: ${data.messages[0].id}`);
 
       return { success: true, messageId: data.messages[0].id };
     } catch (error) {
@@ -264,53 +249,40 @@ class WebhookHandler {
    * @param {string} phoneNumberId
    * @returns {Promise<Object>} Send result
    */
-  async sendTemplateMessage(
-    phoneNumber,
-    templateName,
-    parameters,
-    accessToken,
-    phoneNumberId,
-  ) {
+  async sendTemplateMessage(phoneNumber, templateName, parameters, accessToken, phoneNumberId) {
     try {
-      const response = await fetch(
-        `https://graph.instagram.com/v18.0/${phoneNumberId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to: phoneNumber,
-            type: "template",
-            template: {
-              name: templateName,
-              language: { code: "en_US" },
-              components: parameters
-                ? [
-                    {
-                      type: "body",
-                      parameters: parameters.map((p) => ({ type: "text", text: p })),
-                    },
-                  ]
-                : [],
-            },
-          }),
+      const response = await fetch(`https://graph.instagram.com/v18.0/${phoneNumberId}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: phoneNumber,
+          type: "template",
+          template: {
+            name: templateName,
+            language: { code: "en_US" },
+            components: parameters
+              ? [
+                  {
+                    type: "body",
+                    parameters: parameters.map((p) => ({ type: "text", text: p })),
+                  },
+                ]
+              : [],
+          },
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(
-          `WhatsApp API error: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`WhatsApp API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
 
-      logger.info(
-        `[Webhook] Template message sent to ${phoneNumber}: ${data.messages[0].id}`,
-      );
+      logger.info(`[Webhook] Template message sent to ${phoneNumber}: ${data.messages[0].id}`);
 
       return { success: true, messageId: data.messages[0].id };
     } catch (error) {
@@ -329,38 +301,31 @@ class WebhookHandler {
    */
   async sendFlow(phoneNumber, flowId, accessToken, phoneNumberId) {
     try {
-      const response = await fetch(
-        `https://graph.instagram.com/v18.0/${phoneNumberId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            messaging_product: "whatsapp",
-            to: phoneNumber,
-            type: "interactive",
-            interactive: {
-              type: "flow",
-              body: { text: "Please complete this form" },
-              action: { name: "flow", parameters: { flow_id: flowId } },
-            },
-          }),
+      const response = await fetch(`https://graph.instagram.com/v18.0/${phoneNumberId}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          messaging_product: "whatsapp",
+          to: phoneNumber,
+          type: "interactive",
+          interactive: {
+            type: "flow",
+            body: { text: "Please complete this form" },
+            action: { name: "flow", parameters: { flow_id: flowId } },
+          },
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error(
-          `WhatsApp API error: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`WhatsApp API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
 
-      logger.info(
-        `[Webhook] Flow sent to ${phoneNumber}: ${data.messages[0].id}`,
-      );
+      logger.info(`[Webhook] Flow sent to ${phoneNumber}: ${data.messages[0].id}`);
 
       return { success: true, messageId: data.messages[0].id };
     } catch (error) {
@@ -370,4 +335,5 @@ class WebhookHandler {
   }
 }
 
-module.exports = new WebhookHandler();
+// module.exports = new WebhookHandler();
+export default WebhookHandler;

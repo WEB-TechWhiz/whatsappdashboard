@@ -1,10 +1,17 @@
-const express = require("express");
-const requireAuth = require("../../middleware/auth");
-const { z } = require("zod");
-const { validateRequest } = require("../../middleware/validate");
-const leadCaptureWorkflow = require("../../services/ai-agent/workflows/lead-capture");
-const logger = require("../../config/logger");
+// const express = require("express");
+import express from "express";
+// const requireAuth = require("../../middleware/auth");
+import requireAuth from "../../middleware/auth.js";
+// const { z } = require("zod");
+import z from "zod";
+// const { validateRequest } = require("../../middleware/validate");
+import { validateRequest } from "../../middleware/validate.js";
+// const leadCaptureWorkflow = require("../../services/ai-agent/workflows/lead-capture");
+import leadCaptureWorkflow from "../../services/ai-agent/workflows/lead-capture.js";
+// const logger = require("../../config/logger");
+import logger from "../../config/logger.js";
 
+// const router = express.Router();
 const router = express.Router();
 
 // Apply authentication middleware
@@ -21,12 +28,7 @@ router.get("/", async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 50, 100);
     const offset = parseInt(req.query.offset) || 0;
 
-    const leads = await leadCaptureWorkflow.listLeads(
-      workspaceId,
-      status,
-      limit,
-      offset,
-    );
+    const leads = await leadCaptureWorkflow.listLeads(workspaceId, status, limit, offset);
 
     res.json({ success: true, data: leads });
   } catch (error) {
@@ -105,10 +107,7 @@ router.get("/statistics/overview", async (req, res) => {
     const workspaceId = req.workspace.id;
     const daysBack = Math.min(parseInt(req.query.days_back) || 30, 365);
 
-    const stats = await leadCaptureWorkflow.getLeadStatistics(
-      workspaceId,
-      daysBack,
-    );
+    const stats = await leadCaptureWorkflow.getLeadStatistics(workspaceId, daysBack);
 
     res.json({ success: true, data: stats });
   } catch (error) {
@@ -117,4 +116,5 @@ router.get("/statistics/overview", async (req, res) => {
   }
 });
 
-module.exports = router;
+// module.exports = router;
+export default router;

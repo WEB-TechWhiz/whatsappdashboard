@@ -1,8 +1,13 @@
-const logger = require("../../../config/logger");
-const db = require("../../../config/db");
-const { v4: uuidv4 } = require("uuid");
-const webhookHandler = require("../webhook-handler");
-const aiAnalyzer = require("../analyzer");
+// const logger = require("../../../config/logger");
+import logger from "../../../config/logger.js";
+// const db = require("../../../config/db");
+import db from "../../../database.js";
+// const { v4: uuidv4 } = require("uuid");
+import { v4 as uuidv4 } from "uuid";
+import webhookHandler from "../webhook-handler.js";
+
+// const aiAnalyzer = require("../analyzer");
+import aiAnalyzer from "../analyzer.js";
 
 /**
  * FAQ Workflow
@@ -82,15 +87,9 @@ class FAQWorkflow {
       }
 
       // Step 3: Ask for feedback
-      const feedbackMessage =
-        "Was this helpful? Reply 'YES' or 'NO' or ask another question!";
+      const feedbackMessage = "Was this helpful? Reply 'YES' or 'NO' or ask another question!";
 
-      await webhookHandler.sendMessage(
-        phoneNumber,
-        feedbackMessage,
-        accessToken,
-        phoneNumberId,
-      );
+      await webhookHandler.sendMessage(phoneNumber, feedbackMessage, accessToken, phoneNumberId);
 
       steps.push({
         step_name: "ask_feedback",
@@ -126,8 +125,7 @@ class FAQWorkflow {
   async searchFAQDatabase(workspaceId, question, keywords = []) {
     try {
       // Create search query
-      let query =
-        `SELECT id, question, answer FROM faq_items 
+      let query = `SELECT id, question, answer FROM faq_items 
          WHERE workspace_id = ? AND published = true AND (`;
 
       const params = [workspaceId];
@@ -178,10 +176,7 @@ class FAQWorkflow {
    */
   async recordFAQUsage(workspaceId, faqId) {
     try {
-      await db.query(
-        `UPDATE faq_items SET usage_count = usage_count + 1 WHERE id = ?`,
-        [faqId],
-      );
+      await db.query(`UPDATE faq_items SET usage_count = usage_count + 1 WHERE id = ?`, [faqId]);
     } catch (error) {
       logger.error("[FAQ] Error recording usage:", error);
     }
@@ -223,14 +218,8 @@ class FeedbackWorkflow {
    * Execute feedback collection workflow
    */
   async execute(params) {
-    const {
-      workspaceId,
-      conversationId,
-      phoneNumber,
-      senderName,
-      accessToken,
-      phoneNumberId,
-    } = params;
+    const { workspaceId, conversationId, phoneNumber, senderName, accessToken, phoneNumberId } =
+      params;
 
     const steps = [];
 
@@ -342,14 +331,7 @@ class FeedbackWorkflow {
    * Record feedback response
    */
   async recordFeedback(params) {
-    const {
-      workspaceId,
-      feedbackId,
-      rating,
-      comment,
-      responseText,
-      analysis,
-    } = params;
+    const { workspaceId, feedbackId, rating, comment, responseText, analysis } = params;
 
     try {
       await db.query(
@@ -417,4 +399,5 @@ class FeedbackWorkflow {
   }
 }
 
-module.exports = { FAQWorkflow: new FAQWorkflow(), FeedbackWorkflow: new FeedbackWorkflow() };
+export const faqWorkflow = new FAQWorkflow();
+export const feedbackWorkflow = new FeedbackWorkflow();

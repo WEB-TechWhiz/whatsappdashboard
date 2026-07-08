@@ -44,7 +44,7 @@ Simplest path: run both as one Express app sharing the same Postgres pool and Re
 ## Assumptions made (not fully specified in the frontend doc)
 
 - **"On Deck"** — no follow-up scheduling existed in the spec. Added `contacts.next_followup_at`; set this whenever an agent manually schedules a follow-up (no UI for this yet — needs a small addition to the Leads or Conversations page).
-- **"Today's Cash"** — assumed to mean bookings *recorded* today, not bookings *scheduled for* today (the spec's Overview page description conflates the two). If you meant the latter, add a `scheduled_for` column to `bookings` and filter on that instead of `booked_at`.
+- **"Today's Cash"** — assumed to mean bookings _recorded_ today, not bookings _scheduled for_ today (the spec's Overview page description conflates the two). If you meant the latter, add a `scheduled_for` column to `bookings` and filter on that instead of `booked_at`.
 - **Booking creation** — a row is written to `bookings` automatically whenever a lead's status flips to `'Booked'` via `PATCH /leads/:id`. If bookings should be a separate manual action instead, split this into its own endpoint.
 - **Conversation online/unread counts** — both computed live via subquery. Fine at current scale; if a workspace grows past a few thousand contacts, precompute these into denormalized columns updated on write instead.
 
@@ -52,10 +52,18 @@ Simplest path: run both as one Express app sharing the same Postgres pool and Re
 
 ```js
 const socket = io(BACKEND_URL, { auth: { token: jwtFromLogin } });
-socket.on("message:new", ({ contactId, message }) => { /* update conversation thread */ });
-socket.on("typing", ({ contactId, isTyping }) => { /* show/hide typing indicator */ });
-socket.on("lead:created", (lead) => { /* prepend to leads table */ });
-socket.on("lead:updated", (lead) => { /* patch leads table row */ });
+socket.on("message:new", ({ contactId, message }) => {
+  /* update conversation thread */
+});
+socket.on("typing", ({ contactId, isTyping }) => {
+  /* show/hide typing indicator */
+});
+socket.on("lead:created", (lead) => {
+  /* prepend to leads table */
+});
+socket.on("lead:updated", (lead) => {
+  /* patch leads table row */
+});
 ```
 
 ## Security notes

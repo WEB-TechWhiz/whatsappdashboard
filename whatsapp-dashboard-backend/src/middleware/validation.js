@@ -1,8 +1,12 @@
 // const { ValidationError } = require("../utils/errors");
 import { ValidationError } from "../utils/errors.js";
 
-// Usage: router.post('/x', validate(schemas.createLead), handler)
-function validate(schema) {
+/**
+ * Validation middleware factory using Zod schemas
+ * @param {object} schema - Zod schema for validation
+ * @returns {function} Express middleware
+ */
+function validateRequest(schema) {
   return (req, res, next) => {
     const result = schema.safeParse(req.body);
     if (!result.success) {
@@ -13,5 +17,4 @@ function validate(schema) {
   };
 }
 
-export default validate;
-export const validateRequest = validate;
+export default validateRequest;

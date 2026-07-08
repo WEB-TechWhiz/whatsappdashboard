@@ -1,11 +1,19 @@
-const express = require("express");
-const requireAuth = require("../middleware/auth");
-const validate = require("../middleware/validate");
-const asyncHandler = require("../utils/asyncHandler");
-const schemas = require("../validators/schemas");
-const conversations = require("../services/conversations.service");
-const { emitToWorkspace } = require("../realtime/socket");
+// const express = require("express");
+import express from "express";
+// const requireAuth = require("../middleware/auth");
+import requireAuth from "../middleware/auth.js";
+// const validate = require("../middleware/validate");
+import validate from "../middleware/validate.js";
+// const asyncHandler = require("../utils/asyncHandler");
+import asyncHandler from "../utils/asyncHandler.js";
+// const schemas = require("../validators/schemas");
+import * as schemas from "../validators/schemas.js";
+// const conversations = require("../services/conversations.service");
+import * as conversations from "../services/conversations.service.js";
+// const { emitToWorkspace } = require("../realtime/socket");
+import { emitToWorkspace } from "../realtime/socket.js";
 
+// const router = express.Router();
 const router = express.Router();
 router.use(requireAuth);
 
@@ -15,7 +23,7 @@ router.get(
     const { search } = req.query;
     const data = await conversations.listConversations(req.workspaceId, search);
     res.json(data);
-  })
+  }),
 );
 
 router.get(
@@ -29,7 +37,7 @@ router.get(
     await conversations.markRead(req.workspaceId, req.params.id);
 
     res.json(data);
-  })
+  }),
 );
 
 router.post(
@@ -42,7 +50,7 @@ router.post(
     emitToWorkspace(req.workspaceId, "message:new", { contactId: req.params.id, message });
 
     res.status(201).json(message);
-  })
+  }),
 );
 
 router.post(
@@ -55,7 +63,7 @@ router.post(
       isTyping: req.body.isTyping,
     });
     res.status(204).end();
-  })
+  }),
 );
 
-module.exports = router;
+export default router;

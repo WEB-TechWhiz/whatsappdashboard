@@ -1,6 +1,9 @@
-const pool = require("../config/db");
-const logger = require("../config/logger");
-const { NotFoundError } = require("../utils/errors");
+// const pool = require("../config/db");
+import pool from "../config/db.js";
+// const logger = require("../config/logger");
+import logger from "../config/logger.js";
+// const { NotFoundError } = require("../utils/errors");
+import { NotFoundError } from "../utils/errors.js";
 
 function toConversationDTO(row) {
   return {
@@ -158,7 +161,7 @@ async function markRead(workspaceId, contactId) {
   );
 }
 
-module.exports = {
+export {
   listConversations,
   getMessages,
   sendMessage,
