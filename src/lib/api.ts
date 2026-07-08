@@ -1,9 +1,14 @@
 import { io, Socket } from "socket.io-client";
 
+// In the browser we call the app's own origin (/api/v1) so requests flow through
+// the TanStack Start proxy middleware (see src/start.ts), which forwards them to
+// the Express backend. This avoids hardcoding an unreachable localhost:4000 in
+// preview/production. Override with VITE_API_URL if you want to call the backend
+// directly (e.g. an absolute cross-origin URL).
 export const API_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"
-    : "http://localhost:4000/api/v1";
+    ? import.meta.env.VITE_API_URL || "/api/v1"
+    : import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1";
 
 export const SOCKET_BASE_URL =
   typeof window !== "undefined"
