@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { FeatureKey, useBusinessConfig } from "@/lib/business-config";
 import {
   Area,
   AreaChart,
@@ -48,20 +49,30 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 // ---------------- Mock data ----------------
-const KPIS = [
-  { label: "Revenue Today", value: "$4,280", delta: 12.4, up: true, icon: DollarSign, tone: "success" },
-  { label: "Monthly Revenue", value: "$78.2k", delta: 8.1, up: true, icon: TrendingUp, tone: "success" },
-  { label: "Appointments Today", value: 24, delta: 3, up: true, icon: Calendar, tone: "primary" },
-  { label: "Pending Payments", value: "$2,140", delta: 5.2, up: false, icon: CreditCard, tone: "warning" },
-  { label: "Active Customers", value: "1,284", delta: 2.3, up: true, icon: Users, tone: "primary" },
-  { label: "New Leads", value: 46, delta: 18, up: true, icon: UserPlus, tone: "success" },
-  { label: "AI Conversations", value: 312, delta: 24, up: true, icon: Sparkles, tone: "primary" },
-  { label: "Open Tasks", value: 17, delta: 4, up: false, icon: ListChecks, tone: "warning" },
-  { label: "Conversion Rate", value: "28.6%", delta: 1.8, up: true, icon: BadgeCheck, tone: "success" },
+type Kpi = {
+  label: string;
+  value: string | number;
+  delta: number;
+  up: boolean;
+  icon: any;
+  tone: string;
+  feature?: FeatureKey;
+};
+
+const KPIS: Kpi[] = [
+  { label: "Revenue Today", value: "$4,280", delta: 12.4, up: true, icon: DollarSign, tone: "success", feature: "payments" },
+  { label: "Monthly Revenue", value: "$78.2k", delta: 8.1, up: true, icon: TrendingUp, tone: "success", feature: "payments" },
+  { label: "Appointments Today", value: 24, delta: 3, up: true, icon: Calendar, tone: "primary", feature: "appointments" },
+  { label: "Pending Payments", value: "$2,140", delta: 5.2, up: false, icon: CreditCard, tone: "warning", feature: "invoices" },
+  { label: "Active Customers", value: "1,284", delta: 2.3, up: true, icon: Users, tone: "primary", feature: "crm" },
+  { label: "New Leads", value: 46, delta: 18, up: true, icon: UserPlus, tone: "success", feature: "crm" },
+  { label: "AI Conversations", value: 312, delta: 24, up: true, icon: Sparkles, tone: "primary", feature: "ai" },
+  { label: "Open Tasks", value: 17, delta: 4, up: false, icon: ListChecks, tone: "warning", feature: "tasks" },
+  { label: "Conversion Rate", value: "28.6%", delta: 1.8, up: true, icon: BadgeCheck, tone: "success", feature: "analytics" },
   { label: "CSAT Score", value: "4.7", delta: 0.2, up: true, icon: Smile, tone: "success" },
-  { label: "Missed Appointments", value: 5, delta: 2, up: false, icon: CalendarX, tone: "danger" },
-  { label: "Renewals Due", value: 12, delta: 3, up: true, icon: Star, tone: "warning" },
-] as const;
+  { label: "Missed Appointments", value: 5, delta: 2, up: false, icon: CalendarX, tone: "danger", feature: "appointments" },
+  { label: "Renewals Due", value: 12, delta: 3, up: true, icon: Star, tone: "warning", feature: "invoices" },
+];
 
 const toneMap: Record<string, string> = {
   success: "bg-success/10 text-success",
@@ -128,6 +139,16 @@ const chartColors = ["var(--primary)", "var(--chart-2)", "var(--chart-3)", "var(
 
 function DashboardOverview() {
   const [range, setRange] = useState<"today" | "week" | "month">("today");
+  const config = useBusinessConfig();
+  const on = (f?: FeatureKey) => !f || config.features[f];
+  const kpis = KPIS.filter((k) => on(k.feature));
+  const showRevenue = on("payments") || on("invoices");
+  const showServiceMix = on("services") || on("products");
+  const showLeadFunnel = on("crm");
+  const showAppointments = on("appointments");
+  const showAnalytics = on("analytics");
+  const showStaff = on("employees");
+  const businessName = config.name || "Acme Wellness";
 
   return (
     <div className="flex flex-col gap-6">
@@ -135,7 +156,7 @@ function DashboardOverview() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold tracking-tight">Good afternoon, Admin 👋</h1>
-          <p className="text-sm text-muted-foreground">Here's what's happening at Acme Wellness today.</p>
+          <p className="text-sm text-muted-foreground">Here's what's happening at {businessName} today.</p>
         </div>
         <div className="flex gap-1 rounded-md border bg-card p-1 shrink-0">
           {(["today", "week", "month"] as const).map((r) => (
@@ -154,7 +175,7 @@ function DashboardOverview() {
 
       {/* KPI Grid */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
-        {KPIS.map((k, i) => (
+        {kpis.map((k, i) => (
           <motion.div
             key={k.label}
             initial={{ opacity: 0, y: 8 }}
@@ -191,8 +212,10 @@ function DashboardOverview() {
       </div>
 
       {/* Charts row 1 */}
+      {(showRevenue || showServiceMix) && (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        {showRevenue && (
+        <Card className={showServiceMix ? "lg:col-span-2" : "lg:col-span-3"}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
             <div>
               <CardTitle className="text-base">Revenue trend</CardTitle>
@@ -220,7 +243,9 @@ function DashboardOverview() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+        )}
 
+        {showServiceMix && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Service popularity</CardTitle>
@@ -248,10 +273,14 @@ function DashboardOverview() {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
+      )}
 
       {/* Charts row 2 */}
+      {(showLeadFunnel || showAppointments || showAnalytics) && (
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        {showLeadFunnel && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Lead funnel</CardTitle>
@@ -269,7 +298,9 @@ function DashboardOverview() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+        )}
 
+        {showAppointments && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Appointments</CardTitle>
@@ -288,7 +319,9 @@ function DashboardOverview() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+        )}
 
+        {showAnalytics && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Customer growth</CardTitle>
@@ -306,7 +339,9 @@ function DashboardOverview() {
             </ResponsiveContainer>
           </CardContent>
         </Card>
+        )}
       </div>
+      )}
 
       {/* Bottom row: Activity + Staff + Pipeline */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
@@ -340,6 +375,7 @@ function DashboardOverview() {
         </Card>
 
         <div className="flex flex-col gap-4">
+          {showStaff && (
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Top staff</CardTitle>
@@ -365,6 +401,7 @@ function DashboardOverview() {
               ))}
             </CardContent>
           </Card>
+          )}
 
           <Card>
             <CardHeader>
