@@ -1,7 +1,6 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import tsconfigPaths from "vite-tsconfig-paths";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 export default defineConfig({
@@ -11,11 +10,13 @@ export default defineConfig({
       // nitro/vite builds from this
       server: { entry: "server" },
       router: {
-        routeFileIgnorePattern: "^(api/(health|\\[\\.\\.\\.path\\])|middleware/gateway)\\.ts$",
+        routeFileIgnorePattern: "^(health|\\[\\.\\.\\.path\\]|gateway)\\.ts$",
       },
     }),
     react(),
     tailwindcss(),
-    tsconfigPaths(),
   ],
+  resolve: {
+    tsconfigPaths: true,
+  },
 });

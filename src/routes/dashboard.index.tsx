@@ -23,6 +23,7 @@ import {
   Rocket,
   Star,
   Workflow,
+  type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -48,30 +49,17 @@ export const Route = createFileRoute("/dashboard/")({
   component: DashboardOverview,
 });
 
-// ---------------- Mock data ----------------
-<<<<<<< HEAD
 type Kpi = {
   label: string;
   value: string | number;
   delta: number;
   up: boolean;
-  icon: any;
+  icon: LucideIcon;
   tone: string;
   feature?: FeatureKey;
 };
 
 const KPIS: Kpi[] = [
-  { label: "Revenue Today", value: "$4,280", delta: 12.4, up: true, icon: DollarSign, tone: "success", feature: "payments" },
-  { label: "Monthly Revenue", value: "$78.2k", delta: 8.1, up: true, icon: TrendingUp, tone: "success", feature: "payments" },
-  { label: "Appointments Today", value: 24, delta: 3, up: true, icon: Calendar, tone: "primary", feature: "appointments" },
-  { label: "Pending Payments", value: "$2,140", delta: 5.2, up: false, icon: CreditCard, tone: "warning", feature: "invoices" },
-  { label: "Active Customers", value: "1,284", delta: 2.3, up: true, icon: Users, tone: "primary", feature: "crm" },
-  { label: "New Leads", value: 46, delta: 18, up: true, icon: UserPlus, tone: "success", feature: "crm" },
-  { label: "AI Conversations", value: 312, delta: 24, up: true, icon: Sparkles, tone: "primary", feature: "ai" },
-  { label: "Open Tasks", value: 17, delta: 4, up: false, icon: ListChecks, tone: "warning", feature: "tasks" },
-  { label: "Conversion Rate", value: "28.6%", delta: 1.8, up: true, icon: BadgeCheck, tone: "success", feature: "analytics" },
-=======
-const KPIS = [
   {
     label: "Revenue Today",
     value: "$4,280",
@@ -79,6 +67,7 @@ const KPIS = [
     up: true,
     icon: DollarSign,
     tone: "success",
+    feature: "payments",
   },
   {
     label: "Monthly Revenue",
@@ -87,8 +76,17 @@ const KPIS = [
     up: true,
     icon: TrendingUp,
     tone: "success",
+    feature: "payments",
   },
-  { label: "Appointments Today", value: 24, delta: 3, up: true, icon: Calendar, tone: "primary" },
+  {
+    label: "Appointments Today",
+    value: 24,
+    delta: 3,
+    up: true,
+    icon: Calendar,
+    tone: "primary",
+    feature: "appointments",
+  },
   {
     label: "Pending Payments",
     value: "$2,140",
@@ -96,11 +94,44 @@ const KPIS = [
     up: false,
     icon: CreditCard,
     tone: "warning",
+    feature: "invoices",
   },
-  { label: "Active Customers", value: "1,284", delta: 2.3, up: true, icon: Users, tone: "primary" },
-  { label: "New Leads", value: 46, delta: 18, up: true, icon: UserPlus, tone: "success" },
-  { label: "AI Conversations", value: 312, delta: 24, up: true, icon: Sparkles, tone: "primary" },
-  { label: "Open Tasks", value: 17, delta: 4, up: false, icon: ListChecks, tone: "warning" },
+  {
+    label: "Active Customers",
+    value: "1,284",
+    delta: 2.3,
+    up: true,
+    icon: Users,
+    tone: "primary",
+    feature: "crm",
+  },
+  {
+    label: "New Leads",
+    value: 46,
+    delta: 18,
+    up: true,
+    icon: UserPlus,
+    tone: "success",
+    feature: "crm",
+  },
+  {
+    label: "AI Conversations",
+    value: 312,
+    delta: 24,
+    up: true,
+    icon: Sparkles,
+    tone: "primary",
+    feature: "ai",
+  },
+  {
+    label: "Open Tasks",
+    value: 17,
+    delta: 4,
+    up: false,
+    icon: ListChecks,
+    tone: "warning",
+    feature: "tasks",
+  },
   {
     label: "Conversion Rate",
     value: "28.6%",
@@ -108,11 +139,27 @@ const KPIS = [
     up: true,
     icon: BadgeCheck,
     tone: "success",
+    feature: "analytics",
   },
->>>>>>> c8bb9e5 (Save local dashboard changes)
   { label: "CSAT Score", value: "4.7", delta: 0.2, up: true, icon: Smile, tone: "success" },
-  { label: "Missed Appointments", value: 5, delta: 2, up: false, icon: CalendarX, tone: "danger", feature: "appointments" },
-  { label: "Renewals Due", value: 12, delta: 3, up: true, icon: Star, tone: "warning", feature: "invoices" },
+  {
+    label: "Missed Appointments",
+    value: 5,
+    delta: 2,
+    up: false,
+    icon: CalendarX,
+    tone: "danger",
+    feature: "appointments",
+  },
+  {
+    label: "Renewals Due",
+    value: 12,
+    delta: 3,
+    up: true,
+    icon: Star,
+    tone: "warning",
+    feature: "invoices",
+  },
 ];
 
 const toneMap: Record<string, string> = {
@@ -251,13 +298,9 @@ function DashboardOverview() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold tracking-tight">Good afternoon, Admin 👋</h1>
-<<<<<<< HEAD
-          <p className="text-sm text-muted-foreground">Here's what's happening at {businessName} today.</p>
-=======
           <p className="text-sm text-muted-foreground">
-            Here's what's happening at Acme Wellness today.
+            Here's what's happening at {businessName} today.
           </p>
->>>>>>> c8bb9e5 (Save local dashboard changes)
         </div>
         <div className="flex gap-1 rounded-md border bg-card p-1 shrink-0">
           {(["today", "week", "month"] as const).map((r) => (
@@ -323,238 +366,242 @@ function DashboardOverview() {
 
       {/* Charts row 1 */}
       {(showRevenue || showServiceMix) && (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {showRevenue && (
-        <Card className={showServiceMix ? "lg:col-span-2" : "lg:col-span-3"}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <div>
-              <CardTitle className="text-base">Revenue trend</CardTitle>
-              <p className="text-xs text-muted-foreground">Last 7 months</p>
-            </div>
-            <Badge variant="secondary" className="gap-1">
-              <TrendingUp className="h-3 w-3" /> +18.6%
-            </Badge>
-          </CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueTrend}>
-                <defs>
-                  <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="m"
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                  fill="url(#rev)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        )}
-
-        {showServiceMix && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Service popularity</CardTitle>
-            <p className="text-xs text-muted-foreground">Revenue share by service</p>
-          </CardHeader>
-          <CardContent className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={serviceMix}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={3}
-                >
-                  {serviceMix.map((_, i) => (
-                    <Cell key={i} fill={chartColors[i % chartColors.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="grid grid-cols-2 gap-1 -mt-6 text-xs">
-              {serviceMix.map((s, i) => (
-                <div key={s.name} className="flex items-center gap-1.5">
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: chartColors[i % chartColors.length] }}
-                  />
-                  <span className="text-muted-foreground truncate">{s.name}</span>
-                  <span className="ml-auto font-medium">{s.value}%</span>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {showRevenue && (
+            <Card className={showServiceMix ? "lg:col-span-2" : "lg:col-span-3"}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                <div>
+                  <CardTitle className="text-base">Revenue trend</CardTitle>
+                  <p className="text-xs text-muted-foreground">Last 7 months</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        )}
-      </div>
+                <Badge variant="secondary" className="gap-1">
+                  <TrendingUp className="h-3 w-3" /> +18.6%
+                </Badge>
+              </CardHeader>
+              <CardContent className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={revenueTrend}>
+                    <defs>
+                      <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
+                        <stop offset="100%" stopColor="var(--primary)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="m"
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="var(--primary)"
+                      strokeWidth={2}
+                      fill="url(#rev)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {showServiceMix && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Service popularity</CardTitle>
+                <p className="text-xs text-muted-foreground">Revenue share by service</p>
+              </CardHeader>
+              <CardContent className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={serviceMix}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={3}
+                    >
+                      {serviceMix.map((_, i) => (
+                        <Cell key={i} fill={chartColors[i % chartColors.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="grid grid-cols-2 gap-1 -mt-6 text-xs">
+                  {serviceMix.map((s, i) => (
+                    <div key={s.name} className="flex items-center gap-1.5">
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ background: chartColors[i % chartColors.length] }}
+                      />
+                      <span className="text-muted-foreground truncate">{s.name}</span>
+                      <span className="ml-auto font-medium">{s.value}%</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Charts row 2 */}
       {(showLeadFunnel || showAppointments || showAnalytics) && (
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {showLeadFunnel && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Lead funnel</CardTitle>
-            <p className="text-xs text-muted-foreground">Conversion by stage</p>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={leadFunnel} layout="vertical" margin={{ left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis
-                  type="number"
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  dataKey="stage"
-                  type="category"
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  width={70}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="value" fill="var(--primary)" radius={[0, 4, 4, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        )}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {showLeadFunnel && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Lead funnel</CardTitle>
+                <p className="text-xs text-muted-foreground">Conversion by stage</p>
+              </CardHeader>
+              <CardContent className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={leadFunnel} layout="vertical" margin={{ left: 8 }}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="var(--border)"
+                      horizontal={false}
+                    />
+                    <XAxis
+                      type="number"
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      dataKey="stage"
+                      type="category"
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      width={70}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar dataKey="value" fill="var(--primary)" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
 
-        {showAppointments && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Appointments</CardTitle>
-            <p className="text-xs text-muted-foreground">Booked vs completed</p>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={appointmentTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="d"
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="booked" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="completed" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        )}
+          {showAppointments && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Appointments</CardTitle>
+                <p className="text-xs text-muted-foreground">Booked vs completed</p>
+              </CardHeader>
+              <CardContent className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={appointmentTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="d"
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar dataKey="booked" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="completed" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
 
-        {showAnalytics && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Customer growth</CardTitle>
-            <p className="text-xs text-muted-foreground">Cumulative</p>
-          </CardHeader>
-          <CardContent className="h-56">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={revenueTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="m"
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="customers"
-                  stroke="var(--chart-2)"
-                  strokeWidth={2.5}
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-        )}
-      </div>
+          {showAnalytics && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Customer growth</CardTitle>
+                <p className="text-xs text-muted-foreground">Cumulative</p>
+              </CardHeader>
+              <CardContent className="h-56">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={revenueTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                    <XAxis
+                      dataKey="m"
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      stroke="var(--muted-foreground)"
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 8,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="customers"
+                      stroke="var(--chart-2)"
+                      strokeWidth={2.5}
+                      dot={{ r: 3 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       )}
 
       {/* Bottom row: Activity + Staff + Pipeline */}
@@ -599,34 +646,34 @@ function DashboardOverview() {
 
         <div className="flex flex-col gap-4">
           {showStaff && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Top staff</CardTitle>
-              <p className="text-xs text-muted-foreground">By performance this month</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {staff.map((s) => (
-                <div key={s.name} className="flex items-center gap-3">
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                      {s.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">{s.name}</p>
-                    <p className="text-xs text-muted-foreground">{s.role}</p>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Top staff</CardTitle>
+                <p className="text-xs text-muted-foreground">By performance this month</p>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {staff.map((s) => (
+                  <div key={s.name} className="flex items-center gap-3">
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                        {s.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{s.name}</p>
+                      <p className="text-xs text-muted-foreground">{s.role}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-semibold">${s.revenue.toLocaleString()}</p>
+                      <p className="text-[11px] text-muted-foreground">{s.score}% CSAT</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold">${s.revenue.toLocaleString()}</p>
-                    <p className="text-[11px] text-muted-foreground">{s.score}% CSAT</p>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
           )}
 
           <Card>
