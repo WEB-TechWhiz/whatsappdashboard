@@ -10,6 +10,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, auth } from "@/lib/api";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import {
+  FEATURE_META,
+  FeatureKey,
+  updateBusinessConfig,
+  useBusinessConfig,
+} from "@/lib/business-config";
+import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
 
 export const Route = createFileRoute("/dashboard/settings")({
   head: () => ({
@@ -34,6 +41,8 @@ type Profile = {
 
 function SettingsPage() {
   const queryClient = useQueryClient();
+  const business = useBusinessConfig();
+  const [wizardOpen, setWizardOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -132,6 +141,45 @@ function SettingsPage() {
           {isLoading ? "Loading workspace settings..." : "Workspace preferences and integrations."}
         </p>
       </div>
+
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
+          <div>
+            <CardTitle>Business modules</CardTitle>
+            <CardDescription>
+              Turn features on or off. Only enabled modules appear in the sidebar and dashboard.
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setWizardOpen(true)}>
+            Re-run setup
+          </Button>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          {(Object.keys(FEATURE_META) as FeatureKey[]).map((k) => {
+            const meta = FEATURE_META[k];
+            const on = business.features[k];
+            return (
+              <div
+                key={k}
+                className="flex items-start justify-between gap-3 rounded-md border bg-card px-3 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">{meta.label}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">{meta.description}</p>
+                </div>
+                <Switch
+                  checked={on}
+                  onCheckedChange={(v) =>
+                    updateBusinessConfig({ features: { [k]: v } as any })
+                  }
+                />
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <OnboardingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
       <Card>
         <CardHeader>
