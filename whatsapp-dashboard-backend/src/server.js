@@ -39,7 +39,6 @@ import leadsAutomationRoutes from "./routes/automation/leads.routes.js";
 // const escalationsRoutes = require("./routes/automation/escalations.routes");
 import escalationsRoutes from "./routes/automation/escalations.routes.js";
 
-
 const app = express();
 
 app.use(helmet());

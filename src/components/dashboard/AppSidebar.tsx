@@ -69,9 +69,7 @@ type NavGroup = { label: string; items: NavItem[] };
 const NAV_GROUPS: NavGroup[] = [
   {
     label: "Overview",
-    items: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, exact: true },
-    ],
+    items: [{ title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, exact: true }],
   },
   {
     label: "CRM",
@@ -186,7 +184,11 @@ export function AppSidebar() {
                   if (item.children) {
                     const anyActive = item.children.some((c) => isActive(c.url));
                     return (
-                      <Collapsible key={item.title} defaultOpen={anyActive} className="group/collapsible">
+                      <Collapsible
+                        key={item.title}
+                        defaultOpen={anyActive}
+                        className="group/collapsible"
+                      >
                         <SidebarMenuItem>
                           <CollapsibleTrigger asChild>
                             <SidebarMenuButton tooltip={item.title}>
@@ -217,7 +219,11 @@ export function AppSidebar() {
                   }
                   return (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={isActive(item.url, item.exact)} tooltip={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive(item.url, item.exact)}
+                        tooltip={item.title}
+                      >
                         <Link to={item.url}>
                           <item.icon />
                           <span>{item.title}</span>
@@ -240,7 +246,9 @@ export function AppSidebar() {
         <div className="flex items-center justify-between w-full p-1">
           <div className="flex items-center gap-2 min-w-0">
             <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">AD</AvatarFallback>
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                AD
+              </AvatarFallback>
             </Avatar>
             <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
               <span className="text-sm font-medium truncate">Admin</span>

@@ -74,13 +74,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "WhatsApp CRM — Leads, Conversations & Insights" },
-      { name: "description", content: "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time." },
+      {
+        name: "description",
+        content:
+          "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time.",
+      },
       { property: "og:title", content: "WhatsApp CRM — Leads, Conversations & Insights" },
-      { property: "og:description", content: "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time." },
+      {
+        property: "og:description",
+        content:
+          "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "WhatsApp CRM — Leads, Conversations & Insights" },
-      { name: "twitter:description", content: "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time." },
+      {
+        name: "twitter:description",
+        content:
+          "A modern WhatsApp CRM dashboard to track leads, conversations, and revenue in real time.",
+      },
     ],
     links: [
       {

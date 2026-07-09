@@ -77,30 +77,33 @@ DATADOG_API_KEY=your_datadog_key
 ### 1. Database Optimization
 
 **Indexes:**
+
 ```sql
 -- Critical indexes already in migration, verify:
-CREATE INDEX idx_automation_rules_workspace_enabled 
+CREATE INDEX idx_automation_rules_workspace_enabled
   ON automation_rules(workspace_id, enabled);
-  
-CREATE INDEX idx_automation_analyses_created 
+
+CREATE INDEX idx_automation_analyses_created
   ON automation_analyses(created_at);
-  
-CREATE INDEX idx_workflow_executions_created 
+
+CREATE INDEX idx_workflow_executions_created
   ON workflow_executions(created_at);
 ```
 
 **Query Optimization:**
+
 ```javascript
 // ✅ Good - Uses index
-SELECT * FROM automation_rules 
+SELECT * FROM automation_rules
 WHERE workspace_id = ? AND enabled = true LIMIT 10;
 
 // ❌ Bad - Full table scan
-SELECT * FROM automation_rules 
+SELECT * FROM automation_rules
 WHERE enabled = true AND created_at > NOW() - INTERVAL 7 DAY;
 ```
 
 **Connection Pooling:**
+
 ```javascript
 // Configure in database.js
 const pool = mysql.createPool({
@@ -115,6 +118,7 @@ const pool = mysql.createPool({
 ### 2. AI Service Optimization
 
 **Request Batching:**
+
 ```javascript
 // Analyze multiple messages at once
 const messages = [...]; // array of 50 messages
@@ -122,6 +126,7 @@ const results = await aiAnalyzer.batchAnalyzeMessages(messages);
 ```
 
 **Response Caching:**
+
 ```javascript
 // Cache common intents for FAQ
 const faqCache = new Map();
@@ -129,23 +134,24 @@ const TTL = 3600000; // 1 hour
 
 async function getOrCacheFAQ(workspaceId, keywords) {
   const cacheKey = `faq:${workspaceId}:${keywords.join(',')}`;
-  
+
   if (faqCache.has(cacheKey)) {
     return faqCache.get(cacheKey);
   }
-  
+
   const result = await db.query(...);
   faqCache.set(cacheKey, result);
-  
+
   setTimeout(() => faqCache.delete(cacheKey), TTL);
   return result;
 }
 ```
 
 **Rate Limiting:**
+
 ```javascript
 // Implement per-workspace rate limits
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
 
 const automationLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -160,34 +166,40 @@ router.use(automationLimiter);
 ### 3. Message Processing Optimization
 
 **Async Processing:**
+
 ```javascript
 // Don't wait for webhook response
-router.post('/webhooks/whatsapp', async (req, res) => {
+router.post("/webhooks/whatsapp", async (req, res) => {
   // Acknowledge immediately
   res.status(200).json({ success: true });
-  
+
   // Process asynchronously
   setImmediate(() => {
-    webhookHandler.handleIncomingMessage(webhookData)
-      .catch(err => logger.error('Async processing failed:', err));
+    webhookHandler
+      .handleIncomingMessage(webhookData)
+      .catch((err) => logger.error("Async processing failed:", err));
   });
 });
 ```
 
 **Queue System (Optional):**
+
 ```javascript
 // For high-volume scenarios, use message queue
-const Bull = require('bull');
-const messageQueue = new Bull('whatsapp-messages');
+const Bull = require("bull");
+const messageQueue = new Bull("whatsapp-messages");
 
 // Producer
-messageQueue.add({
-  webhookData,
-  timestamp: Date.now(),
-}, {
-  attempts: 3,
-  backoff: { type: 'exponential', delay: 2000 },
-});
+messageQueue.add(
+  {
+    webhookData,
+    timestamp: Date.now(),
+  },
+  {
+    attempts: 3,
+    backoff: { type: "exponential", delay: 2000 },
+  },
+);
 
 // Consumer
 messageQueue.process(async (job) => {
@@ -198,52 +210,53 @@ messageQueue.process(async (job) => {
 ### 4. API Response Optimization
 
 **Pagination:**
+
 ```javascript
 // Always paginate large result sets
 const limit = Math.min(req.query.limit || 50, 100);
 const offset = req.query.offset || 0;
 
-const [results] = await db.query(
-  'SELECT * FROM table LIMIT ? OFFSET ?',
-  [limit, offset]
-);
+const [results] = await db.query("SELECT * FROM table LIMIT ? OFFSET ?", [limit, offset]);
 ```
 
 **Field Selection:**
+
 ```javascript
 // Only fetch needed fields
-SELECT id, name, email, status 
-FROM leads 
+SELECT id, name, email, status
+FROM leads
 WHERE workspace_id = ?;  // ✅ Good - specific fields
 
 SELECT * FROM leads WHERE workspace_id = ?;  // ❌ Bad - all fields
 ```
 
 **Response Compression:**
+
 ```javascript
-const compression = require('compression');
+const compression = require("compression");
 app.use(compression());
 ```
 
 ### 5. Caching Strategy
 
 **Redis Caching (Optional):**
+
 ```javascript
-const redis = require('redis');
+const redis = require("redis");
 const client = redis.createClient();
 
 // Cache FAQ results
 async function getFAQWithCache(query) {
   const cacheKey = `faq:${query}`;
-  
+
   // Try cache
   const cached = await client.get(cacheKey);
   if (cached) return JSON.parse(cached);
-  
+
   // Fetch and cache
-  const result = await db.query('SELECT * FROM faq_items WHERE ...');
+  const result = await db.query("SELECT * FROM faq_items WHERE ...");
   await client.setex(cacheKey, 3600, JSON.stringify(result));
-  
+
   return result;
 }
 ```
@@ -253,6 +266,7 @@ async function getFAQWithCache(query) {
 ### Key Metrics to Track
 
 **System Metrics:**
+
 - API response time (p50, p95, p99)
 - Error rate
 - CPU usage
@@ -260,6 +274,7 @@ async function getFAQWithCache(query) {
 - Database connection pool utilization
 
 **Business Metrics:**
+
 - Messages processed per minute
 - Workflow success rate
 - Average workflow duration
@@ -270,7 +285,7 @@ async function getFAQWithCache(query) {
 
 ```javascript
 // Structured logging
-logger.info('[Workflow] Executed lead_capture', {
+logger.info("[Workflow] Executed lead_capture", {
   workspaceId,
   conversationId,
   duration: 245,
@@ -284,17 +299,17 @@ logger.info('[Workflow] Executed lead_capture', {
 ```javascript
 // Alert if error rate > 5%
 if (errorRate > 0.05) {
-  alerting.notify('High error rate detected');
+  alerting.notify("High error rate detected");
 }
 
 // Alert if response time p95 > 5 seconds
 if (responseTimeP95 > 5000) {
-  alerting.notify('Slow API response detected');
+  alerting.notify("Slow API response detected");
 }
 
 // Alert if escalation rate > 30%
-if (escalationRate > 0.30) {
-  alerting.notify('High escalation rate - check AI model');
+if (escalationRate > 0.3) {
+  alerting.notify("High escalation rate - check AI model");
 }
 ```
 
@@ -303,6 +318,7 @@ if (escalationRate > 0.30) {
 ### Horizontal Scaling
 
 **Load Balancing:**
+
 ```
 Internet → Load Balancer (nginx/HAProxy)
            ├→ API Server 1
@@ -313,20 +329,21 @@ Internet → Load Balancer (nginx/HAProxy)
 ```
 
 **Configuration:**
+
 ```nginx
 upstream api_servers {
   least_conn;  # Load balance by least connections
-  
+
   server api-1.internal:4000;
   server api-2.internal:4000;
   server api-3.internal:4000;
-  
+
   keepalive 64;
 }
 
 server {
   listen 443 ssl http2;
-  
+
   location /api/v1 {
     proxy_pass http://api_servers;
     proxy_http_version 1.1;
@@ -338,15 +355,18 @@ server {
 ### Vertical Scaling
 
 **Database:**
+
 - Increase connection pool size: `connectionLimit: 50`
 - Add read replicas for analytics queries
 - Optimize slow queries (see logs)
 
 **Application:**
+
 - Increase Node.js heap: `NODE_MAX_OLD_SPACE_SIZE=4096`
 - Use clustering: `cluster.fork()` for multi-core
 
 **Infrastructure:**
+
 - Increase server RAM
 - Use SSD for database
 - Dedicated machine for AI inference
@@ -385,7 +405,7 @@ aws s3 sync /backups s3://backup-bucket/whatsapp-dashboard/
 // Always validate and sanitize
 const message = req.body.message?.trim().substring(0, 4096);
 if (!message || message.length < 1) {
-  return res.status(400).json({ error: 'Invalid message' });
+  return res.status(400).json({ error: "Invalid message" });
 }
 ```
 
@@ -396,24 +416,26 @@ if (!message || message.length < 1) {
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: 'Too many requests',
+  message: "Too many requests",
   standardHeaders: true,
 });
 
-app.use('/api/', limiter);
+app.use("/api/", limiter);
 ```
 
 ### CORS & Security Headers
 
 ```javascript
-const helmet = require('helmet');
-const cors = require('cors');
+const helmet = require("helmet");
+const cors = require("cors");
 
 app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_ORIGIN,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN,
+    credentials: true,
+  }),
+);
 ```
 
 ## Troubleshooting Common Issues
@@ -462,15 +484,15 @@ tail -f logs/whatsapp-dashboard.log | grep ERROR
 
 ## Performance Targets
 
-| Metric | Target | Alert |
-|--------|--------|-------|
-| API Response Time (p95) | < 2s | > 5s |
-| Message Processing Time | < 500ms | > 2s |
-| Workflow Success Rate | > 95% | < 90% |
-| Escalation Rate | < 20% | > 30% |
-| Database Query (p95) | < 100ms | > 500ms |
-| Error Rate | < 1% | > 5% |
-| Availability | > 99.9% | < 99.5% |
+| Metric                  | Target  | Alert   |
+| ----------------------- | ------- | ------- |
+| API Response Time (p95) | < 2s    | > 5s    |
+| Message Processing Time | < 500ms | > 2s    |
+| Workflow Success Rate   | > 95%   | < 90%   |
+| Escalation Rate         | < 20%   | > 30%   |
+| Database Query (p95)    | < 100ms | > 500ms |
+| Error Rate              | < 1%    | > 5%    |
+| Availability            | > 99.9% | < 99.5% |
 
 ## Continuous Improvement
 

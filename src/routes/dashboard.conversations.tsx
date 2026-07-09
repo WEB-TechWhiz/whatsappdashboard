@@ -8,7 +8,16 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageBubble } from "@/components/chat/MessageBubble";
 import { TypingIndicator } from "@/components/chat/TypingIndicator";
-import { Send, Paperclip, Smile, Phone, MoreVertical, Search, Loader2, MessageSquare } from "lucide-react";
+import {
+  Send,
+  Paperclip,
+  Smile,
+  Phone,
+  MoreVertical,
+  Search,
+  Loader2,
+  MessageSquare,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, getSocket } from "@/lib/api";
@@ -128,7 +137,7 @@ function ConversationsPage() {
       const handleNewMessage = ({ contactId, message }: any) => {
         // Invalidate conversation list so preview / unread badge updates
         queryClient.invalidateQueries({ queryKey: ["conversations"] });
-        
+
         // If message is in the open thread, append it dynamically
         if (contactId === activeId) {
           queryClient.setQueryData(["messages", activeId], (old: any) => {
@@ -189,7 +198,9 @@ function ConversationsPage() {
           </div>
           <ScrollArea className="flex-1">
             {loadingConvs ? (
-              <p className="text-xs text-muted-foreground p-4 text-center">Loading conversations...</p>
+              <p className="text-xs text-muted-foreground p-4 text-center">
+                Loading conversations...
+              </p>
             ) : conversations && conversations.length > 0 ? (
               <ul>
                 {conversations.map((c: any) => (
@@ -198,13 +209,18 @@ function ConversationsPage() {
                       onClick={() => setActiveId(c.id)}
                       className={cn(
                         "w-full flex items-center gap-3 px-3 py-3 text-left border-b hover:bg-accent transition-colors",
-                        activeId === c.id && "bg-accent"
+                        activeId === c.id && "bg-accent",
                       )}
                     >
                       <div className="relative">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback className="text-xs">
-                            {c.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                            {c.name
+                              .split(" ")
+                              .map((n: string) => n[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         {c.online && (
@@ -221,7 +237,9 @@ function ConversationsPage() {
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-xs text-muted-foreground truncate">
                             {typingContacts[c.id] ? (
-                              <span className="text-primary font-medium animate-pulse">typing...</span>
+                              <span className="text-primary font-medium animate-pulse">
+                                typing...
+                              </span>
                             ) : (
                               c.preview
                             )}
@@ -238,7 +256,9 @@ function ConversationsPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-muted-foreground p-4 text-center">No active chats found.</p>
+              <p className="text-xs text-muted-foreground p-4 text-center">
+                No active chats found.
+              </p>
             )}
           </ScrollArea>
         </div>
@@ -249,7 +269,12 @@ function ConversationsPage() {
             <div className="flex items-center gap-3 border-b px-4 py-2.5">
               <Avatar className="h-9 w-9">
                 <AvatarFallback className="text-xs">
-                  {active.name.split(" ").map((n: string) => n[0]).join("").slice(0, 2).toUpperCase()}
+                  {active.name
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
@@ -264,8 +289,12 @@ function ConversationsPage() {
                   )}
                 </p>
               </div>
-              <Button size="icon" variant="ghost" aria-label="Call"><Phone className="h-4 w-4" /></Button>
-              <Button size="icon" variant="ghost" aria-label="Menu"><MoreVertical className="h-4 w-4" /></Button>
+              <Button size="icon" variant="ghost" aria-label="Call">
+                <Phone className="h-4 w-4" />
+              </Button>
+              <Button size="icon" variant="ghost" aria-label="Menu">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
             </div>
 
             <ScrollArea className="flex-1 bg-muted/30">
@@ -280,12 +309,17 @@ function ConversationsPage() {
                       key={m.id || i}
                       message={m.text}
                       isAgent={m.isAgent}
-                      time={new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      time={new Date(m.time).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                       read={m.read}
                     />
                   ))
                 ) : (
-                  <p className="text-xs text-muted-foreground p-8 text-center">No messages in this chat. Start the conversation!</p>
+                  <p className="text-xs text-muted-foreground p-8 text-center">
+                    No messages in this chat. Start the conversation!
+                  </p>
                 )}
                 {typingContacts[active.id] && <TypingIndicator />}
                 <div ref={messagesEndRef} />
@@ -299,8 +333,12 @@ function ConversationsPage() {
               }}
               className="flex items-center gap-2 border-t p-3"
             >
-              <Button type="button" size="icon" variant="ghost" aria-label="Attach file"><Paperclip className="h-4 w-4" /></Button>
-              <Button type="button" size="icon" variant="ghost" aria-label="Insert emoji"><Smile className="h-4 w-4" /></Button>
+              <Button type="button" size="icon" variant="ghost" aria-label="Attach file">
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Button type="button" size="icon" variant="ghost" aria-label="Insert emoji">
+                <Smile className="h-4 w-4" />
+              </Button>
               <Input
                 value={draft}
                 onChange={(e) => handleInputChange(e.target.value)}
@@ -308,7 +346,11 @@ function ConversationsPage() {
                 className="flex-1"
                 disabled={sendMessageMutation.isPending}
               />
-              <Button type="submit" size="icon" disabled={!draft.trim() || sendMessageMutation.isPending}>
+              <Button
+                type="submit"
+                size="icon"
+                disabled={!draft.trim() || sendMessageMutation.isPending}
+              >
                 {sendMessageMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

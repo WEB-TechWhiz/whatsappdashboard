@@ -44,7 +44,10 @@ export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — Flowly CRM" },
-      { name: "description", content: "All-in-one CRM: leads, appointments, AI conversations, and revenue." },
+      {
+        name: "description",
+        content: "All-in-one CRM: leads, appointments, AI conversations, and revenue.",
+      },
     ],
   }),
   component: DashboardLayout,
@@ -181,7 +184,9 @@ function DashboardLayout() {
                 <DropdownMenuTrigger asChild>
                   <Button size="icon" variant="ghost" className="rounded-full">
                     <Avatar className="h-7 w-7">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">AD</AvatarFallback>
+                      <AvatarFallback className="bg-primary text-primary-foreground text-[10px]">
+                        AD
+                      </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
@@ -221,7 +226,9 @@ function DashboardLayout() {
               AI: 82% budget used
             </span>
             <div className="ml-auto flex items-center gap-3">
-              <Badge variant="secondary" className="h-5 text-[10px]">v2.4.1</Badge>
+              <Badge variant="secondary" className="h-5 text-[10px]">
+                v2.4.1
+              </Badge>
               <span className="hidden sm:inline">Last sync 12s ago</span>
             </div>
           </footer>

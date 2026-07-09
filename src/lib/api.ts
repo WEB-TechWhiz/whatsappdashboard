@@ -15,7 +15,9 @@ let socket: Socket | null = null;
 export const auth = {
   getToken(): string | null {
     if (typeof window === "undefined") return null;
-    return localStorage.getItem("workspace_access_token") || localStorage.getItem("workspace_token");
+    return (
+      localStorage.getItem("workspace_access_token") || localStorage.getItem("workspace_token")
+    );
   },
   getRefreshToken(): string | null {
     if (typeof window === "undefined") return null;
@@ -30,7 +32,12 @@ export const auth = {
     if (typeof window === "undefined") return;
     localStorage.setItem("workspace_refresh_token", token);
   },
-  setSession(session: { accessToken?: string; token?: string; refreshToken?: string; workspace?: any }) {
+  setSession(session: {
+    accessToken?: string;
+    token?: string;
+    refreshToken?: string;
+    workspace?: any;
+  }) {
     const accessToken = session.accessToken || session.token;
     if (accessToken) this.setToken(accessToken);
     if (session.refreshToken) this.setRefreshToken(session.refreshToken);

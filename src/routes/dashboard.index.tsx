@@ -49,6 +49,7 @@ export const Route = createFileRoute("/dashboard/")({
 });
 
 // ---------------- Mock data ----------------
+<<<<<<< HEAD
 type Kpi = {
   label: string;
   value: string | number;
@@ -69,6 +70,46 @@ const KPIS: Kpi[] = [
   { label: "AI Conversations", value: 312, delta: 24, up: true, icon: Sparkles, tone: "primary", feature: "ai" },
   { label: "Open Tasks", value: 17, delta: 4, up: false, icon: ListChecks, tone: "warning", feature: "tasks" },
   { label: "Conversion Rate", value: "28.6%", delta: 1.8, up: true, icon: BadgeCheck, tone: "success", feature: "analytics" },
+=======
+const KPIS = [
+  {
+    label: "Revenue Today",
+    value: "$4,280",
+    delta: 12.4,
+    up: true,
+    icon: DollarSign,
+    tone: "success",
+  },
+  {
+    label: "Monthly Revenue",
+    value: "$78.2k",
+    delta: 8.1,
+    up: true,
+    icon: TrendingUp,
+    tone: "success",
+  },
+  { label: "Appointments Today", value: 24, delta: 3, up: true, icon: Calendar, tone: "primary" },
+  {
+    label: "Pending Payments",
+    value: "$2,140",
+    delta: 5.2,
+    up: false,
+    icon: CreditCard,
+    tone: "warning",
+  },
+  { label: "Active Customers", value: "1,284", delta: 2.3, up: true, icon: Users, tone: "primary" },
+  { label: "New Leads", value: 46, delta: 18, up: true, icon: UserPlus, tone: "success" },
+  { label: "AI Conversations", value: 312, delta: 24, up: true, icon: Sparkles, tone: "primary" },
+  { label: "Open Tasks", value: 17, delta: 4, up: false, icon: ListChecks, tone: "warning" },
+  {
+    label: "Conversion Rate",
+    value: "28.6%",
+    delta: 1.8,
+    up: true,
+    icon: BadgeCheck,
+    tone: "success",
+  },
+>>>>>>> c8bb9e5 (Save local dashboard changes)
   { label: "CSAT Score", value: "4.7", delta: 0.2, up: true, icon: Smile, tone: "success" },
   { label: "Missed Appointments", value: 5, delta: 2, up: false, icon: CalendarX, tone: "danger", feature: "appointments" },
   { label: "Renewals Due", value: 12, delta: 3, up: true, icon: Star, tone: "warning", feature: "invoices" },
@@ -125,17 +166,71 @@ const staff = [
 ];
 
 const activity = [
-  { icon: Calendar, tone: "primary", text: "Aisha M. booked a facial for tomorrow 3:00 PM", ago: "2m ago", tag: "Appointment" },
-  { icon: CreditCard, tone: "success", text: "Payment received from Bilal K. — $180", ago: "6m ago", tag: "Payment" },
-  { icon: UserPlus, tone: "primary", text: "New lead: Sana R. via WhatsApp campaign", ago: "12m ago", tag: "Lead" },
-  { icon: Users, tone: "primary", text: "Customer registered: Hamza A.", ago: "24m ago", tag: "Customer" },
-  { icon: Sparkles, tone: "success", text: "AI resolved 3 inquiries and booked 1 demo", ago: "31m ago", tag: "AI" },
-  { icon: Workflow, tone: "warning", text: "Workflow 'Post-visit follow-up' executed 12 times", ago: "48m ago", tag: "Workflow" },
-  { icon: Rocket, tone: "primary", text: "Campaign 'Summer Glow' sent to 842 contacts", ago: "1h ago", tag: "Campaign" },
-  { icon: Star, tone: "success", text: "New 5-star review from Nadia T.", ago: "2h ago", tag: "Review" },
+  {
+    icon: Calendar,
+    tone: "primary",
+    text: "Aisha M. booked a facial for tomorrow 3:00 PM",
+    ago: "2m ago",
+    tag: "Appointment",
+  },
+  {
+    icon: CreditCard,
+    tone: "success",
+    text: "Payment received from Bilal K. — $180",
+    ago: "6m ago",
+    tag: "Payment",
+  },
+  {
+    icon: UserPlus,
+    tone: "primary",
+    text: "New lead: Sana R. via WhatsApp campaign",
+    ago: "12m ago",
+    tag: "Lead",
+  },
+  {
+    icon: Users,
+    tone: "primary",
+    text: "Customer registered: Hamza A.",
+    ago: "24m ago",
+    tag: "Customer",
+  },
+  {
+    icon: Sparkles,
+    tone: "success",
+    text: "AI resolved 3 inquiries and booked 1 demo",
+    ago: "31m ago",
+    tag: "AI",
+  },
+  {
+    icon: Workflow,
+    tone: "warning",
+    text: "Workflow 'Post-visit follow-up' executed 12 times",
+    ago: "48m ago",
+    tag: "Workflow",
+  },
+  {
+    icon: Rocket,
+    tone: "primary",
+    text: "Campaign 'Summer Glow' sent to 842 contacts",
+    ago: "1h ago",
+    tag: "Campaign",
+  },
+  {
+    icon: Star,
+    tone: "success",
+    text: "New 5-star review from Nadia T.",
+    ago: "2h ago",
+    tag: "Review",
+  },
 ];
 
-const chartColors = ["var(--primary)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
+const chartColors = [
+  "var(--primary)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function DashboardOverview() {
   const [range, setRange] = useState<"today" | "week" | "month">("today");
@@ -156,7 +251,13 @@ function DashboardOverview() {
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold tracking-tight">Good afternoon, Admin 👋</h1>
+<<<<<<< HEAD
           <p className="text-sm text-muted-foreground">Here's what's happening at {businessName} today.</p>
+=======
+          <p className="text-sm text-muted-foreground">
+            Here's what's happening at Acme Wellness today.
+          </p>
+>>>>>>> c8bb9e5 (Save local dashboard changes)
         </div>
         <div className="flex gap-1 rounded-md border bg-card p-1 shrink-0">
           {(["today", "week", "month"] as const).map((r) => (
@@ -188,7 +289,12 @@ function DashboardOverview() {
                   <CardTitle className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground truncate">
                     {k.label}
                   </CardTitle>
-                  <div className={cn("flex h-7 w-7 shrink-0 items-center justify-center rounded-md", toneMap[k.tone])}>
+                  <div
+                    className={cn(
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                      toneMap[k.tone],
+                    )}
+                  >
                     <k.icon className="h-3.5 w-3.5" />
                   </div>
                 </div>
@@ -201,7 +307,11 @@ function DashboardOverview() {
                     k.up ? "text-success" : "text-danger",
                   )}
                 >
-                  {k.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
+                  {k.up ? (
+                    <ArrowUpRight className="h-3 w-3" />
+                  ) : (
+                    <ArrowDownRight className="h-3 w-3" />
+                  )}
                   <span className="font-medium">{k.delta}%</span>
                   <span className="text-muted-foreground">vs last {range}</span>
                 </div>
@@ -235,10 +345,34 @@ function DashboardOverview() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
-                <Area type="monotone" dataKey="revenue" stroke="var(--primary)" strokeWidth={2} fill="url(#rev)" />
+                <XAxis
+                  dataKey="m"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="var(--primary)"
+                  strokeWidth={2}
+                  fill="url(#rev)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </CardContent>
@@ -254,18 +388,35 @@ function DashboardOverview() {
           <CardContent className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={serviceMix} dataKey="value" nameKey="name" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                <Pie
+                  data={serviceMix}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={50}
+                  outerRadius={80}
+                  paddingAngle={3}
+                >
                   {serviceMix.map((_, i) => (
                     <Cell key={i} fill={chartColors[i % chartColors.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
             <div className="grid grid-cols-2 gap-1 -mt-6 text-xs">
               {serviceMix.map((s, i) => (
                 <div key={s.name} className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full" style={{ background: chartColors[i % chartColors.length] }} />
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: chartColors[i % chartColors.length] }}
+                  />
                   <span className="text-muted-foreground truncate">{s.name}</span>
                   <span className="ml-auto font-medium">{s.value}%</span>
                 </div>
@@ -290,9 +441,30 @@ function DashboardOverview() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={leadFunnel} layout="vertical" margin={{ left: 8 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis dataKey="stage" type="category" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} width={70} />
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                <XAxis
+                  type="number"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  dataKey="stage"
+                  type="category"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                  width={70}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
                 <Bar dataKey="value" fill="var(--primary)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -310,9 +482,27 @@ function DashboardOverview() {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={appointmentTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                <XAxis
+                  dataKey="d"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
                 <Bar dataKey="booked" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="completed" fill="var(--chart-2)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -331,10 +521,34 @@ function DashboardOverview() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={revenueTrend}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
-                <Line type="monotone" dataKey="customers" stroke="var(--chart-2)" strokeWidth={2.5} dot={{ r: 3 }} />
+                <XAxis
+                  dataKey="m"
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="var(--muted-foreground)"
+                  fontSize={11}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--popover)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="customers"
+                  stroke="var(--chart-2)"
+                  strokeWidth={2.5}
+                  dot={{ r: 3 }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -354,20 +568,29 @@ function DashboardOverview() {
               </CardTitle>
               <p className="text-xs text-muted-foreground">Real-time across your business</p>
             </div>
-            <Button variant="ghost" size="sm">View all</Button>
+            <Button variant="ghost" size="sm">
+              View all
+            </Button>
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
               {activity.map((a, i) => (
                 <li key={i} className="flex items-center gap-3 py-3">
-                  <div className={cn("flex h-8 w-8 shrink-0 items-center justify-center rounded-full", toneMap[a.tone])}>
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                      toneMap[a.tone],
+                    )}
+                  >
                     <a.icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm truncate">{a.text}</p>
                     <p className="text-xs text-muted-foreground">{a.ago}</p>
                   </div>
-                  <Badge variant="secondary" className="shrink-0">{a.tag}</Badge>
+                  <Badge variant="secondary" className="shrink-0">
+                    {a.tag}
+                  </Badge>
                 </li>
               ))}
             </ul>
@@ -386,7 +609,10 @@ function DashboardOverview() {
                 <div key={s.name} className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
                     <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                      {s.name.split(" ").map((n) => n[0]).join("")}
+                      {s.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0 flex-1">
@@ -429,4 +655,3 @@ function DashboardOverview() {
     </div>
   );
 }
-

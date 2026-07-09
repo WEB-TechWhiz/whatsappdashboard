@@ -25,14 +25,14 @@ export function MessageBubble({
           "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
           isAgent
             ? "bg-primary text-primary-foreground rounded-br-sm"
-            : "bg-card border rounded-bl-sm"
+            : "bg-card border rounded-bl-sm",
         )}
       >
         <p className="whitespace-pre-wrap leading-relaxed">{message}</p>
         <div
           className={cn(
             "mt-1 flex items-center justify-end gap-1 text-[10px]",
-            isAgent ? "text-primary-foreground/80" : "text-muted-foreground"
+            isAgent ? "text-primary-foreground/80" : "text-muted-foreground",
           )}
         >
           <span>{time}</span>

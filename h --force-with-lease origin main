@@ -1,0 +1,34 @@
+*   [33m268bf47[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m fullWhatappAutomationwithCRM
+[31m|[m[32m\[m  
+* [32m|[m [33m99929bc[m backend
+[32m|[m [32m|[m * [33mc8153bf[m[33m ([m[1;31morigin/v0/tirangaonline8-2878-c166f392[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge pull request #5 from WEB-TechWhiz/project-skill-debugger
+[32m|[m [32m|[m[32m/[m[34m|[m 
+[32m|[m [32m|[m * [33m6a198bf[m feat: enhance API URL handling and add API proxy middleware
+[32m|[m [32m|[m[32m/[m  
+[32m|[m [32m|[m * [33ma597eda[m[33m ([m[1;31morigin/v0/web-techwhiz-c4c77568[m[33m)[m Initial commit from v0
+[32m|[m [32m|[m[32m/[m  
+[32m|[m *   [33m406b2a6[m Added Phase 1 mock dashboard
+[32m|[m [36m|[m[1;31m\[m  
+[32m|[m [36m|[m * [33m4da9f84[m Changes
+[32m|[m [36m|[m * [33mfac9af8[m Changes
+[32m|[m [36m|[m * [33m31eca02[m Changes
+[32m|[m [36m|[m * [33m7ea1885[m Changes
+[32m|[m [36m|[m[36m/[m  
+[32m|[m *   [33m370cbf1[m Lovable update
+[32m|[m [1;32m|[m[1;33m\[m  
+[32m|[m [1;32m|[m * [33m5370b48[m Work in progress
+[32m|[m [1;32m|[m[1;32m/[m  
+[32m|[m [1;32m|[m * [33mb2662b7[m[33m ([m[1;31morigin/skill-module-debug[m[33m)[m refactor: update logger import paths to new config directory
+[32m|[m [1;32m|[m[1;32m/[m  
+[32m|[m * [33m701a700[m[33m ([m[1;31morigin/v0/web-techwhiz-e9b11235[m[33m)[m Merge pull request #4 from WEB-TechWhiz/v0/web-techwhiz-b568157b
+[32m|[m[32m/[m[1;36m|[m 
+[32m|[m * [33m57e5397[m feat: add uuid dependency and update database module paths
+[32m|[m[32m/[m  
+*   [33ma05cf22[m[33m ([m[1;31morigin/v0/web-techwhiz-b568157b[m[33m)[m Merge pull request #3 from WEB-TechWhiz/v0/web-techwhiz-616ac9bc
+[31m|[m[32m\[m  
+[31m|[m * [33mfb6ba3b[m init
+[31m|[m[31m/[m  
+*   [33mb493a75[m Merge pull request #2 from WEB-TechWhiz/v0/web-techwhiz-9c45b76e
+[33m|[m[34m\[m  
+[33m|[m * [33m2a98cde[m Add comprehensive implementation summary
+[33m|[m * [33mcd1cfd3[m Phase 2E: Testing, Optimization & Production Readiness

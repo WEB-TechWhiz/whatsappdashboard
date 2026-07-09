@@ -17,23 +17,23 @@ The repository contains two related systems:
 
 ### Status by area
 
-| Area | Status | Notes |
-|---|---|---|
-| Email/password authentication | Implemented | JWT access tokens and rotating refresh tokens. |
-| Google OAuth | Implemented, configuration required | Requires Google OAuth environment variables. |
-| Workspace isolation | Implemented for CRM routes | Workspace ID comes from the verified JWT. |
-| Conversations | Implemented | List conversations, load messages, send messages, typing state, read-on-open. |
-| Leads | Implemented | List, search, filter, create, update status/value. |
-| Analytics | Implemented | Live PostgreSQL queries for overview and bookings. |
-| Settings | Implemented | Workspace profile, WhatsApp bridge settings, simple automation flags. |
-| Realtime updates | Implemented | Socket.IO workspace rooms and four emitted event types. |
-| Inbound WhatsApp bridge | Implemented | Internal service endpoint stores inbound messages. |
-| Outbound WhatsApp bridge | Implemented, external sender required | Messages are stored locally and optionally forwarded to `WHATSAPP_SEND_URL`. |
-| API Gateway | Implemented as a migration foundation | The browser does not use it by default. All configured services still point to port 4000. |
-| AI automation source code | Partial | Present, but route mounting and PostgreSQL compatibility must be fixed. |
-| Automation dashboard UI | Not implemented | Sidebar links exist, but no frontend automation route exists. |
-| Redis-backed jobs/session state | Not integrated | Redis client exists but is not used by the current CRM request flow. |
-| Automated test coverage | Limited | One automation test file exists; no complete frontend/backend integration suite. |
+| Area                            | Status                                | Notes                                                                                     |
+| ------------------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Email/password authentication   | Implemented                           | JWT access tokens and rotating refresh tokens.                                            |
+| Google OAuth                    | Implemented, configuration required   | Requires Google OAuth environment variables.                                              |
+| Workspace isolation             | Implemented for CRM routes            | Workspace ID comes from the verified JWT.                                                 |
+| Conversations                   | Implemented                           | List conversations, load messages, send messages, typing state, read-on-open.             |
+| Leads                           | Implemented                           | List, search, filter, create, update status/value.                                        |
+| Analytics                       | Implemented                           | Live PostgreSQL queries for overview and bookings.                                        |
+| Settings                        | Implemented                           | Workspace profile, WhatsApp bridge settings, simple automation flags.                     |
+| Realtime updates                | Implemented                           | Socket.IO workspace rooms and four emitted event types.                                   |
+| Inbound WhatsApp bridge         | Implemented                           | Internal service endpoint stores inbound messages.                                        |
+| Outbound WhatsApp bridge        | Implemented, external sender required | Messages are stored locally and optionally forwarded to `WHATSAPP_SEND_URL`.              |
+| API Gateway                     | Implemented as a migration foundation | The browser does not use it by default. All configured services still point to port 4000. |
+| AI automation source code       | Partial                               | Present, but route mounting and PostgreSQL compatibility must be fixed.                   |
+| Automation dashboard UI         | Not implemented                       | Sidebar links exist, but no frontend automation route exists.                             |
+| Redis-backed jobs/session state | Not integrated                        | Redis client exists but is not used by the current CRM request flow.                      |
+| Automated test coverage         | Limited                               | One automation test file exists; no complete frontend/backend integration suite.          |
 
 ## 2. High-Level Architecture
 
@@ -222,16 +222,16 @@ whatsappdashboard/
 
 ### Implemented frontend routes
 
-| Frontend route | Source file | Current data source |
-|---|---|---|
-| `/` | `src/routes/index.tsx` | Static landing content. |
-| `/login` | `src/routes/login.tsx` | Auth API. |
-| `/signup` | `src/routes/signup.tsx` | Auth API. |
-| `/dashboard` | `src/routes/dashboard.index.tsx` | Mock constants only. |
-| `/dashboard/conversations` | `src/routes/dashboard.conversations.tsx` | Conversations API + Socket.IO. |
-| `/dashboard/leads` | `src/routes/dashboard.leads.tsx` | Leads API + Socket.IO. |
-| `/dashboard/analytics` | `src/routes/dashboard.analytics.tsx` | Analytics API with 15-second polling. |
-| `/dashboard/settings` | `src/routes/dashboard.settings.tsx` | Workspace and settings APIs. |
+| Frontend route             | Source file                              | Current data source                   |
+| -------------------------- | ---------------------------------------- | ------------------------------------- |
+| `/`                        | `src/routes/index.tsx`                   | Static landing content.               |
+| `/login`                   | `src/routes/login.tsx`                   | Auth API.                             |
+| `/signup`                  | `src/routes/signup.tsx`                  | Auth API.                             |
+| `/dashboard`               | `src/routes/dashboard.index.tsx`         | Mock constants only.                  |
+| `/dashboard/conversations` | `src/routes/dashboard.conversations.tsx` | Conversations API + Socket.IO.        |
+| `/dashboard/leads`         | `src/routes/dashboard.leads.tsx`         | Leads API + Socket.IO.                |
+| `/dashboard/analytics`     | `src/routes/dashboard.analytics.tsx`     | Analytics API with 15-second polling. |
+| `/dashboard/settings`      | `src/routes/dashboard.settings.tsx`      | Workspace and settings APIs.          |
 
 `src/routes/dashboard.tsx` is the shared layout. Its global search, business switcher, quick-create menu, AI button, notification button, profile menu, status bar, version, and connection labels are currently presentation-only.
 
@@ -243,26 +243,26 @@ All endpoints below are relative to `/api/v1` unless noted.
 
 ### Authentication
 
-| Frontend component/function | Method and endpoint | Backend owner | Dependency |
-|---|---|---|---|
-| `SignupRoute.handleSignup` | `POST /auth/signup` | `auth.routes.js` | Creates a workspace, hashes password, returns access token, refresh token, and workspace. |
-| `LoginRoute.handleLogin` | `POST /auth/login` | `auth.routes.js` | Verifies password and returns a session. |
-| `startGoogleOAuth()` used by Login and Signup | `GET /auth/oauth/google?redirect=/dashboard` | `auth.routes.js` | Returns the Google authorization URL. |
-| Browser Google callback | `GET /auth/oauth/google/callback` | `auth.routes.js` | Exchanges code, upserts workspace, redirects to `/login#...`. |
-| `auth.refreshSession()` | `POST /auth/refresh` | `auth.routes.js` | Rotates the refresh token and returns a new session. |
-| `auth.logout()` | `POST /auth/logout` | `auth.routes.js` | Revokes the current refresh token. |
-| `SettingsPage` initial load | `GET /workspace/profile` | `auth.routes.js` | Loads profile, WhatsApp settings, and rule flags. |
+| Frontend component/function                   | Method and endpoint                          | Backend owner    | Dependency                                                                                |
+| --------------------------------------------- | -------------------------------------------- | ---------------- | ----------------------------------------------------------------------------------------- |
+| `SignupRoute.handleSignup`                    | `POST /auth/signup`                          | `auth.routes.js` | Creates a workspace, hashes password, returns access token, refresh token, and workspace. |
+| `LoginRoute.handleLogin`                      | `POST /auth/login`                           | `auth.routes.js` | Verifies password and returns a session.                                                  |
+| `startGoogleOAuth()` used by Login and Signup | `GET /auth/oauth/google?redirect=/dashboard` | `auth.routes.js` | Returns the Google authorization URL.                                                     |
+| Browser Google callback                       | `GET /auth/oauth/google/callback`            | `auth.routes.js` | Exchanges code, upserts workspace, redirects to `/login#...`.                             |
+| `auth.refreshSession()`                       | `POST /auth/refresh`                         | `auth.routes.js` | Rotates the refresh token and returns a new session.                                      |
+| `auth.logout()`                               | `POST /auth/logout`                          | `auth.routes.js` | Revokes the current refresh token.                                                        |
+| `SettingsPage` initial load                   | `GET /workspace/profile`                     | `auth.routes.js` | Loads profile, WhatsApp settings, and rule flags.                                         |
 
 ### Conversations
 
-| Frontend component/action | Method and endpoint | Backend owner | Dependency |
-|---|---|---|---|
-| `ConversationsPage` conversation query | `GET /conversations?search=<text>` | `conversations.routes.js` -> `conversations.service.js` | Conversation list, latest preview, timestamp, unread count, online flag. |
-| Active conversation query | `GET /conversations/:id/messages` | Same | Loads up to 50 messages and marks unread inbound messages as read. |
-| Send form | `POST /conversations/:id/messages` | Same | Stores agent message, optionally forwards it externally, emits `message:new`. |
-| Message input typing state | `POST /conversations/:id/typing` | Same | Emits `typing`; no database write. |
-| `MessageBubble` | No direct API call | Parent route data | Renders message DTO returned by the message endpoint. |
-| `TypingIndicator` | No direct API call | Socket event state | Renders when the parent receives `typing: true`. |
+| Frontend component/action              | Method and endpoint                | Backend owner                                           | Dependency                                                                    |
+| -------------------------------------- | ---------------------------------- | ------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `ConversationsPage` conversation query | `GET /conversations?search=<text>` | `conversations.routes.js` -> `conversations.service.js` | Conversation list, latest preview, timestamp, unread count, online flag.      |
+| Active conversation query              | `GET /conversations/:id/messages`  | Same                                                    | Loads up to 50 messages and marks unread inbound messages as read.            |
+| Send form                              | `POST /conversations/:id/messages` | Same                                                    | Stores agent message, optionally forwards it externally, emits `message:new`. |
+| Message input typing state             | `POST /conversations/:id/typing`   | Same                                                    | Emits `typing`; no database write.                                            |
+| `MessageBubble`                        | No direct API call                 | Parent route data                                       | Renders message DTO returned by the message endpoint.                         |
+| `TypingIndicator`                      | No direct API call                 | Socket event state                                      | Renders when the parent receives `typing: true`.                              |
 
 Conversation query behavior:
 
@@ -273,22 +273,22 @@ Conversation query behavior:
 
 ### Leads
 
-| Frontend component/action | Method and endpoint | Backend owner | Dependency |
-|---|---|---|---|
-| `LeadsPage` list | `GET /leads?search=<name>&status=<status>` | `leads.routes.js` -> `leads.service.js` | Loads contacts as lead DTOs. |
-| Add Lead dialog | `POST /leads` | Same | Creates a contact and activity record, emits `lead:created`. |
-| Status selector | `PATCH /leads/:id` | Same | Updates status; moving to `Booked` creates a booking snapshot. |
-| Deal value input blur | `PATCH /leads/:id` | Same | Updates `deal_value`. |
-| Realtime refresh | Socket `lead:created`, `lead:updated` | `socket.js` | Invalidates lead and overview queries. |
+| Frontend component/action | Method and endpoint                        | Backend owner                           | Dependency                                                     |
+| ------------------------- | ------------------------------------------ | --------------------------------------- | -------------------------------------------------------------- |
+| `LeadsPage` list          | `GET /leads?search=<name>&status=<status>` | `leads.routes.js` -> `leads.service.js` | Loads contacts as lead DTOs.                                   |
+| Add Lead dialog           | `POST /leads`                              | Same                                    | Creates a contact and activity record, emits `lead:created`.   |
+| Status selector           | `PATCH /leads/:id`                         | Same                                    | Updates status; moving to `Booked` creates a booking snapshot. |
+| Deal value input blur     | `PATCH /leads/:id`                         | Same                                    | Updates `deal_value`.                                          |
+| Realtime refresh          | Socket `lead:created`, `lead:updated`      | `socket.js`                             | Invalidates lead and overview queries.                         |
 
 The CRM intentionally uses the same `contacts` row as both a conversation contact and a lead. This avoids separate lead/contact synchronization.
 
 ### Analytics
 
-| Frontend component/action | Method and endpoint | Backend owner | Dependency |
-|---|---|---|---|
-| Overview cards | `GET /analytics/overview?range=week|month` | `analytics.routes.js` -> `analytics.service.js` | Response rate and booking rate. The response also includes leaks, today's cash, and on-deck counts, but this page does not display them. |
-| Bookings chart | `GET /analytics/bookings?range=7days|30days` | Same | Daily booking count and revenue. |
+| Frontend component/action | Method and endpoint                  | Backend owner | Dependency                                      |
+| ------------------------- | ------------------------------------ | ------------- | ----------------------------------------------- |
+| Overview cards            | `GET /analytics/overview?range=week  | month`        | `analytics.routes.js` -> `analytics.service.js` | Response rate and booking rate. The response also includes leaks, today's cash, and on-deck counts, but this page does not display them. |
+| Bookings chart            | `GET /analytics/bookings?range=7days | 30days`       | Same                                            | Daily booking count and revenue.                                                                                                         |
 
 Both analytics queries poll every 15 seconds.
 
@@ -301,63 +301,63 @@ The main `/dashboard` overview does not use these endpoints. Its KPIs, charts, a
 
 ### Settings
 
-| Frontend component/action | Method and endpoint | Backend owner | Dependency |
-|---|---|---|---|
-| Initial settings load | `GET /workspace/profile` | `auth.routes.js` | Populates all settings fields. |
-| Save profile | `PUT /settings/profile` | `settings.routes.js` | Updates workspace name and email. |
+| Frontend component/action | Method and endpoint      | Backend owner        | Dependency                                                  |
+| ------------------------- | ------------------------ | -------------------- | ----------------------------------------------------------- |
+| Initial settings load     | `GET /workspace/profile` | `auth.routes.js`     | Populates all settings fields.                              |
+| Save profile              | `PUT /settings/profile`  | `settings.routes.js` | Updates workspace name and email.                           |
 | Save WhatsApp integration | `PUT /settings/whatsapp` | `settings.routes.js` | Stores phone/webhook URL and encrypts a supplied API token. |
-| Save rule switches | `PUT /settings/rules` | `settings.routes.js` | Saves `autoReply`, `notifyNewLeads`, and `flagLeaks`. |
+| Save rule switches        | `PUT /settings/rules`    | `settings.routes.js` | Saves `autoReply`, `notifyNewLeads`, and `flagLeaks`.       |
 
 The three settings switches are persisted configuration. Only `flag_leaks` corresponds to an existing analytics concept; the current backend does not run a scheduler that performs auto-replies or notifications from these flags.
 
 ### Sidebar and layout
 
-| Component | Backend dependency | Current behavior |
-|---|---|---|
-| `AppSidebar` logout button | `POST /auth/logout` | Functional. |
-| Sidebar workspace/admin labels | None | Hardcoded as Acme Wellness/Admin. |
-| Sidebar badges | None | Hardcoded. |
-| `DashboardLayout` top navigation | None | Mostly local UI state. |
-| Dashboard access protection | No loader/route guard | Protected APIs redirect after a 401, but the layout itself does not currently enforce authentication before rendering. |
+| Component                        | Backend dependency    | Current behavior                                                                                                       |
+| -------------------------------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `AppSidebar` logout button       | `POST /auth/logout`   | Functional.                                                                                                            |
+| Sidebar workspace/admin labels   | None                  | Hardcoded as Acme Wellness/Admin.                                                                                      |
+| Sidebar badges                   | None                  | Hardcoded.                                                                                                             |
+| `DashboardLayout` top navigation | None                  | Mostly local UI state.                                                                                                 |
+| Dashboard access protection      | No loader/route guard | Protected APIs redirect after a 401, but the layout itself does not currently enforce authentication before rendering. |
 
 ## 6. Backend API Inventory
 
 ### Public and session endpoints
 
-| Method | Endpoint | Auth |
-|---|---|---|
-| `POST` | `/api/v1/auth/signup` | No |
-| `POST` | `/api/v1/auth/login` | No |
-| `POST` | `/api/v1/auth/refresh` | Refresh token in body |
-| `POST` | `/api/v1/auth/logout` | Refresh token in body |
-| `GET` | `/api/v1/auth/oauth/google` | No |
-| `GET` | `/api/v1/auth/oauth/google/callback` | OAuth code/state |
-| `GET` | `/health` | No |
+| Method | Endpoint                             | Auth                  |
+| ------ | ------------------------------------ | --------------------- |
+| `POST` | `/api/v1/auth/signup`                | No                    |
+| `POST` | `/api/v1/auth/login`                 | No                    |
+| `POST` | `/api/v1/auth/refresh`               | Refresh token in body |
+| `POST` | `/api/v1/auth/logout`                | Refresh token in body |
+| `GET`  | `/api/v1/auth/oauth/google`          | No                    |
+| `GET`  | `/api/v1/auth/oauth/google/callback` | OAuth code/state      |
+| `GET`  | `/health`                            | No                    |
 
 ### JWT-protected CRM endpoints
 
-| Method | Endpoint |
-|---|---|
-| `GET` | `/api/v1/workspace/profile` |
-| `GET` | `/api/v1/conversations` |
-| `GET` | `/api/v1/conversations/:id/messages` |
-| `POST` | `/api/v1/conversations/:id/messages` |
-| `POST` | `/api/v1/conversations/:id/typing` |
-| `GET` | `/api/v1/leads` |
-| `POST` | `/api/v1/leads` |
-| `PATCH` | `/api/v1/leads/:id` |
-| `GET` | `/api/v1/analytics/overview` |
-| `GET` | `/api/v1/analytics/bookings` |
-| `GET` | `/api/v1/analytics/activity` |
-| `GET` | `/api/v1/analytics/summary` |
-| `PUT` | `/api/v1/settings/profile` |
-| `PUT` | `/api/v1/settings/whatsapp` |
-| `PUT` | `/api/v1/settings/rules` |
+| Method  | Endpoint                             |
+| ------- | ------------------------------------ |
+| `GET`   | `/api/v1/workspace/profile`          |
+| `GET`   | `/api/v1/conversations`              |
+| `GET`   | `/api/v1/conversations/:id/messages` |
+| `POST`  | `/api/v1/conversations/:id/messages` |
+| `POST`  | `/api/v1/conversations/:id/typing`   |
+| `GET`   | `/api/v1/leads`                      |
+| `POST`  | `/api/v1/leads`                      |
+| `PATCH` | `/api/v1/leads/:id`                  |
+| `GET`   | `/api/v1/analytics/overview`         |
+| `GET`   | `/api/v1/analytics/bookings`         |
+| `GET`   | `/api/v1/analytics/activity`         |
+| `GET`   | `/api/v1/analytics/summary`          |
+| `PUT`   | `/api/v1/settings/profile`           |
+| `PUT`   | `/api/v1/settings/whatsapp`          |
+| `PUT`   | `/api/v1/settings/rules`             |
 
 ### Internal integration endpoint
 
-| Method | Endpoint | Auth |
-|---|---|---|
+| Method | Endpoint                                | Auth               |
+| ------ | --------------------------------------- | ------------------ |
 | `POST` | `/api/v1/integrations/whatsapp/inbound` | `x-internal-token` |
 
 Expected request:
@@ -385,8 +385,8 @@ The frontend sends the access token in the socket handshake:
 
 ```ts
 io(SOCKET_BASE_URL, {
-  auth: { token: accessToken }
-})
+  auth: { token: accessToken },
+});
 ```
 
 The backend verifies the JWT, reads `workspaceId`, and joins:
@@ -399,12 +399,12 @@ Clients cannot choose their own workspace room.
 
 ### Events
 
-| Event | Producer | Consumer |
-|---|---|---|
-| `message:new` | Outbound message route and inbound integration route | Conversations page |
-| `typing` | Conversation typing route | Conversations page |
-| `lead:created` | Lead create route | Leads page |
-| `lead:updated` | Lead update route and inbound integration route | Leads page |
+| Event          | Producer                                             | Consumer           |
+| -------------- | ---------------------------------------------------- | ------------------ |
+| `message:new`  | Outbound message route and inbound integration route | Conversations page |
+| `typing`       | Conversation typing route                            | Conversations page |
+| `lead:created` | Lead create route                                    | Leads page         |
+| `lead:updated` | Lead update route and inbound integration route      | Leads page         |
 
 There is no current presence implementation. The `contacts.online` field exists, but socket connect/disconnect does not update it.
 
@@ -414,14 +414,14 @@ The active backend uses `pg` and raw PostgreSQL queries. Prisma is not used by a
 
 ### Active CRM tables
 
-| Table | Responsibility |
-|---|---|
-| `workspaces` | Tenant, login identity, OAuth identity, WhatsApp settings, simple automation flags. |
-| `refresh_tokens` | Hashed, rotating, revocable refresh tokens. |
-| `contacts` | Shared CRM lead and conversation contact record. |
-| `messages` | Inbound and outbound conversation messages. |
-| `activity_log` | Lead/message/booking/status activity. |
-| `bookings` | Snapshot created when a lead first changes to `Booked`. |
+| Table            | Responsibility                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `workspaces`     | Tenant, login identity, OAuth identity, WhatsApp settings, simple automation flags. |
+| `refresh_tokens` | Hashed, rotating, revocable refresh tokens.                                         |
+| `contacts`       | Shared CRM lead and conversation contact record.                                    |
+| `messages`       | Inbound and outbound conversation messages.                                         |
+| `activity_log`   | Lead/message/booking/status activity.                                               |
+| `bookings`       | Snapshot created when a lead first changes to `Booked`.                             |
 
 ### Tenant isolation
 
@@ -515,16 +515,16 @@ Meta webhook
 
 ### Automation source modules
 
-| Module | Intended responsibility |
-|---|---|
-| `analyzer.js` | Intent, sentiment, confidence, entity extraction, escalation recommendation. |
-| `webhook-handler.js` | Parse Meta payload and orchestrate incoming automation. |
-| `workflow-engine.js` | Select and run a workflow, record execution. |
-| `routing-engine.js` | Create/assign/resolve human escalations. |
-| `lead-capture.js` | Capture and qualify leads. |
-| `appointment-booking.js` | Availability and appointment workflow. |
-| `product-inquiry.js` | Product search and purchase-intent handling. |
-| `faq-feedback.js` | FAQ response and feedback collection. |
+| Module                   | Intended responsibility                                                      |
+| ------------------------ | ---------------------------------------------------------------------------- |
+| `analyzer.js`            | Intent, sentiment, confidence, entity extraction, escalation recommendation. |
+| `webhook-handler.js`     | Parse Meta payload and orchestrate incoming automation.                      |
+| `workflow-engine.js`     | Select and run a workflow, record execution.                                 |
+| `routing-engine.js`      | Create/assign/resolve human escalations.                                     |
+| `lead-capture.js`        | Capture and qualify leads.                                                   |
+| `appointment-booking.js` | Availability and appointment workflow.                                       |
+| `product-inquiry.js`     | Product search and purchase-intent handling.                                 |
+| `faq-feedback.js`        | FAQ response and feedback collection.                                        |
 
 ### Declared automation endpoints
 

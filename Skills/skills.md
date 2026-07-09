@@ -220,7 +220,7 @@ const express = require("express")
 
 import express from "express"
 
--------------------------
+---
 
 Convert:
 
@@ -232,7 +232,7 @@ import fs from "node:fs"
 
 when appropriate.
 
--------------------------
+---
 
 Convert:
 
@@ -242,7 +242,7 @@ const path = require("path")
 
 import path from "node:path"
 
--------------------------
+---
 
 Convert:
 
@@ -252,7 +252,7 @@ const { Router } = require("express")
 
 import { Router } from "express"
 
--------------------------
+---
 
 Always include extensions where Node ESM requires them.
 
@@ -278,7 +278,7 @@ module.exports = router
 
 export default router
 
--------------------------
+---
 
 Convert:
 
@@ -288,20 +288,20 @@ exports.createUser = createUser
 
 export function createUser(){}
 
--------------------------
+---
 
 Convert:
 
 module.exports = {
- createUser,
- deleteUser
+createUser,
+deleteUser
 }
 
 ↓
 
 export {
- createUser,
- deleteUser
+createUser,
+deleteUser
 }
 
 ---

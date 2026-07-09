@@ -161,10 +161,4 @@ async function markRead(workspaceId, contactId) {
   );
 }
 
-export {
-  listConversations,
-  getMessages,
-  sendMessage,
-  receiveInboundMessage,
-  markRead,
-};
+export { listConversations, getMessages, sendMessage, receiveInboundMessage, markRead };

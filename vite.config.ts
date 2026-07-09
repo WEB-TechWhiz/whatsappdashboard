@@ -11,8 +11,7 @@ export default defineConfig({
       // nitro/vite builds from this
       server: { entry: "server" },
       router: {
-        routeFileIgnorePattern:
-          "^(api/(health|\\[\\.\\.\\.path\\])|middleware/gateway)\\.ts$",
+        routeFileIgnorePattern: "^(api/(health|\\[\\.\\.\\.path\\])|middleware/gateway)\\.ts$",
       },
     }),
     react(),

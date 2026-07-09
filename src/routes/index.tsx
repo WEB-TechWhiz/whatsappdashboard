@@ -49,9 +49,15 @@ function Nav() {
           Flowly
         </Link>
         <nav className="hidden gap-8 text-sm text-muted-foreground md:flex">
-          <a href="#features" className="hover:text-foreground">Features</a>
-          <a href="#integrations" className="hover:text-foreground">Integrations</a>
-          <a href="#pricing" className="hover:text-foreground">Pricing</a>
+          <a href="#features" className="hover:text-foreground">
+            Features
+          </a>
+          <a href="#integrations" className="hover:text-foreground">
+            Integrations
+          </a>
+          <a href="#pricing" className="hover:text-foreground">
+            Pricing
+          </a>
         </nav>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
@@ -157,17 +163,18 @@ function AutomationHub() {
         transition={{ duration: 0.6 }}
         className="absolute left-1/2 top-1/2 w-[min(92%,480px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border bg-card/95 px-8 py-10 text-center shadow-xl backdrop-blur"
       >
-        <div className="mb-3 font-mono text-sm text-muted-foreground">
-          {"{automations}"}
-        </div>
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          One-click automation
-        </h1>
+        <div className="mb-3 font-mono text-sm text-muted-foreground">{"{automations}"}</div>
+        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">One-click automation</h1>
         <p className="mx-auto mt-3 max-w-sm text-sm text-muted-foreground">
-          One-click automation solutions to streamline workflows, boost efficiency, and simplify complex tasks effortlessly.
+          One-click automation solutions to streamline workflows, boost efficiency, and simplify
+          complex tasks effortlessly.
         </p>
         <div className="mt-6 flex justify-center">
-          <Button asChild size="lg" className="rounded-full bg-foreground text-background hover:bg-foreground/90">
+          <Button
+            asChild
+            size="lg"
+            className="rounded-full bg-foreground text-background hover:bg-foreground/90"
+          >
             <Link to="/signup">
               Book a demo <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
@@ -224,7 +231,8 @@ function Features() {
             Everything you need to ship automations
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Replace brittle scripts and manual handoffs with reliable flows your whole team can trust.
+            Replace brittle scripts and manual handoffs with reliable flows your whole team can
+            trust.
           </p>
         </div>
         <div className="mt-14 grid gap-6 md:grid-cols-3">
@@ -257,7 +265,12 @@ function CTA() {
           <Button asChild size="lg" variant="secondary" className="rounded-full">
             <Link to="/signup">Start free</Link>
           </Button>
-          <Button asChild size="lg" variant="ghost" className="rounded-full text-background hover:bg-background/10 hover:text-background">
+          <Button
+            asChild
+            size="lg"
+            variant="ghost"
+            className="rounded-full text-background hover:bg-background/10 hover:text-background"
+          >
             <Link to="/dashboard">Book a demo</Link>
           </Button>
         </div>
@@ -327,9 +340,15 @@ function Footer() {
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t pt-6 text-xs text-muted-foreground sm:flex-row">
           <p>© {new Date().getFullYear()} Flowly, Inc. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">Terms</a>
-            <a href="#" className="hover:text-foreground">Security</a>
+            <a href="#" className="hover:text-foreground">
+              Privacy
+            </a>
+            <a href="#" className="hover:text-foreground">
+              Terms
+            </a>
+            <a href="#" className="hover:text-foreground">
+              Security
+            </a>
           </div>
           <div className="flex items-center gap-3">
             <SocialIcon Icon={Twitter} label="Twitter" />
@@ -343,13 +362,7 @@ function Footer() {
   );
 }
 
-function FooterCol({
-  title,
-  links,
-}: {
-  title: string;
-  links: { label: string; href: string }[];
-}) {
+function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
       <h4 className="text-sm font-semibold">{title}</h4>
