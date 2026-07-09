@@ -52,6 +52,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { auth } from "@/lib/api";
+import { FeatureKey, useBusinessConfig } from "@/lib/business-config";
 
 type NavItem = {
   title: string;
@@ -59,6 +60,7 @@ type NavItem = {
   icon: any;
   badge?: string;
   exact?: boolean;
+  feature?: FeatureKey;
   children?: { title: string; url: string }[];
 };
 
@@ -78,6 +80,7 @@ const NAV_GROUPS: NavGroup[] = [
         title: "CRM",
         url: "/dashboard/crm",
         icon: UserCircle2,
+        feature: "crm",
         children: [
           { title: "Customers", url: "/dashboard/crm/customers" },
           { title: "Leads", url: "/dashboard/leads" },
@@ -85,15 +88,15 @@ const NAV_GROUPS: NavGroup[] = [
           { title: "Contacts", url: "/dashboard/crm/contacts" },
         ],
       },
-      { title: "Appointments", url: "/dashboard/appointments", icon: CalendarCheck },
-      { title: "Calendar", url: "/dashboard/calendar", icon: CalendarDays },
-      { title: "Tasks", url: "/dashboard/tasks", icon: ListChecks, badge: "7" },
+      { title: "Appointments", url: "/dashboard/appointments", icon: CalendarCheck, feature: "appointments" },
+      { title: "Calendar", url: "/dashboard/calendar", icon: CalendarDays, feature: "calendar" },
+      { title: "Tasks", url: "/dashboard/tasks", icon: ListChecks, badge: "7", feature: "tasks" },
     ],
   },
   {
     label: "AI & Comms",
     items: [
-      { title: "AI Center", url: "/dashboard/ai", icon: Sparkles },
+      { title: "AI Center", url: "/dashboard/ai", icon: Sparkles, feature: "ai" },
       {
         title: "Communication",
         url: "/dashboard/communication",
@@ -105,35 +108,35 @@ const NAV_GROUPS: NavGroup[] = [
           { title: "SMS", url: "/dashboard/communication/sms" },
         ],
       },
-      { title: "Marketing", url: "/dashboard/marketing", icon: Megaphone },
-      { title: "Campaigns", url: "/dashboard/campaigns", icon: Rocket },
+      { title: "Marketing", url: "/dashboard/marketing", icon: Megaphone, feature: "marketing" },
+      { title: "Campaigns", url: "/dashboard/campaigns", icon: Rocket, feature: "campaigns" },
     ],
   },
   {
     label: "Revenue",
     items: [
-      { title: "Invoices", url: "/dashboard/invoices", icon: FileText },
-      { title: "Payments", url: "/dashboard/payments", icon: CreditCard },
-      { title: "Products", url: "/dashboard/products", icon: Package },
-      { title: "Services", url: "/dashboard/services", icon: Wrench },
-      { title: "Inventory", url: "/dashboard/inventory", icon: Boxes },
+      { title: "Invoices", url: "/dashboard/invoices", icon: FileText, feature: "invoices" },
+      { title: "Payments", url: "/dashboard/payments", icon: CreditCard, feature: "payments" },
+      { title: "Products", url: "/dashboard/products", icon: Package, feature: "products" },
+      { title: "Services", url: "/dashboard/services", icon: Wrench, feature: "services" },
+      { title: "Inventory", url: "/dashboard/inventory", icon: Boxes, feature: "inventory" },
     ],
   },
   {
     label: "Operations",
     items: [
-      { title: "Employees", url: "/dashboard/employees", icon: UsersRound },
-      { title: "Reports", url: "/dashboard/reports", icon: FileBarChart },
-      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
-      { title: "Workflow Builder", url: "/dashboard/workflows", icon: Workflow },
-      { title: "Automation", url: "/dashboard/automation", icon: Zap },
+      { title: "Employees", url: "/dashboard/employees", icon: UsersRound, feature: "employees" },
+      { title: "Reports", url: "/dashboard/reports", icon: FileBarChart, feature: "reports" },
+      { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3, feature: "analytics" },
+      { title: "Workflow Builder", url: "/dashboard/workflows", icon: Workflow, feature: "workflows" },
+      { title: "Automation", url: "/dashboard/automation", icon: Zap, feature: "automation" },
     ],
   },
   {
     label: "Resources",
     items: [
-      { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen },
-      { title: "Documents", url: "/dashboard/documents", icon: Files },
+      { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen, feature: "knowledge" },
+      { title: "Documents", url: "/dashboard/documents", icon: Files, feature: "documents" },
       { title: "Settings", url: "/dashboard/settings", icon: Settings },
     ],
   },
@@ -141,9 +144,17 @@ const NAV_GROUPS: NavGroup[] = [
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const config = useBusinessConfig();
 
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
+
+  const isEnabled = (feature?: FeatureKey) => !feature || config.features[feature];
+
+  const groups = NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => isEnabled(i.feature)),
+  })).filter((g) => g.items.length > 0);
 
   const handleLogout = async () => {
     try {
@@ -166,7 +177,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent>
-        {NAV_GROUPS.map((group) => (
+        {groups.map((group) => (
           <SidebarGroup key={group.label}>
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
             <SidebarGroupContent>

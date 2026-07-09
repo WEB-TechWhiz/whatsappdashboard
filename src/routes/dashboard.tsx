@@ -37,6 +37,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
+import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
+import { useBusinessConfig, useIsHydrated } from "@/lib/business-config";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -61,6 +63,17 @@ function DashboardLayout() {
   const current = CRUMBS[pathname] ?? "Overview";
   const [dark, setDark] = useState(false);
   const [business, setBusiness] = useState("Acme Wellness");
+  const config = useBusinessConfig();
+  const hydrated = useIsHydrated();
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  useEffect(() => {
+    if (hydrated && !config.onboarded) setWizardOpen(true);
+  }, [hydrated, config.onboarded]);
+
+  useEffect(() => {
+    if (config.name) setBusiness(config.name);
+  }, [config.name]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -188,6 +201,8 @@ function DashboardLayout() {
           <main className="flex-1 p-4 md:p-6 pb-14">
             <Outlet />
           </main>
+
+        <OnboardingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
           {/* Bottom Status Bar */}
           <footer className="sticky bottom-0 z-10 flex h-9 items-center gap-4 border-t bg-card/95 px-4 text-xs text-muted-foreground backdrop-blur">
