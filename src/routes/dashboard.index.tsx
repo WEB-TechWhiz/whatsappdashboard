@@ -27,6 +27,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch, auth } from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
 import { FeatureKey, useBusinessConfig } from "@/lib/business-config";
 import {
   Area,
@@ -48,6 +51,44 @@ import {
 export const Route = createFileRoute("/dashboard/")({
   component: DashboardOverview,
 });
+
+type OverviewResponse = {
+  range: string;
+  kpis: {
+    revenueToday: number;
+    revenueRange: number;
+    appointmentsToday: number;
+    appointmentsRange: number;
+    activeCustomers: number;
+    newLeads: number;
+    hotLeads: number;
+    unreadMessages: number;
+    leaks: number;
+    avgDealValue: number;
+    conversionRate: number;
+  };
+  charts: {
+    revenueTrend: { date: string; value: number }[];
+    appointmentTrend: { date: string; value: number }[];
+    customerGrowth: { date: string; value: number }[];
+    leadFunnel: { stage: string; value: number }[];
+  };
+  activity: {
+    id: string;
+    type: string;
+    description: string;
+    contactName: string | null;
+    time: string;
+  }[];
+};
+
+const ACTIVITY_ICON: Record<string, { icon: LucideIcon; tone: string; tag: string }> = {
+  demo_booked: { icon: Calendar, tone: "primary", tag: "Appointment" },
+  lead_created: { icon: UserPlus, tone: "primary", tag: "Lead" },
+  status_changed: { icon: BadgeCheck, tone: "success", tag: "Lead" },
+  message_received: { icon: MessageSquare, tone: "primary", tag: "Message" },
+  pricing_requested: { icon: CreditCard, tone: "warning", tag: "Sales" },
+};
 
 type Kpi = {
   label: string;
@@ -282,8 +323,31 @@ const chartColors = [
 function DashboardOverview() {
   const [range, setRange] = useState<"today" | "week" | "month">("today");
   const config = useBusinessConfig();
+  const authed = typeof window !== "undefined" && auth.isAuthenticated();
+  const overview = useQuery<OverviewResponse>({
+    queryKey: ["dashboard-overview", range],
+    queryFn: () => apiFetch(`/dashboard/overview?range=${range}`),
+    enabled: authed,
+    refetchInterval: 60_000,
+  });
+  const k = overview.data?.kpis;
+  const liveKpi: Partial<Record<string, string | number>> = k
+    ? {
+        "Revenue Today": `$${k.revenueToday.toLocaleString()}`,
+        "Monthly Revenue": `$${k.revenueRange.toLocaleString()}`,
+        "Appointments Today": k.appointmentsToday,
+        "Active Customers": k.activeCustomers.toLocaleString(),
+        "New Leads": k.newLeads,
+        "AI Conversations": k.unreadMessages,
+        "Missed Appointments": k.leaks,
+        "Conversion Rate": `${k.conversionRate}%`,
+      }
+    : {};
   const on = (f?: FeatureKey) => !f || config.features[f];
-  const kpis = KPIS.filter((k) => on(k.feature));
+  const kpis = KPIS.filter((kpi) => on(kpi.feature)).map((kpi) => ({
+    ...kpi,
+    value: liveKpi[kpi.label] ?? kpi.value,
+  }));
   const showRevenue = on("payments") || on("invoices");
   const showServiceMix = on("services") || on("products");
   const showLeadFunnel = on("crm");
@@ -291,6 +355,35 @@ function DashboardOverview() {
   const showAnalytics = on("analytics");
   const showStaff = on("employees");
   const businessName = config.name || "Acme Wellness";
+
+  const revenueSeries = overview.data?.charts.revenueTrend?.length
+    ? overview.data.charts.revenueTrend.map((r) => ({ m: r.date.slice(5), revenue: r.value, customers: 0 }))
+    : revenueTrend;
+  const funnelSeries = overview.data?.charts.leadFunnel?.length
+    ? overview.data.charts.leadFunnel.map((r) => ({ stage: r.stage, value: r.value }))
+    : leadFunnel;
+  const apptSeries = overview.data?.charts.appointmentTrend?.length
+    ? overview.data.charts.appointmentTrend.map((r) => ({ d: r.date.slice(5), booked: r.value, completed: Math.max(0, r.value - 1) }))
+    : appointmentTrend;
+  const growthSeries = overview.data?.charts.customerGrowth?.length
+    ? overview.data.charts.customerGrowth.map((r, i, arr) => ({
+        m: r.date.slice(5),
+        customers: arr.slice(0, i + 1).reduce((sum, x) => sum + x.value, 0),
+      }))
+    : revenueTrend;
+  const activityFeed =
+    overview.data?.activity && overview.data.activity.length > 0
+      ? overview.data.activity.map((a) => {
+          const meta = ACTIVITY_ICON[a.type] ?? { icon: Sparkles, tone: "primary", tag: "Event" };
+          return {
+            icon: meta.icon,
+            tone: meta.tone,
+            text: a.description,
+            ago: formatDistanceToNow(new Date(a.time), { addSuffix: true }),
+            tag: meta.tag,
+          };
+        })
+      : activity;
 
   return (
     <div className="flex flex-col gap-6">
