@@ -72,6 +72,14 @@ const inboundWhatsappMessage = z.object({
   source: z.enum(["Instagram", "Website", "Facebook", "Referral"]).default("Website"),
 });
 
+const updateWorkspaceSettings = z.object({
+  businessName: z.string().trim().max(200).optional(),
+  industry: z.string().trim().max(120).optional(),
+  teamSize: z.string().trim().max(40).optional(),
+  features: z.record(z.string(), z.boolean()).optional(),
+  onboardingCompleted: z.boolean().optional(),
+});
+
 export {
   login,
   signup,
@@ -85,4 +93,5 @@ export {
   updateWhatsappSettings,
   updateRules,
   inboundWhatsappMessage,
+  updateWorkspaceSettings,
 };

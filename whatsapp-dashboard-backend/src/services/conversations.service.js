@@ -4,6 +4,7 @@ import pool from "../config/db.js";
 import logger from "../config/logger.js";
 // const { NotFoundError } = require("../utils/errors");
 import { NotFoundError } from "../utils/errors.js";
+import { createNotification } from "./notifications.service.js";
 
 function toConversationDTO(row) {
   return {
@@ -111,6 +112,13 @@ async function receiveInboundMessage(workspaceId, { phone, name, text, mediaUrl,
      VALUES ($1, $2, 'message_received', $3)`,
     [workspaceId, contact.id, `New message from ${contact.name}`],
   );
+
+  await createNotification(workspaceId, {
+    type: "message",
+    title: `New message — ${contact.name}`,
+    body: text.slice(0, 140),
+    link: `/dashboard/conversations`,
+  });
 
   return {
     contact: toConversationDTO({

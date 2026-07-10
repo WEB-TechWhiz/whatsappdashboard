@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { apiFetch, auth } from "@/lib/api";
 
 export type FeatureKey =
   | "crm"
@@ -95,6 +96,8 @@ export const DEFAULT_CONFIG: BusinessConfig = {
 
 let listeners = new Set<() => void>();
 let cache: BusinessConfig | null = null;
+let hydrated = false;
+let hydrating: Promise<void> | null = null;
 
 function read(): BusinessConfig {
   if (cache) return cache;
@@ -139,17 +142,82 @@ export function useBusinessConfig() {
   return config;
 }
 
+function toServerPayload(cfg: Partial<BusinessConfig>) {
+  const out: Record<string, unknown> = {};
+  if (cfg.name !== undefined) out.businessName = cfg.name;
+  if (cfg.industry !== undefined) out.industry = cfg.industry;
+  if (cfg.teamSize !== undefined) out.teamSize = cfg.teamSize;
+  if (cfg.features !== undefined) out.features = cfg.features;
+  if (cfg.onboarded !== undefined) out.onboardingCompleted = cfg.onboarded;
+  return out;
+}
+
+function fromServer(row: any): BusinessConfig {
+  return {
+    onboarded: !!row?.onboardingCompleted,
+    name: row?.businessName ?? "",
+    industry: row?.industry ?? "",
+    teamSize: row?.teamSize ?? "1-5",
+    features: { ...DEFAULT_CONFIG.features, ...(row?.features || {}) },
+  };
+}
+
+export async function hydrateBusinessConfig() {
+  if (typeof window === "undefined") return;
+  if (hydrated) return;
+  if (hydrating) return hydrating;
+  if (!auth.isAuthenticated()) return;
+  hydrating = (async () => {
+    try {
+      const row = await apiFetch("/settings/workspace");
+      write(fromServer(row));
+      hydrated = true;
+    } catch {
+      // keep localStorage fallback
+    } finally {
+      hydrating = null;
+    }
+  })();
+  return hydrating;
+}
+
+export function useHydrateBusinessConfig() {
+  useEffect(() => {
+    void hydrateBusinessConfig();
+  }, []);
+}
+
 export function updateBusinessConfig(patch: Partial<BusinessConfig>) {
   const current = read();
-  write({
+  const next = {
     ...current,
     ...patch,
     features: { ...current.features, ...(patch.features || {}) },
-  });
+  };
+  write(next);
+  // Fire-and-forget server sync when we have auth
+  if (typeof window !== "undefined" && auth.isAuthenticated()) {
+    void apiFetch("/settings/workspace", {
+      method: "PUT",
+      body: JSON.stringify(toServerPayload(patch)),
+    }).catch(() => undefined);
+  }
 }
 
 export function resetBusinessConfig() {
   write({ ...DEFAULT_CONFIG });
+  if (typeof window !== "undefined" && auth.isAuthenticated()) {
+    void apiFetch("/settings/workspace", {
+      method: "PUT",
+      body: JSON.stringify({
+        businessName: "",
+        industry: "",
+        teamSize: DEFAULT_CONFIG.teamSize,
+        features: DEFAULT_CONFIG.features,
+        onboardingCompleted: false,
+      }),
+    }).catch(() => undefined);
+  }
 }
 
 export function useIsHydrated() {

@@ -12,10 +12,26 @@ import * as schemas from "../validators/schemas.js";
 import pool from "../config/db.js";
 // const { encrypt } = require("../utils/crypto");
 import { encrypt } from "../utils/crypto.js";
+import * as workspaceSettings from "../services/settings.service.js";
 
 // const router = express.Router();
 const router = express.Router();
 router.use(requireAuth);
+
+router.get(
+  "/settings/workspace",
+  asyncHandler(async (req, res) => {
+    res.json(await workspaceSettings.getSettings(req.workspaceId));
+  }),
+);
+
+router.put(
+  "/settings/workspace",
+  validate(schemas.updateWorkspaceSettings),
+  asyncHandler(async (req, res) => {
+    res.json(await workspaceSettings.upsertSettings(req.workspaceId, req.body));
+  }),
+);
 
 router.put(
   "/settings/profile",

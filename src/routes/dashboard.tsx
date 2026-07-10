@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Bell,
   Search,
   Plus,
   Sparkles,
@@ -38,7 +37,8 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { OnboardingWizard } from "@/components/dashboard/OnboardingWizard";
-import { useBusinessConfig, useIsHydrated } from "@/lib/business-config";
+import { NotificationsPopover } from "@/components/dashboard/NotificationsPopover";
+import { useBusinessConfig, useIsHydrated, useHydrateBusinessConfig } from "@/lib/business-config";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -69,6 +69,7 @@ function DashboardLayout() {
   const config = useBusinessConfig();
   const hydrated = useIsHydrated();
   const [wizardOpen, setWizardOpen] = useState(false);
+  useHydrateBusinessConfig();
 
   useEffect(() => {
     if (hydrated && !config.onboarded) setWizardOpen(true);
@@ -164,10 +165,7 @@ function DashboardLayout() {
               </Button>
 
               {/* Notifications */}
-              <Button size="icon" variant="ghost" className="relative" aria-label="Notifications">
-                <Bell className="h-4 w-4" />
-                <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-danger" />
-              </Button>
+              <NotificationsPopover />
 
               {/* Theme Switch */}
               <Button
