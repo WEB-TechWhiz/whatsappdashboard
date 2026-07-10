@@ -38,6 +38,8 @@ import webhookRoutes from "./routes/automation/webhooks.routes.js";
 import leadsAutomationRoutes from "./routes/automation/leads.routes.js";
 // const escalationsRoutes = require("./routes/automation/escalations.routes");
 import escalationsRoutes from "./routes/automation/escalations.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
+import notificationsRoutes from "./routes/notifications.routes.js";
 
 const app = express();
 
@@ -64,6 +66,8 @@ app.use(API_PREFIX, leadsRoutes);
 app.use(API_PREFIX, analyticsRoutes);
 app.use(API_PREFIX, settingsRoutes);
 app.use(API_PREFIX, integrationsRoutes);
+app.use(API_PREFIX, dashboardRoutes);
+app.use(API_PREFIX, notificationsRoutes);
 app.use(`${API_PREFIX}/automation`, automationRoutes);
 app.use(`${API_PREFIX}/automation/leads`, leadsAutomationRoutes);
 app.use(`${API_PREFIX}/automation/escalations`, escalationsRoutes);
