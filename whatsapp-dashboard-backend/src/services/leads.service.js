@@ -2,6 +2,7 @@
 import pool from "../config/db.js";
 // const { NotFoundError } = require("../utils/errors");
 import { NotFoundError } from "../utils/errors.js";
+import { createNotification } from "./notifications.service.js";
 function toLeadDTO(row) {
   return {
     id: row.id,
@@ -55,6 +56,13 @@ async function createLead(workspaceId, { name, phone, source, status, value }) {
     [workspaceId, rows[0].id, `New lead: ${name}`],
   );
 
+  await createNotification(workspaceId, {
+    type: "lead",
+    title: "New lead",
+    body: `${name} came in via ${source}`,
+    link: `/dashboard/leads`,
+  });
+
   return toLeadDTO(rows[0]);
 }
 
@@ -101,6 +109,12 @@ async function updateLead(workspaceId, contactId, { status, value }) {
        VALUES ($1, $2, 'demo_booked', $3)`,
       [workspaceId, contactId, `${updated.name} booked`],
     );
+    await createNotification(workspaceId, {
+      type: "booking",
+      title: "Booking confirmed",
+      body: `${updated.name} — $${Number(updated.deal_value).toFixed(2)}`,
+      link: `/dashboard/leads`,
+    });
   } else if (status !== undefined) {
     await pool.query(
       `INSERT INTO activity_log (workspace_id, contact_id, type, description)
