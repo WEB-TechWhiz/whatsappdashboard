@@ -473,7 +473,7 @@ function DashboardOverview() {
               </CardHeader>
               <CardContent className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={revenueTrend}>
+                  <AreaChart data={revenueSeries}>
                     <defs>
                       <linearGradient id="rev" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.35} />
@@ -575,7 +575,7 @@ function DashboardOverview() {
               </CardHeader>
               <CardContent className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={leadFunnel} layout="vertical" margin={{ left: 8 }}>
+                  <BarChart data={funnelSeries} layout="vertical" margin={{ left: 8 }}>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       stroke="var(--border)"
@@ -620,7 +620,7 @@ function DashboardOverview() {
               </CardHeader>
               <CardContent className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={appointmentTrend}>
+                  <BarChart data={apptSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="d"
@@ -659,7 +659,7 @@ function DashboardOverview() {
               </CardHeader>
               <CardContent className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={revenueTrend}>
+                  <LineChart data={growthSeries}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                     <XAxis
                       dataKey="m"
@@ -714,7 +714,7 @@ function DashboardOverview() {
           </CardHeader>
           <CardContent>
             <ul className="divide-y">
-              {activity.map((a, i) => (
+              {activityFeed.map((a, i) => (
                 <li key={i} className="flex items-center gap-3 py-3">
                   <div
                     className={cn(
