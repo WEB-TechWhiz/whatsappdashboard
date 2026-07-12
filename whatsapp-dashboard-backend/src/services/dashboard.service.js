@@ -24,8 +24,15 @@ export async function getOverview(workspaceId, range = "week") {
   const days = RANGE_DAYS[range] ?? 7;
   const interval = `${days} days`;
 
-  const [kpisRow, revenueSeries, appointmentSeries, customerSeries, funnelRows, activityRows] =
-    await Promise.all([
+  const [
+    kpisRow,
+    revenueSeries,
+    appointmentSeries,
+    customerSeries,
+    funnelRows,
+    activityRows,
+    pipelineRow,
+  ] = await Promise.all([
       pool.query(
         `SELECT
            (SELECT COALESCE(SUM(value),0)::numeric FROM bookings
@@ -86,6 +93,18 @@ export async function getOverview(workspaceId, range = "week") {
          ORDER BY a.created_at DESC LIMIT 20`,
         [workspaceId],
       ),
+      pool.query(
+        `SELECT
+           (SELECT COUNT(*)::int FROM messages
+            WHERE workspace_id = $1 AND is_agent = false AND created_at > now() - $2::interval) AS inbound,
+           (SELECT COUNT(*)::int FROM messages
+            WHERE workspace_id = $1 AND is_agent = true AND created_at > now() - $2::interval) AS agent_replies,
+           (SELECT COUNT(*)::int FROM contacts
+            WHERE workspace_id = $1 AND created_at > now() - $2::interval) AS total_leads,
+           (SELECT COUNT(*)::int FROM contacts
+            WHERE workspace_id = $1 AND status = 'Booked' AND updated_at > now() - $2::interval) AS booked_leads`,
+        [workspaceId, interval],
+      ),
     ]);
 
   const k = kpisRow.rows[0];
@@ -96,6 +115,9 @@ export async function getOverview(workspaceId, range = "week") {
     (funnelRows.rows.find((r) => r.status === "Booked")?.count ?? 0);
   const booked = funnelRows.rows.find((r) => r.status === "Booked")?.count ?? 0;
   const conversion = totalLeads > 0 ? (booked / totalLeads) * 100 : 0;
+  const p = pipelineRow.rows[0];
+  const responseRate = p.inbound > 0 ? Math.min(100, (p.agent_replies / p.inbound) * 100) : 0;
+  const bookingRate = p.total_leads > 0 ? (p.booked_leads / p.total_leads) * 100 : 0;
 
   return {
     range,
@@ -111,6 +133,8 @@ export async function getOverview(workspaceId, range = "week") {
       leaks: k.leaks,
       avgDealValue: Number(k.avg_deal_value),
       conversionRate: Number(conversion.toFixed(1)),
+      responseRate: Number(responseRate.toFixed(1)),
+      bookingRate: Number(bookingRate.toFixed(1)),
     },
     charts: {
       revenueTrend: fillDailySeries(revenueSeries.rows, days),

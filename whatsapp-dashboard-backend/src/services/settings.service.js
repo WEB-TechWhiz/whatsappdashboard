@@ -29,8 +29,7 @@ export async function upsertSettings(workspaceId, patch) {
     industry: patch.industry ?? current.industry,
     team_size: patch.teamSize ?? current.teamSize,
     features: { ...current.features, ...(patch.features || {}) },
-    onboarding_completed:
-      patch.onboardingCompleted ?? current.onboardingCompleted,
+    onboarding_completed: patch.onboardingCompleted ?? current.onboardingCompleted,
   };
 
   const { rows } = await pool.query(

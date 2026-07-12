@@ -10,11 +10,7 @@ import {
   Sparkles,
   Moon,
   Sun,
-  Building2,
-  ChevronDown,
-  Wifi,
   CircleDot,
-  Zap,
   Command as CommandIcon,
 } from "lucide-react";
 import {
@@ -65,7 +61,6 @@ function DashboardLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const current = CRUMBS[pathname] ?? "Overview";
   const [dark, setDark] = useState(false);
-  const [business, setBusiness] = useState("Acme Wellness");
   const config = useBusinessConfig();
   const hydrated = useIsHydrated();
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -76,12 +71,20 @@ function DashboardLayout() {
   }, [hydrated, config.onboarded]);
 
   useEffect(() => {
-    if (config.name) setBusiness(config.name);
-  }, [config.name]);
-
-  useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
+
+  if (!hydrated) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
+  if (!config.onboarded) {
+    return (
+      <div className="min-h-screen bg-background">
+        <OnboardingWizard open mandatory onOpenChange={setWizardOpen} />
+      </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -119,27 +122,6 @@ function DashboardLayout() {
             </div>
 
             <div className="ml-auto flex items-center gap-1">
-              {/* Business Switcher */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-9 gap-2 hidden lg:inline-flex">
-                    <Building2 className="h-4 w-4" />
-                    <span className="max-w-[120px] truncate">{business}</span>
-                    <ChevronDown className="h-3 w-3 opacity-60" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>Switch business</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {["Acme Wellness", "Acme Salon", "Acme Fitness"].map((b) => (
-                    <DropdownMenuItem key={b} onClick={() => setBusiness(b)}>
-                      <Building2 className="h-4 w-4" />
-                      {b}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
               {/* Quick Create */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -205,29 +187,19 @@ function DashboardLayout() {
             <Outlet />
           </main>
 
-        <OnboardingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+          <OnboardingWizard open={wizardOpen} onOpenChange={setWizardOpen} />
 
           {/* Bottom Status Bar */}
           <footer className="sticky bottom-0 z-10 flex h-9 items-center gap-4 border-t bg-card/95 px-4 text-xs text-muted-foreground backdrop-blur">
             <span className="flex items-center gap-1.5">
               <CircleDot className="h-3 w-3 text-success" />
-              All systems operational
-            </span>
-            <Separator orientation="vertical" className="h-4 hidden sm:block" />
-            <span className="hidden sm:flex items-center gap-1.5">
-              <Wifi className="h-3 w-3" />
-              WhatsApp API connected
-            </span>
-            <Separator orientation="vertical" className="h-4 hidden md:block" />
-            <span className="hidden md:flex items-center gap-1.5">
-              <Zap className="h-3 w-3 text-warning" />
-              AI: 82% budget used
+              Live dashboard data
             </span>
             <div className="ml-auto flex items-center gap-3">
               <Badge variant="secondary" className="h-5 text-[10px]">
                 v2.4.1
               </Badge>
-              <span className="hidden sm:inline">Last sync 12s ago</span>
+              <span className="hidden sm:inline">Updates on account events</span>
             </div>
           </footer>
         </SidebarInset>

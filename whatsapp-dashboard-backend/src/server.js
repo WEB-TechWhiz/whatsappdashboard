@@ -13,6 +13,7 @@ import pinoHttp from "pino-http";
 
 // const logger = require("./config/logger");
 import logger from "./config/logger.js";
+import { corsOptions } from "./config/cors.js";
 // const { errorHandler, notFoundHandler } = require("./middleware/errorHandler");
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 // const { initSocket } = require("./realtime/socket");
@@ -44,7 +45,7 @@ import notificationsRoutes from "./routes/notifications.routes.js";
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN, credentials: true }));
+app.use(cors(corsOptions));
 
 // Webhook routes need raw body for signature verification
 app.use("/api/v1/webhooks", express.raw({ type: "application/json", limit: "1mb" }));

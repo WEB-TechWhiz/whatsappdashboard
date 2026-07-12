@@ -33,11 +33,11 @@ export type BusinessConfig = {
   features: Record<FeatureKey, boolean>;
 };
 
-export const FEATURE_META: Record<
-  FeatureKey,
-  { label: string; description: string }
-> = {
-  crm: { label: "Customers & Leads (CRM)", description: "Track customers, leads, and opportunities." },
+export const FEATURE_META: Record<FeatureKey, { label: string; description: string }> = {
+  crm: {
+    label: "Customers & Leads (CRM)",
+    description: "Track customers, leads, and opportunities.",
+  },
   appointments: { label: "Appointments", description: "Bookings, scheduling, and calendars." },
   calendar: { label: "Team Calendar", description: "Shared team calendar view." },
   tasks: { label: "Tasks", description: "Assign and track internal work." },

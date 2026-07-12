@@ -1,6 +1,15 @@
 import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Bell, CheckCheck, UserPlus, MessageSquare, CreditCard, Rocket, Info, Calendar } from "lucide-react";
+import {
+  Bell,
+  CheckCheck,
+  UserPlus,
+  MessageSquare,
+  CreditCard,
+  Rocket,
+  Info,
+  Calendar,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -120,7 +129,9 @@ export function NotificationsPopover() {
           {items.isLoading ? (
             <div className="p-6 text-center text-xs text-muted-foreground">Loading…</div>
           ) : (items.data?.length ?? 0) === 0 ? (
-            <div className="p-6 text-center text-xs text-muted-foreground">You're all caught up.</div>
+            <div className="p-6 text-center text-xs text-muted-foreground">
+              You're all caught up.
+            </div>
           ) : (
             <ul className="divide-y">
               {items.data!.map((n) => {

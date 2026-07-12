@@ -32,6 +32,15 @@ function verifyWebhookSignature(req, signature) {
   return signature === expectedSignature;
 }
 
+function getWebhookData(req) {
+  if (Buffer.isBuffer(req.body)) {
+    req.rawBody = req.body;
+    return JSON.parse(req.body.toString("utf8"));
+  }
+
+  return req.body;
+}
+
 /**
  * POST /webhooks/whatsapp
  * Receives incoming WhatsApp messages from Meta
@@ -50,7 +59,7 @@ router.post("/whatsapp", async (req, res) => {
       return res.status(401).json({ error: "Invalid signature" });
     }
 
-    const webhookData = req.body;
+    const webhookData = getWebhookData(req);
 
     // Handle different webhook event types
     const entry = webhookData?.entry?.[0];
@@ -101,7 +110,8 @@ router.get("/whatsapp", (req, res) => {
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
 
-    const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+    const verifyToken =
+      process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN;
 
     if (mode === "subscribe" && token === verifyToken) {
       logger.info("[Webhook] Webhook verified by Meta");
@@ -129,8 +139,8 @@ async function handleMessageStatus(status) {
     // Update message status in database
     await db.query(
       `UPDATE messages 
-       SET status = ?, updated_at = NOW()
-       WHERE meta_message_id = ?`,
+       SET status = $1, updated_at = NOW()
+       WHERE meta_message_id = $2`,
       [messageStatus, id],
     );
   } catch (error) {

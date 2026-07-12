@@ -61,7 +61,7 @@ type NavItem = {
   badge?: string;
   exact?: boolean;
   feature?: FeatureKey;
-  children?: { title: string; url: string }[];
+  children?: { title: string; url: string; feature?: FeatureKey }[];
 };
 
 type NavGroup = { label: string; items: NavItem[] };
@@ -86,9 +86,14 @@ const NAV_GROUPS: NavGroup[] = [
           { title: "Contacts", url: "/dashboard/crm/contacts" },
         ],
       },
-      { title: "Appointments", url: "/dashboard/appointments", icon: CalendarCheck, feature: "appointments" },
+      {
+        title: "Appointments",
+        url: "/dashboard/appointments",
+        icon: CalendarCheck,
+        feature: "appointments",
+      },
       { title: "Calendar", url: "/dashboard/calendar", icon: CalendarDays, feature: "calendar" },
-      { title: "Tasks", url: "/dashboard/tasks", icon: ListChecks, badge: "7", feature: "tasks" },
+      { title: "Tasks", url: "/dashboard/tasks", icon: ListChecks, feature: "tasks" },
     ],
   },
   {
@@ -99,11 +104,10 @@ const NAV_GROUPS: NavGroup[] = [
         title: "Communication",
         url: "/dashboard/communication",
         icon: MessageSquare,
-        badge: "12",
         children: [
-          { title: "WhatsApp", url: "/dashboard/conversations" },
-          { title: "Email", url: "/dashboard/communication/email" },
-          { title: "SMS", url: "/dashboard/communication/sms" },
+          { title: "WhatsApp", url: "/dashboard/conversations", feature: "whatsapp" },
+          { title: "Email", url: "/dashboard/communication/email", feature: "email" },
+          { title: "SMS", url: "/dashboard/communication/sms", feature: "sms" },
         ],
       },
       { title: "Marketing", url: "/dashboard/marketing", icon: Megaphone, feature: "marketing" },
@@ -126,14 +130,24 @@ const NAV_GROUPS: NavGroup[] = [
       { title: "Employees", url: "/dashboard/employees", icon: UsersRound, feature: "employees" },
       { title: "Reports", url: "/dashboard/reports", icon: FileBarChart, feature: "reports" },
       { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3, feature: "analytics" },
-      { title: "Workflow Builder", url: "/dashboard/workflows", icon: Workflow, feature: "workflows" },
+      {
+        title: "Workflow Builder",
+        url: "/dashboard/workflows",
+        icon: Workflow,
+        feature: "workflows",
+      },
       { title: "Automation", url: "/dashboard/automation", icon: Zap, feature: "automation" },
     ],
   },
   {
     label: "Resources",
     items: [
-      { title: "Knowledge Base", url: "/dashboard/knowledge", icon: BookOpen, feature: "knowledge" },
+      {
+        title: "Knowledge Base",
+        url: "/dashboard/knowledge",
+        icon: BookOpen,
+        feature: "knowledge",
+      },
       { title: "Documents", url: "/dashboard/documents", icon: Files, feature: "documents" },
       { title: "Settings", url: "/dashboard/settings", icon: Settings },
     ],
@@ -143,6 +157,15 @@ const NAV_GROUPS: NavGroup[] = [
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const config = useBusinessConfig();
+  const workspace = auth.getWorkspace();
+  const businessName = config.name || workspace?.name || "Workspace";
+  const userEmail = workspace?.email || "";
+  const initials = businessName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
   const isActive = (url: string, exact?: boolean) =>
     exact ? pathname === url : pathname === url || pathname.startsWith(url + "/");
@@ -151,7 +174,13 @@ export function AppSidebar() {
 
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
-    items: g.items.filter((i) => isEnabled(i.feature)),
+    items: g.items
+      .map((i) =>
+        i.children
+          ? { ...i, children: i.children.filter((child) => isEnabled(child.feature)) }
+          : i,
+      )
+      .filter((i) => isEnabled(i.feature) && (!i.children || i.children.length > 0)),
   })).filter((g) => g.items.length > 0);
 
   const handleLogout = async () => {
@@ -170,7 +199,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold leading-none">Flowly CRM</span>
-            <span className="text-xs text-muted-foreground mt-1">Acme Wellness</span>
+            <span className="text-xs text-muted-foreground mt-1 truncate">{businessName}</span>
           </div>
         </div>
       </SidebarHeader>
@@ -247,12 +276,12 @@ export function AppSidebar() {
           <div className="flex items-center gap-2 min-w-0">
             <Avatar className="h-8 w-8 shrink-0">
               <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                AD
+                {initials || "WS"}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
-              <span className="text-sm font-medium truncate">Admin</span>
-              <span className="text-xs text-muted-foreground truncate">admin@flowly.io</span>
+              <span className="text-sm font-medium truncate">{businessName}</span>
+              <span className="text-xs text-muted-foreground truncate">{userEmail}</span>
             </div>
           </div>
           <Button

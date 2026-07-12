@@ -169,9 +169,7 @@ function SettingsPage() {
                 </div>
                 <Switch
                   checked={on}
-                  onCheckedChange={(v) =>
-                    updateBusinessConfig({ features: { [k]: v } as any })
-                  }
+                  onCheckedChange={(v) => updateBusinessConfig({ features: { [k]: v } as any })}
                 />
               </div>
             );

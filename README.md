@@ -356,8 +356,10 @@ GOOGLE_OAUTH_CLIENT_SECRET=
 GOOGLE_OAUTH_REDIRECT_URI=http://localhost:4000/api/v1/auth/oauth/google/callback
 
 FRONTEND_ORIGIN=http://localhost:3000
+FRONTEND_ORIGIN_PATTERNS=
 
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=replace-me
+WHATSAPP_WEBHOOK_SECRET=replace-with-your-meta-app-secret
 INTERNAL_INTEGRATION_TOKEN=replace-with-a-long-random-string
 
 WHATSAPP_SEND_URL=http://localhost:5000/internal/whatsapp/send
@@ -370,9 +372,11 @@ ENCRYPTION_KEY=replace-with-32-byte-hex-key
 Frontend environment variables:
 
 ```env
-VITE_API_URL=http://localhost:4000/api/v1
-VITE_SOCKET_URL=http://localhost:4000
+VITE_API_URL=
+VITE_SOCKET_URL=
 ```
+
+Leave `VITE_API_URL` and `VITE_SOCKET_URL` empty for local development and Cloudflare Tunnel. The browser will use the current frontend origin, while Vite proxies `/api/v1` and `/socket.io` to the backend on `localhost:4000`.
 
 ## Setup
 
@@ -459,6 +463,24 @@ Frontend runs at:
 ```text
 http://localhost:3000
 ```
+
+### 8. Run Cloudflare Tunnel
+
+Install `cloudflared`, then keep the backend and frontend terminals running and start a third terminal:
+
+```bash
+npm run tunnel
+```
+
+Open the `https://...trycloudflare.com` URL printed by Cloudflare. This exposes the frontend only; API and Socket.IO traffic stay routed through the local Vite proxy to `localhost:4000`.
+
+For a named tunnel on your own domain, copy `cloudflared.example.yml` to your Cloudflare config directory, replace `dashboard.example.com`, create/login to the tunnel with `cloudflared`, then run:
+
+```bash
+npm run tunnel:run
+```
+
+For production/custom domains, add the public dashboard URL to `FRONTEND_ORIGIN` in `whatsapp-dashboard-backend/.env`, for example `FRONTEND_ORIGIN=http://localhost:3000,https://dashboard.example.com`.
 
 ## Authentication Flow
 

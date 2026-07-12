@@ -36,10 +36,10 @@ export async function unreadCount(workspaceId) {
 }
 
 export async function markRead(workspaceId, id) {
-  await pool.query(
-    `UPDATE notifications SET read = true WHERE id = $1 AND workspace_id = $2`,
-    [id, workspaceId],
-  );
+  await pool.query(`UPDATE notifications SET read = true WHERE id = $1 AND workspace_id = $2`, [
+    id,
+    workspaceId,
+  ]);
 }
 
 export async function markAllRead(workspaceId) {

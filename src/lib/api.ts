@@ -2,12 +2,12 @@ import { io, Socket } from "socket.io-client";
 
 export const API_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"
+    ? import.meta.env.VITE_API_URL || `${window.location.origin}/api/v1`
     : "http://localhost:4000/api/v1";
 
 export const SOCKET_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_SOCKET_URL || "http://localhost:4000"
+    ? import.meta.env.VITE_SOCKET_URL || window.location.origin
     : "http://localhost:4000";
 
 let socket: Socket | null = null;
