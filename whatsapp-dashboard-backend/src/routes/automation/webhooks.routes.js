@@ -10,20 +10,38 @@ const router = express.Router();
  * Verify webhook signature from Meta
  * @private
  */
+function getRawBody(req) {
+  if (Buffer.isBuffer(req.body)) return req.body;
+  return Buffer.from(req.rawBody || JSON.stringify(req.body || {}));
+}
+
+function parseWebhookBody(req) {
+  if (Buffer.isBuffer(req.body)) return JSON.parse(req.body.toString("utf8"));
+  return req.body;
+}
+
 function verifyWebhookSignature(req, signature) {
-  const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    logger.warn("[Webhook] No webhook secret configured");
-    return false;
-  }
+  const secret = process.env.WHATSAPP_WEBHOOK_SECRET;
+  if (!secret || typeof signature !== "string") return false;
+  const expected = crypto.createHmac("sha256", secret).update(getRawBody(req)).digest("hex");
+  const provided = signature.replace(/^sha256=/, "");
+  return provided.length === expected.length && crypto.timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+}
 
-  const hash = crypto
-    .createHmac("sha256", webhookSecret)
-    .update(req.rawBody || JSON.stringify(req.body))
-    .digest("sha256");
+async function claimWebhookEvent(connectionId, providerEventId, eventType, payload) {
+  const result = await db.query(
+    `INSERT INTO public.whatsapp_webhook_events (connection_id, provider_event_id, event_type, payload)
+     VALUES ($1, $2, $3, $4::jsonb)
+     ON CONFLICT (connection_id, provider_event_id) DO NOTHING
+     RETURNING id`,
+    [connectionId, providerEventId, eventType, JSON.stringify(payload)],
+  );
+  return Boolean(result.rows[0]);
+}
 
-  const expectedSignature = `sha256=${hash}`;
-  return signature === expectedSignature;
+function getProviderEventId(change) {
+  return change?.value?.messages?.[0]?.id || change?.value?.statuses?.[0]?.id ||
+    crypto.createHash("sha256").update(JSON.stringify(change || {})).digest("hex");
 }
 
 /**
@@ -44,7 +62,7 @@ router.post("/whatsapp", async (req, res) => {
       return res.status(401).json({ error: "Invalid signature" });
     }
 
-    const webhookData = req.body;
+    const webhookData = parseWebhookBody(req);
 
     // Handle different webhook event types
     const entry = webhookData?.entry?.[0];
@@ -54,6 +72,20 @@ router.post("/whatsapp", async (req, res) => {
 
     const change = entry?.changes?.[0];
     const field = change?.field;
+    const phoneNumberId = change?.value?.metadata?.phone_number_id;
+    const connectionResult = await db.query(
+      `SELECT id FROM public.whatsapp_connections WHERE phone_number_id = $1 AND status <> 'DISCONNECTED' LIMIT 1`,
+      [phoneNumberId],
+    );
+    if (!connectionResult.rows[0]) return res.status(200).json({ success: true });
+
+    const claimed = await claimWebhookEvent(
+      connectionResult.rows[0].id,
+      getProviderEventId(change),
+      field || "unknown",
+      webhookData,
+    );
+    if (!claimed) return res.status(200).json({ success: true, duplicate: true });
 
     // Route to appropriate handler
     if (field === "messages") {
@@ -64,6 +96,7 @@ router.post("/whatsapp", async (req, res) => {
         logger.warn("[Webhook] Message not processed:", result.reason);
       }
 
+      await db.query(`UPDATE public.whatsapp_webhook_events SET processed_at = now() WHERE connection_id = $1 AND provider_event_id = $2`, [connectionResult.rows[0].id, getProviderEventId(change)]);
       res.status(200).json({ success: true });
     } else if (field === "message_status") {
       // Handle delivery/read status
@@ -72,6 +105,7 @@ router.post("/whatsapp", async (req, res) => {
         await handleMessageStatus(status);
       }
 
+      await db.query(`UPDATE public.whatsapp_webhook_events SET processed_at = now() WHERE connection_id = $1 AND provider_event_id = $2`, [connectionResult.rows[0].id, getProviderEventId(change)]);
       res.status(200).json({ success: true });
     } else {
       logger.info("[Webhook] Unknown field:", field);
@@ -89,15 +123,22 @@ router.post("/whatsapp", async (req, res) => {
  * 
  * Meta sends this to verify the webhook is responding correctly
  */
-router.get("/whatsapp", (req, res) => {
+router.get("/whatsapp", async (req, res) => {
   try {
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
 
     const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN;
+    const phoneNumberId = req.query.phone_number_id;
+    const connectionResult = phoneNumberId
+      ? await db.query(`SELECT webhook_verify_token_hash FROM public.whatsapp_connections WHERE phone_number_id = $1 AND status <> 'DISCONNECTED' LIMIT 1`, [phoneNumberId])
+      : { rows: [] };
+    const validToken = connectionResult.rows[0]?.webhook_verify_token_hash
+      ? crypto.createHash("sha256").update(String(token || "")).digest("hex") === connectionResult.rows[0].webhook_verify_token_hash
+      : Boolean(verifyToken && token === verifyToken);
 
-    if (mode === "subscribe" && token === verifyToken) {
+    if (mode === "subscribe" && validToken) {
       logger.info("[Webhook] Webhook verified by Meta");
       res.status(200).send(challenge);
     } else {

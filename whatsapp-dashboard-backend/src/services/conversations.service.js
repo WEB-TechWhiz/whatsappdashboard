@@ -1,6 +1,6 @@
 const pool = require("../config/db");
 const logger = require("../config/logger");
-const { NotFoundError } = require("../utils/errors");
+const { NotFoundError, ConflictError } = require("../utils/errors");
 
 function toConversationDTO(row) {
   return {
@@ -64,23 +64,32 @@ async function getMessages(workspaceId, contactId, limit = 50, offset = 0) {
   return rows.reverse().map(toMessageDTO);
 }
 
-async function sendMessage(workspaceId, contactId, { text, mediaUrl }) {
+async function sendMessage(workspaceId, contactId, { text, mediaUrl, templateName, templateLanguage }) {
   const contactResult = await pool.query(
     `SELECT id, name, phone FROM contacts WHERE id = $1 AND workspace_id = $2`,
     [contactId, workspaceId],
   );
   if (contactResult.rows.length === 0) throw new NotFoundError("Conversation");
   const contact = contactResult.rows[0];
+  const latestInbound = await pool.query(
+    `SELECT created_at FROM messages WHERE contact_id = $1 AND workspace_id = $2 AND is_agent = false ORDER BY created_at DESC LIMIT 1`,
+    [contactId, workspaceId],
+  );
+  const lastInboundAt = latestInbound.rows[0]?.created_at;
+  const withinCustomerCareWindow = lastInboundAt && Date.now() - new Date(lastInboundAt).getTime() < 24 * 60 * 60 * 1000;
+  if (!withinCustomerCareWindow && !templateName) {
+    throw new ConflictError("The 24-hour customer care window has expired. Use an approved WhatsApp template.");
+  }
 
   const { rows } = await pool.query(
     `INSERT INTO messages (workspace_id, contact_id, text, media_url, is_agent, read)
      VALUES ($1, $2, $3, $4, true, true)
      RETURNING *`,
-    [workspaceId, contactId, text, mediaUrl || null],
+    [workspaceId, contactId, text || `[Template: ${templateName}]`, mediaUrl || null],
   );
 
   await pool.query(`UPDATE contacts SET updated_at = now() WHERE id = $1`, [contactId]);
-  await deliverOutboundMessage(workspaceId, contact, { text, mediaUrl });
+  await deliverOutboundMessage(workspaceId, contact, { text, mediaUrl, templateName, templateLanguage });
 
   return toMessageDTO(rows[0]);
 }
