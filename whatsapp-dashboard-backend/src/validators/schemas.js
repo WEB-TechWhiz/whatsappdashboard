@@ -21,8 +21,12 @@ const logout = z.object({
 });
 
 const sendMessage = z.object({
-  text: z.string().trim().min(1).max(4096),
+  text: z.string().trim().min(1).max(4096).optional(),
   mediaUrl: z.string().url().optional(),
+  templateName: z.string().trim().min(1).max(128).optional(),
+  templateLanguage: z.string().trim().min(2).max(16).optional(),
+}).refine((data) => Boolean(data.text || data.templateName), {
+  message: "Text or an approved template is required",
 });
 
 const typing = z.object({
