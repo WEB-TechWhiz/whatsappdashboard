@@ -1,6 +1,7 @@
 const pool = require("../config/db");
 const logger = require("../config/logger");
 const { NotFoundError, ConflictError } = require("../utils/errors");
+const { assertUsageAvailable, recordUsage } = require("./billing.service");
 
 function toConversationDTO(row) {
   return {
@@ -77,6 +78,7 @@ async function sendMessage(workspaceId, contactId, { text, mediaUrl, templateNam
   );
   const lastInboundAt = latestInbound.rows[0]?.created_at;
   const withinCustomerCareWindow = lastInboundAt && Date.now() - new Date(lastInboundAt).getTime() < 24 * 60 * 60 * 1000;
+  await assertUsageAvailable(workspaceId, 1);
   if (!withinCustomerCareWindow && !templateName) {
     throw new ConflictError("The 24-hour customer care window has expired. Use an approved WhatsApp template.");
   }
@@ -90,6 +92,13 @@ async function sendMessage(workspaceId, contactId, { text, mediaUrl, templateNam
 
   await pool.query(`UPDATE contacts SET updated_at = now() WHERE id = $1`, [contactId]);
   await deliverOutboundMessage(workspaceId, contact, { text, mediaUrl, templateName, templateLanguage });
+  await recordUsage({
+    workspaceId,
+    providerEventKey: `outbound:${rows[0].id}`,
+    direction: "outbound",
+    category: templateName ? "template" : "service",
+    billable: true,
+  });
 
   return toMessageDTO(rows[0]);
 }

@@ -57,6 +57,7 @@ function SettingsPage() {
   const [connectionPhoneId, setConnectionPhoneId] = useState("");
   const [connectionWabaId, setConnectionWabaId] = useState("");
   const [connectionToken, setConnectionToken] = useState("");
+  const [billingPlan, setBillingPlan] = useState("growth");
 
   const { data: profile, isLoading } = useQuery<Profile>({
     queryKey: ["workspace-profile"],
@@ -73,6 +74,17 @@ function SettingsPage() {
     setNotifyNewLeads(profile.notify_new_leads);
     setFlagLeaks(profile.flag_leaks);
   }, [profile]);
+
+  const { data: billingData } = useQuery<{ plan_key: string; subscription_status: string; usage: number; usage_limit: number }>({
+    queryKey: ["workspace-billing"],
+    queryFn: () => apiFetch("/billing"),
+  });
+
+  const startCheckout = useMutation({
+    mutationFn: () => apiFetch("/billing/checkout", { method: "POST", body: JSON.stringify({ planKey: billingPlan }) }),
+    onSuccess: ({ url }: { url: string }) => { window.location.assign(url); },
+    onError: (err) => toast.error(err.message || "Unable to start checkout"),
+  });
 
   const { data: connectionData, isLoading: connectionsLoading } = useQuery<{ connections: WhatsAppConnection[] }>({
     queryKey: ["whatsapp-connections"],
@@ -180,6 +192,31 @@ function SettingsPage() {
           {isLoading ? "Loading workspace settings..." : "Workspace preferences and integrations."}
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Billing and usage</CardTitle>
+          <CardDescription>Choose a workspace plan and monitor this month&apos;s billable WhatsApp usage.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
+            <div>
+              <p className="text-sm font-medium capitalize">{billingData?.plan_key || "starter"} plan</p>
+              <p className="text-xs text-muted-foreground">{billingData?.usage || 0} / {billingData?.usage_limit || 1000} billable messages this month · {billingData?.subscription_status || "inactive"}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <select className="h-9 rounded-md border bg-background px-3 text-sm" value={billingPlan} onChange={(e) => setBillingPlan(e.target.value)} aria-label="Billing plan">
+                <option value="starter">Starter</option>
+                <option value="growth">Growth</option>
+                <option value="scale">Scale</option>
+              </select>
+              <Button onClick={() => startCheckout.mutate()} disabled={startCheckout.isPending}>
+                {startCheckout.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Upgrade"}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
