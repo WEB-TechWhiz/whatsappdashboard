@@ -1,4 +1,5 @@
-const pool = require("./config/db");
+// const pool = require("./config/db");
+import pool from "./config/db.js";
 
 /**
  * Database query wrapper
@@ -38,4 +39,4 @@ const db = {
   },
 };
 
-module.exports = db;
+export default db;

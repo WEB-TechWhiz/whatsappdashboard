@@ -1,4 +1,5 @@
-const crypto = require("crypto");
+// const crypto = require("crypto");
+import crypto from "crypto";
 
 // AES-256-GCM. ENCRYPTION_KEY must be a 32-byte value (base64 or hex), set via env.
 // Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -24,4 +25,4 @@ function decrypt(payload) {
   return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
 }
 
-module.exports = { encrypt, decrypt };
+export { encrypt, decrypt };

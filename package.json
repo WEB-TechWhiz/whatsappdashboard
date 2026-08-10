@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000",
+    "tunnel:dev": "powershell -ExecutionPolicy Bypass -File ./start-tunnel.ps1",
+    "tunnel:setup": "powershell -ExecutionPolicy Bypass -File ./setup-tunnel.ps1",
+    "tunnel:run": "cloudflared tunnel run whatsapp-dashboard",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",

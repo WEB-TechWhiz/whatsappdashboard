@@ -1,5 +1,7 @@
-const logger = require("../config/logger");
-const { AppError } = require("../utils/errors");
+// const logger = require("../config/logger");
+import logger from "../config/logger.js";
+// const { AppError } = require("../utils/errors");
+import { AppError } from "../utils/errors.js";
 
 // Must be registered LAST, after all routes.
 function errorHandler(err, req, res, next) {
@@ -24,4 +26,4 @@ function notFoundHandler(req, res) {
   res.status(404).json({ error: "NOT_FOUND", message: `No route: ${req.method} ${req.path}` });
 }
 
-module.exports = { errorHandler, notFoundHandler };
+export { errorHandler, notFoundHandler };

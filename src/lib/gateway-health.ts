@@ -1,11 +1,11 @@
 /**
  * Gateway Health Check System
- * 
+ *
  * Monitors the health of all registered microservices.
  * If a service is down, requests can be rerouted to fallback services or return 503.
  */
 
-import { SERVICES, type ServiceConfig } from './gateway-config';
+import { SERVICES, type ServiceConfig } from "./gateway-config";
 
 export interface HealthStatus {
   service: string;
@@ -26,7 +26,7 @@ class HealthChecker {
   public start(intervalMs: number = 30000): void {
     if (this.checkInterval) return;
 
-    console.log('[Gateway] Starting health checks every', intervalMs, 'ms');
+    console.log("[Gateway] Starting health checks every", intervalMs, "ms");
     this.checkInterval = setInterval(() => {
       void this.checkAllServices();
     }, intervalMs);
@@ -58,10 +58,7 @@ class HealthChecker {
   /**
    * Check health of a single service
    */
-  public async checkService(
-    serviceName: string,
-    config: ServiceConfig,
-  ): Promise<HealthStatus> {
+  public async checkService(serviceName: string, config: ServiceConfig): Promise<HealthStatus> {
     const status: HealthStatus = {
       service: serviceName,
       healthy: false,
@@ -77,19 +74,13 @@ class HealthChecker {
     try {
       const startTime = Date.now();
       const controller = new AbortController();
-      const timeoutId = setTimeout(
-        () => controller.abort(),
-        config.timeout || 5000,
-      );
+      const timeoutId = setTimeout(() => controller.abort(), config.timeout || 5000);
 
       try {
-        const response = await fetch(
-          `${config.url}${config.healthCheckPath}`,
-          {
-            method: 'GET',
-            signal: controller.signal,
-          },
-        );
+        const response = await fetch(`${config.url}${config.healthCheckPath}`, {
+          method: "GET",
+          signal: controller.signal,
+        });
 
         clearTimeout(timeoutId);
         status.responseTime = Date.now() - startTime;
@@ -104,7 +95,7 @@ class HealthChecker {
       }
     } catch (error) {
       status.healthy = false;
-      status.error = error instanceof Error ? error.message : 'Unknown error';
+      status.error = error instanceof Error ? error.message : "Unknown error";
     }
 
     this.healthCache.set(serviceName, status);

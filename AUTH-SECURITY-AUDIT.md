@@ -11,6 +11,7 @@
 Your WhatsApp Dashboard authentication and authorization system is **well-implemented and secure**. The system uses industry-standard JWT tokens, bcrypt password hashing, refresh token rotation, rate limiting, and multi-layered authorization checks.
 
 **Key Findings**:
+
 - ✅ JWT token-based authentication with refresh token rotation
 - ✅ Bcrypt password hashing (12-round salt)
 - ✅ Rate limiting on auth endpoints (10/15min for login, 30/10min for OAuth)
@@ -31,6 +32,7 @@ Your WhatsApp Dashboard authentication and authorization system is **well-implem
 **File**: `src/middleware/auth.js`
 
 **How it works**:
+
 ```javascript
 function requireAuth(req, res, next) {
   const header = req.headers.authorization;
@@ -39,12 +41,13 @@ function requireAuth(req, res, next) {
   }
   const token = header.slice(7);
   const payload = jwt.verify(token, process.env.JWT_SECRET);
-  req.workspaceId = payload.workspaceId;  // ← Multi-tenant isolation
+  req.workspaceId = payload.workspaceId; // ← Multi-tenant isolation
   next();
 }
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Token verification happens on every protected request
 - `workspaceId` extracted from verified token (never from user input)
 - Proper error handling with `UnauthorizedError`
@@ -56,11 +59,13 @@ function requireAuth(req, res, next) {
   - `/settings/*` ✅
 
 **Token Format**:
+
 ```javascript
 jwt.sign({ workspaceId, type: "access" }, process.env.JWT_SECRET, {
-  expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m"
-})
+  expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
+});
 ```
+
 - Default 15-minute expiration (appropriate)
 - Contains workspace ID for multi-tenant lookup
 - Type marker for future refresh token distinction
@@ -72,17 +77,20 @@ jwt.sign({ workspaceId, type: "access" }, process.env.JWT_SECRET, {
 **File**: `src/routes/auth.routes.js`
 
 **Hash Implementation**:
+
 ```javascript
 const passwordHash = await bcrypt.hash(password, 12);
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Bcrypt with 12-round salt (industry standard)
 - No plaintext passwords stored
 - Hashing happens before DB insert
 - Passwords are validated on signup (min 8 chars, max 128)
 
 **Validation**:
+
 ```javascript
 const signup = z.object({
   password: z.string().min(8).max(128),
@@ -93,6 +101,7 @@ const login = z.object({
 ```
 
 **Issue Found**: ⚠️ **Potential Enhancement**
+
 - Login endpoint doesn't enforce max length (could allow very long password attempts)
 - Recommend: Add `.max(128)` to login validation for consistency
 
@@ -103,19 +112,21 @@ const login = z.object({
 **File**: `src/routes/auth.routes.js`
 
 **How it works**:
+
 ```javascript
 async function createRefreshToken(workspaceId, req) {
   const refreshToken = crypto.randomBytes(48).toString("base64url");
   await pool.query(
     `INSERT INTO refresh_tokens (workspace_id, token_hash, user_agent, ip_address, expires_at)
      VALUES ($1, $2, $3, $4, $5)`,
-    [workspaceId, tokenHash(refreshToken), req.get("user-agent"), req.ip, refreshExpiry()]
+    [workspaceId, tokenHash(refreshToken), req.get("user-agent"), req.ip, refreshExpiry()],
   );
   return refreshToken;
 }
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Refresh tokens are random 48-byte strings (384 bits)
 - Tokens are hashed in database (never stored plaintext)
 - Each refresh invalidates old token and creates new one
@@ -135,21 +146,28 @@ async function createRefreshToken(workspaceId, req) {
   ```
 
 **Refresh Flow**:
+
 ```javascript
-router.post("/auth/refresh", validate(schemas.refreshToken), asyncHandler(async (req, res) => {
-  const hash = tokenHash(req.body.refreshToken);
-  const { rows } = await pool.query(
-    `SELECT rt.id, w.* FROM refresh_tokens rt
+router.post(
+  "/auth/refresh",
+  validate(schemas.refreshToken),
+  asyncHandler(async (req, res) => {
+    const hash = tokenHash(req.body.refreshToken);
+    const { rows } = await pool.query(
+      `SELECT rt.id, w.* FROM refresh_tokens rt
      JOIN workspaces w ON w.id = rt.workspace_id
-     WHERE rt.token_hash = $1 AND rt.revoked_at IS NULL AND rt.expires_at > now()`
-  );
-  
-  // Revoke old token
-  await pool.query(`UPDATE refresh_tokens SET revoked_at = now() WHERE id = $1`, [workspace.refresh_id]);
-  
-  // Issue new tokens
-  res.json(await issueSession(workspace, req));
-}));
+     WHERE rt.token_hash = $1 AND rt.revoked_at IS NULL AND rt.expires_at > now()`,
+    );
+
+    // Revoke old token
+    await pool.query(`UPDATE refresh_tokens SET revoked_at = now() WHERE id = $1`, [
+      workspace.refresh_id,
+    ]);
+
+    // Issue new tokens
+    res.json(await issueSession(workspace, req));
+  }),
+);
 ```
 
 ---
@@ -159,6 +177,7 @@ router.post("/auth/refresh", validate(schemas.refreshToken), asyncHandler(async 
 **File**: `src/routes/auth.routes.js`
 
 **Implementation**:
+
 ```javascript
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,  // 15 minutes
@@ -178,6 +197,7 @@ router.get("/auth/oauth/google/callback", oauthLimiter, ...);
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Protects against brute force attacks
 - Separate limits for OAuth vs password auth
 - Clear error messages
@@ -190,7 +210,9 @@ router.get("/auth/oauth/google/callback", oauthLimiter, ...);
 **File**: `src/routes/auth.routes.js`
 
 **Flow**:
+
 1. **Authorization URL Generation** (`GET /auth/oauth/google`):
+
    ```javascript
    const state = jwt.sign(
      { nonce: crypto.randomBytes(16).toString("hex"), redirectPath: ... },
@@ -206,13 +228,13 @@ router.get("/auth/oauth/google/callback", oauthLimiter, ...);
    ```javascript
    // Verify state was signed by us
    const parsedState = jwt.verify(state, process.env.JWT_SECRET);
-   
+
    // Exchange code for Google tokens
    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", { ... });
-   
+
    // Get user profile
    const profileResponse = await fetch("https://openidconnect.googleapis.com/v1/userinfo", { ... });
-   
+
    // Validate email is verified
    if (!profile.email || profile.email_verified === false) {
      throw new UnauthorizedError("Google account email is not verified");
@@ -220,6 +242,7 @@ router.get("/auth/oauth/google/callback", oauthLimiter, ...);
    ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - CSRF protection via signed state token
 - Email verification check (prevents unverified accounts)
 - OAuth provider validation
@@ -240,14 +263,16 @@ router.get("/auth/oauth/google/callback", oauthLimiter, ...);
 **Architecture**: All queries filter by `workspace_id`
 
 **Example** (from conversations.routes.js):
+
 ```javascript
 const { rows } = await pool.query(
   `SELECT * FROM messages WHERE contact_id = $1 AND workspace_id = $2`,
-  [contactId, req.workspaceId]  // ← Always includes workspace_id
+  [contactId, req.workspaceId], // ← Always includes workspace_id
 );
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - `req.workspaceId` comes from verified JWT (cannot be spoofed)
 - Every data query includes workspace filter
 - Prevents one tenant from accessing another's data
@@ -268,12 +293,13 @@ const { rows } = await pool.query(
 **File**: `src/realtime/socket.js`
 
 **Implementation**:
+
 ```javascript
 io.use((socket, next) => {
   try {
     const token = socket.handshake.auth?.token;
     if (!token) return next(new Error("Missing token"));
-    
+
     const payload = jwt.verify(token, process.env.JWT_SECRET);
     socket.workspaceId = payload.workspaceId;
     next();
@@ -283,12 +309,13 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
-  const room = workspaceRoom(socket.workspaceId);  // workspace:UUID
+  const room = workspaceRoom(socket.workspaceId); // workspace:UUID
   socket.join(room);
 });
 ```
 
 **Frontend** (src/lib/api.ts):
+
 ```typescript
 socket = io(SOCKET_BASE_URL, {
   auth: { token },
@@ -298,6 +325,7 @@ socket = io(SOCKET_BASE_URL, {
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Same JWT validation as REST endpoints
 - Workspace room isolation via `workspace:${workspaceId}`
 - Client cannot join other workspace rooms
@@ -310,6 +338,7 @@ socket = io(SOCKET_BASE_URL, {
 **File**: `src/validators/schemas.js`
 
 **Examples**:
+
 ```javascript
 const login = z.object({
   email: z.string().email(),
@@ -328,17 +357,20 @@ const refreshToken = z.object({
 ```
 
 **Usage**:
+
 ```javascript
 router.post("/auth/login", loginLimiter, validate(schemas.login), asyncHandler(...))
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Zod schema validation on all endpoints
 - Type-safe validation
 - Prevents injection attacks
 - Clear error messages
 
 **Validation Middleware** (from context):
+
 ```javascript
 function validate(schema) {
   return (req, res, next) => {
@@ -359,60 +391,64 @@ function validate(schema) {
 **File**: `src/lib/api.ts`
 
 **Token Management**:
+
 ```typescript
 export const auth = {
   getToken(): string | null {
     if (typeof window === "undefined") return null;
-    return localStorage.getItem("workspace_access_token") || localStorage.getItem("workspace_token");
+    return (
+      localStorage.getItem("workspace_access_token") || localStorage.getItem("workspace_token")
+    );
   },
-  
+
   setSession(session: { accessToken?: string; refreshToken?: string; workspace?: any }) {
     const accessToken = session.accessToken || session.token;
     if (accessToken) this.setToken(accessToken);
     if (session.refreshToken) this.setRefreshToken(session.refreshToken);
     if (session.workspace) this.setWorkspace(session.workspace);
   },
-  
+
   async refreshSession(): Promise<boolean> {
     const refreshToken = this.getRefreshToken();
     if (!refreshToken) return false;
-    
+
     const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
     });
-    
+
     if (!response.ok) {
       this.removeToken();
       return false;
     }
-    
+
     this.setSession(await response.json());
     return true;
-  }
+  },
 };
 ```
 
 **Request Interceptor**:
+
 ```typescript
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<Response> {
   const token = auth.getToken();
   const headers = new Headers(options.headers || {});
-  
+
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
-  
+
   return fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
 }
 
 export async function apiFetch<T = any>(
   endpoint: string,
-  options: RequestInit & { skipAuthRefresh?: boolean } = {}
+  options: RequestInit & { skipAuthRefresh?: boolean } = {},
 ): Promise<T> {
   let response = await request(endpoint, options);
-  
+
   // Auto-refresh on 401
   if (response.status === 401 && !options.skipAuthRefresh && auth.getRefreshToken()) {
     const refreshed = await auth.refreshSession();
@@ -420,7 +456,7 @@ export async function apiFetch<T = any>(
       response = await request(endpoint, options);
     }
   }
-  
+
   // Redirect to login on auth failure
   if (response.status === 401) {
     auth.removeToken();
@@ -428,18 +464,20 @@ export async function apiFetch<T = any>(
       window.location.href = "/login";
     }
   }
-  
+
   return response.json();
 }
 ```
 
 **Security Assessment**: ✅ **GOOD** (with 1 note)
+
 - Tokens are stored in localStorage (accessible to JavaScript)
 - Auto-refresh on token expiration prevents lockouts
 - 401 responses trigger login redirect
 - Logout properly clears all stored data
 
 **Note on localStorage**:
+
 - ⚠️ localStorage is accessible to XSS attacks
 - **Current implementation is standard for SPAs** but consider httpOnly cookies for Phase 2 if highly sensitive
 - Mitigation: Implement Content Security Policy headers on backend
@@ -449,6 +487,7 @@ export async function apiFetch<T = any>(
 ### 10. ✅ Protected Routes
 
 **Currently Protected**:
+
 - ✅ `/workspace/profile` - Get current user's profile
 - ✅ `/analytics/*` - All analytics endpoints
 - ✅ `/conversations/*` - All conversation endpoints
@@ -456,6 +495,7 @@ export async function apiFetch<T = any>(
 - ✅ `/settings/*` - All settings endpoints
 
 **Public Routes** (No requireAuth):
+
 - ✅ `/auth/signup` - Open registration
 - ✅ `/auth/login` - Open login
 - ✅ `/auth/refresh` - Refresh tokens
@@ -464,6 +504,7 @@ export async function apiFetch<T = any>(
 - ✅ `/auth/oauth/google/callback` - OAuth callback
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - All user data endpoints protected
 - Public endpoints appropriate for unauthenticated access
 
@@ -474,6 +515,7 @@ export async function apiFetch<T = any>(
 **File**: `src/utils/errors.js`
 
 **Error Classes**:
+
 ```javascript
 class AppError extends Error {
   constructor(message, statusCode, code) {
@@ -497,6 +539,7 @@ class ValidationError extends AppError {
 ```
 
 **Security Assessment**: ✅ **EXCELLENT**
+
 - Standardized error responses
 - No stack traces leaked to client
 - Proper HTTP status codes
@@ -509,18 +552,20 @@ class ValidationError extends AppError {
 ### Recommendation 1: ⚠️ Login Password Validation Length
 
 **Current**:
+
 ```javascript
 const login = z.object({
   email: z.string().email(),
-  password: z.string().min(8),  // ← No max length
+  password: z.string().min(8), // ← No max length
 });
 ```
 
 **Recommendation**: Add max length for consistency
+
 ```javascript
 const login = z.object({
   email: z.string().email(),
-  password: z.string().min(8).max(128),  // ← Add max length
+  password: z.string().min(8).max(128), // ← Add max length
 });
 ```
 
@@ -535,13 +580,14 @@ const login = z.object({
 **Current**: Session tokens are in localStorage (accessible to JavaScript)
 
 **For Future Enhancement**: When moving to Phase 2 (Auth Service), consider:
+
 ```javascript
 // Set httpOnly cookies instead of localStorage
-res.cookie('accessToken', accessToken, {
+res.cookie("accessToken", accessToken, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',  // HTTPS only
-  sameSite: 'strict',
-  maxAge: 15 * 60 * 1000  // 15 minutes
+  secure: process.env.NODE_ENV === "production", // HTTPS only
+  sameSite: "strict",
+  maxAge: 15 * 60 * 1000, // 15 minutes
 });
 ```
 
@@ -558,14 +604,15 @@ res.cookie('accessToken', accessToken, {
 **File**: `src/config/logger.js`
 
 **Already has**:
+
 ```javascript
 redact: [
   "req.headers.authorization",
   "*.password",
   "*.password_hash",
   "*.apiToken",
-  "*.whatsapp_api_token"
-]
+  "*.whatsapp_api_token",
+];
 ```
 
 **Security Assessment**: ✅ **EXCELLENT** - Sensitive fields are not logged
@@ -599,6 +646,7 @@ redact: [
 ### Manual Testing Checklist
 
 - [ ] **Login Flow**
+
   ```
   1. Navigate to /login
   2. Enter valid email and password
@@ -608,6 +656,7 @@ redact: [
   ```
 
 - [ ] **Rate Limiting**
+
   ```
   1. Attempt login 11 times with wrong password
   2. Verify "Too many attempts" error on 11th attempt
@@ -615,6 +664,7 @@ redact: [
   ```
 
 - [ ] **Token Expiration**
+
   ```
   1. Login successfully
   2. Wait for access token to expire (15 min)
@@ -624,6 +674,7 @@ redact: [
   ```
 
 - [ ] **Multi-Tenant Isolation**
+
   ```
   1. Create workspace A and workspace B with different users
   2. Login as user A, get their workspace_id from token
@@ -632,6 +683,7 @@ redact: [
   ```
 
 - [ ] **Logout**
+
   ```
   1. Login
   2. Click logout
@@ -641,6 +693,7 @@ redact: [
   ```
 
 - [ ] **OAuth Flow**
+
   ```
   1. Click "Continue with Google"
   2. Complete Google authentication
@@ -661,24 +714,24 @@ redact: [
 ### Automated Testing (Unit Tests)
 
 ```javascript
-describe('Auth Middleware', () => {
-  test('should reject request without Authorization header', () => {
+describe("Auth Middleware", () => {
+  test("should reject request without Authorization header", () => {
     // Implement
   });
-  
-  test('should reject request with invalid JWT', () => {
+
+  test("should reject request with invalid JWT", () => {
     // Implement
   });
-  
-  test('should extract workspaceId from valid JWT', () => {
+
+  test("should extract workspaceId from valid JWT", () => {
     // Implement
   });
-  
-  test('should reject refresh token that is revoked', () => {
+
+  test("should reject refresh token that is revoked", () => {
     // Implement
   });
-  
-  test('should not allow cross-workspace data access', () => {
+
+  test("should not allow cross-workspace data access", () => {
     // Implement
   });
 });
@@ -698,6 +751,7 @@ describe('Auth Middleware', () => {
 ## Monitoring Recommendations
 
 Add alerts for:
+
 1. **High 401 error rate** → Possible token expiration issues or attack
 2. **High rate limit hits** → Possible brute force attack
 3. **OAuth failures** → Configuration or connectivity issues
@@ -707,9 +761,10 @@ Add alerts for:
 
 ## Conclusion
 
-Your authentication and authorization system is **production-ready** and follows security best practices. The two recommendations are minor improvements for defense-in-depth. 
+Your authentication and authorization system is **production-ready** and follows security best practices. The two recommendations are minor improvements for defense-in-depth.
 
-**Ready for**: 
+**Ready for**:
+
 - ✅ Deployment to production
 - ✅ Handling 1000+ users/workspaces
 - ✅ Phase 2 microservices migration
@@ -717,4 +772,3 @@ Your authentication and authorization system is **production-ready** and follows
 **Immediate Action**: None required. System is secure.
 
 **Phase 2 Consideration**: When extracting Auth Service, consider moving to httpOnly cookies + refresh token endpoint pattern for additional XSS protection.
-

@@ -356,8 +356,10 @@ GOOGLE_OAUTH_CLIENT_SECRET=
 GOOGLE_OAUTH_REDIRECT_URI=http://localhost:4000/api/v1/auth/oauth/google/callback
 
 FRONTEND_ORIGIN=http://localhost:3000
+FRONTEND_ORIGIN_PATTERNS=
 
 WHATSAPP_WEBHOOK_VERIFY_TOKEN=replace-me
+WHATSAPP_WEBHOOK_SECRET=replace-with-your-meta-app-secret
 INTERNAL_INTEGRATION_TOKEN=replace-with-a-long-random-string
 
 WHATSAPP_SEND_URL=http://localhost:5000/internal/whatsapp/send
@@ -370,9 +372,11 @@ ENCRYPTION_KEY=replace-with-32-byte-hex-key
 Frontend environment variables:
 
 ```env
-VITE_API_URL=http://localhost:4000/api/v1
-VITE_SOCKET_URL=http://localhost:4000
+VITE_API_URL=
+VITE_SOCKET_URL=
 ```
+
+Leave `VITE_API_URL` and `VITE_SOCKET_URL` empty for local development and Cloudflare Tunnel. The browser will use the current frontend origin, while Vite proxies `/api/v1` and `/socket.io` to the backend on `localhost:4000`.
 
 ## Setup
 
@@ -460,6 +464,24 @@ Frontend runs at:
 http://localhost:3000
 ```
 
+### 8. Run Cloudflare Tunnel
+
+Install `cloudflared`, then keep the backend and frontend terminals running and start a third terminal:
+
+```bash
+npm run tunnel
+```
+
+Open the `https://...trycloudflare.com` URL printed by Cloudflare. This exposes the frontend only; API and Socket.IO traffic stay routed through the local Vite proxy to `localhost:4000`.
+
+For a named tunnel on your own domain, copy `cloudflared.example.yml` to your Cloudflare config directory, replace `dashboard.example.com`, create/login to the tunnel with `cloudflared`, then run:
+
+```bash
+npm run tunnel:run
+```
+
+For production/custom domains, add the public dashboard URL to `FRONTEND_ORIGIN` in `whatsapp-dashboard-backend/.env`, for example `FRONTEND_ORIGIN=http://localhost:3000,https://dashboard.example.com`.
+
 ## Authentication Flow
 
 Email/password signup:
@@ -528,9 +550,9 @@ Validation errors also include `details`.
 
 ### Health
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| GET | `/health` | No | Checks whether backend is running. |
+| Method | Endpoint  | Auth | Purpose                            |
+| ------ | --------- | ---: | ---------------------------------- |
+| GET    | `/health` |   No | Checks whether backend is running. |
 
 Response:
 
@@ -542,15 +564,15 @@ Response:
 
 ### Auth and Workspace
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| POST | `/api/v1/auth/signup` | No | Create a new workspace with email/password. |
-| POST | `/api/v1/auth/login` | No | Login with email/password. |
-| POST | `/api/v1/auth/refresh` | No | Rotate refresh token and get a new session. |
-| POST | `/api/v1/auth/logout` | No | Revoke refresh token. |
-| GET | `/api/v1/auth/oauth/google` | No | Get Google OAuth authorization URL. |
-| GET | `/api/v1/auth/oauth/google/callback` | No | Google OAuth callback endpoint. |
-| GET | `/api/v1/workspace/profile` | Yes | Get the current workspace profile and settings. |
+| Method | Endpoint                             | Auth | Purpose                                         |
+| ------ | ------------------------------------ | ---: | ----------------------------------------------- |
+| POST   | `/api/v1/auth/signup`                |   No | Create a new workspace with email/password.     |
+| POST   | `/api/v1/auth/login`                 |   No | Login with email/password.                      |
+| POST   | `/api/v1/auth/refresh`               |   No | Rotate refresh token and get a new session.     |
+| POST   | `/api/v1/auth/logout`                |   No | Revoke refresh token.                           |
+| GET    | `/api/v1/auth/oauth/google`          |   No | Get Google OAuth authorization URL.             |
+| GET    | `/api/v1/auth/oauth/google/callback` |   No | Google OAuth callback endpoint.                 |
+| GET    | `/api/v1/workspace/profile`          |  Yes | Get the current workspace profile and settings. |
 
 `POST /api/v1/auth/signup`
 
@@ -654,12 +676,12 @@ Response:
 
 ### Conversations
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| GET | `/api/v1/conversations` | Yes | List conversations for the workspace. |
-| GET | `/api/v1/conversations/:id/messages` | Yes | Get messages for one conversation and mark inbound messages read. |
-| POST | `/api/v1/conversations/:id/messages` | Yes | Send an agent message. |
-| POST | `/api/v1/conversations/:id/typing` | Yes | Broadcast typing state over Socket.IO. |
+| Method | Endpoint                             | Auth | Purpose                                                           |
+| ------ | ------------------------------------ | ---: | ----------------------------------------------------------------- |
+| GET    | `/api/v1/conversations`              |  Yes | List conversations for the workspace.                             |
+| GET    | `/api/v1/conversations/:id/messages` |  Yes | Get messages for one conversation and mark inbound messages read. |
+| POST   | `/api/v1/conversations/:id/messages` |  Yes | Send an agent message.                                            |
+| POST   | `/api/v1/conversations/:id/typing`   |  Yes | Broadcast typing state over Socket.IO.                            |
 
 `GET /api/v1/conversations`
 
@@ -748,11 +770,11 @@ Response:
 
 ### Leads
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| GET | `/api/v1/leads` | Yes | List leads. |
-| POST | `/api/v1/leads` | Yes | Create a lead. |
-| PATCH | `/api/v1/leads/:id` | Yes | Update lead status and/or value. |
+| Method | Endpoint            | Auth | Purpose                          |
+| ------ | ------------------- | ---: | -------------------------------- |
+| GET    | `/api/v1/leads`     |  Yes | List leads.                      |
+| POST   | `/api/v1/leads`     |  Yes | Create a lead.                   |
+| PATCH  | `/api/v1/leads/:id` |  Yes | Update lead status and/or value. |
 
 `GET /api/v1/leads`
 
@@ -837,12 +859,12 @@ Response:
 
 ### Analytics
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| GET | `/api/v1/analytics/overview` | Yes | Get dashboard overview metrics. |
-| GET | `/api/v1/analytics/bookings` | Yes | Get booking chart data. |
-| GET | `/api/v1/analytics/activity` | Yes | Get recent activity feed. |
-| GET | `/api/v1/analytics/summary` | Yes | Get summary counters. |
+| Method | Endpoint                     | Auth | Purpose                         |
+| ------ | ---------------------------- | ---: | ------------------------------- |
+| GET    | `/api/v1/analytics/overview` |  Yes | Get dashboard overview metrics. |
+| GET    | `/api/v1/analytics/bookings` |  Yes | Get booking chart data.         |
+| GET    | `/api/v1/analytics/activity` |  Yes | Get recent activity feed.       |
+| GET    | `/api/v1/analytics/summary`  |  Yes | Get summary counters.           |
 
 `GET /api/v1/analytics/overview?range=today`
 
@@ -915,11 +937,11 @@ Response:
 
 ### Settings
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| PUT | `/api/v1/settings/profile` | Yes | Update workspace name and email. |
-| PUT | `/api/v1/settings/whatsapp` | Yes | Update WhatsApp phone, API token, and webhook URL. |
-| PUT | `/api/v1/settings/rules` | Yes | Update automation preferences. |
+| Method | Endpoint                    | Auth | Purpose                                            |
+| ------ | --------------------------- | ---: | -------------------------------------------------- |
+| PUT    | `/api/v1/settings/profile`  |  Yes | Update workspace name and email.                   |
+| PUT    | `/api/v1/settings/whatsapp` |  Yes | Update WhatsApp phone, API token, and webhook URL. |
+| PUT    | `/api/v1/settings/rules`    |  Yes | Update automation preferences.                     |
 
 `PUT /api/v1/settings/profile`
 
@@ -993,9 +1015,9 @@ Response:
 
 ### Integrations
 
-| Method | Endpoint | Auth | Purpose |
-|---|---|---:|---|
-| POST | `/api/v1/integrations/whatsapp/inbound` | Internal token | Receive inbound WhatsApp messages from another service. |
+| Method | Endpoint                                |           Auth | Purpose                                                 |
+| ------ | --------------------------------------- | -------------: | ------------------------------------------------------- |
+| POST   | `/api/v1/integrations/whatsapp/inbound` | Internal token | Receive inbound WhatsApp messages from another service. |
 
 This route is not for normal browser users. It is for your WhatsApp webhook or automation service.
 
@@ -1048,19 +1070,19 @@ Frontend connects with:
 ```ts
 io("http://localhost:4000", {
   auth: {
-    token: accessToken
-  }
-})
+    token: accessToken,
+  },
+});
 ```
 
 Server emits:
 
-| Event | Payload | Purpose |
-|---|---|---|
-| `message:new` | `{ contactId, message }` | A new inbound or outbound message was stored. |
-| `typing` | `{ contactId, isTyping }` | A user is typing in a conversation. |
-| `lead:created` | `lead` | A new lead was created. |
-| `lead:updated` | `lead` | A lead was updated. |
+| Event          | Payload                   | Purpose                                       |
+| -------------- | ------------------------- | --------------------------------------------- |
+| `message:new`  | `{ contactId, message }`  | A new inbound or outbound message was stored. |
+| `typing`       | `{ contactId, isTyping }` | A user is typing in a conversation.           |
+| `lead:created` | `lead`                    | A new lead was created.                       |
+| `lead:updated` | `lead`                    | A lead was updated.                           |
 
 ## WhatsApp Integration Flow
 

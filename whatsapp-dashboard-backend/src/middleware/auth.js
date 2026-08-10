@@ -1,5 +1,7 @@
-const jwt = require("jsonwebtoken");
-const { UnauthorizedError } = require("../utils/errors");
+// const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+// const { UnauthorizedError } = require("../utils/errors");
+import { UnauthorizedError } from "../utils/errors.js";
 
 function requireAuth(req, res, next) {
   const header = req.headers.authorization;
@@ -15,10 +17,13 @@ function requireAuth(req, res, next) {
     // Everything downstream trusts req.workspaceId — it comes ONLY from the
     // verified token, never from req.body/req.params/req.query.
     req.workspaceId = payload.workspaceId;
+    req.workspace = { id: payload.workspaceId };
+    req.user = { id: payload.workspaceId };
     next();
   } catch (err) {
     throw new UnauthorizedError("Invalid or expired token");
   }
 }
 
-module.exports = requireAuth;
+// module.exports = requireAuth;
+export default requireAuth;

@@ -9,25 +9,28 @@
 ## Executive Overview
 
 ### Current State Analysis
+
 - **Frontend**: TanStack Start + React 19, built on Vite
 - **Backend**: Single Express.js monolith with PostgreSQL, Redis, Socket.IO
 - **Architecture**: Monolithic, tightly coupled frontend/backend
 - **Scale**: 11 active clients → targeting 1000+ clients
 
 ### Target State
+
 - **Frontend**: Next.js 15 (App Router) monorepo with shadcn/ui
 - **Backend**: 6 independent microservices (Auth, WhatsApp, Booking, Leads, Analytics, Notifications)
 - **Architecture**: Microservices with API Gateway, event-driven communication
 - **Scale**: Multi-tenant isolation, 99.9% uptime SLA, 7-day trial conversion
 
 ### Strategic Benefits
-| Aspect | Current | Target | Impact |
-|--------|---------|--------|--------|
-| Deploy Cycle | Full rebuild | Service-specific | Faster iterations |
-| Scalability | Monolithic limits | Independent services | Handle 10x growth |
-| Reliability | Single point of failure | Isolated failures | Higher uptime |
-| Tech Stack | Express-only | Best-fit per service | Optimal performance |
-| Team Scaling | Tightly coupled | Bounded contexts | Easier team growth |
+
+| Aspect       | Current                 | Target               | Impact              |
+| ------------ | ----------------------- | -------------------- | ------------------- |
+| Deploy Cycle | Full rebuild            | Service-specific     | Faster iterations   |
+| Scalability  | Monolithic limits       | Independent services | Handle 10x growth   |
+| Reliability  | Single point of failure | Isolated failures    | Higher uptime       |
+| Tech Stack   | Express-only            | Best-fit per service | Optimal performance |
+| Team Scaling | Tightly coupled         | Bounded contexts     | Easier team growth  |
 
 ---
 
@@ -36,6 +39,7 @@
 These must be in place before public launch:
 
 ### 🔴 CRITICAL (Blocking)
+
 1. **One-Click WhatsApp Connect**
    - Meta API Embedded Signup flow
    - Automatic webhook subscription
@@ -61,6 +65,7 @@ These must be in place before public launch:
    - Encryption for sensitive data (tokens, passwords)
 
 ### 🟡 HIGH (Pre-Launch)
+
 5. **7-Day Trial System**
    - Auto-created on signup
    - Trial countdown widget
@@ -127,9 +132,11 @@ These must be in place before public launch:
 ### Service Breakdown & Responsibilities
 
 #### Service 1: Auth Service (Port 3001)
+
 **Purpose**: Tenant isolation, JWT token management, OAuth
 
 **Responsibilities**:
+
 - User signup/login with email/password
 - Google OAuth 2.0 flow
 - Password reset flow
@@ -138,12 +145,14 @@ These must be in place before public launch:
 - Rate limiting (5 attempts per minute per IP)
 
 **Tech Stack**:
+
 - Node.js 22 + Express
 - bcrypt (cost factor: 12)
 - JWT with 15m access token, 30-day refresh token
 - PostgreSQL for workspaces, refresh_tokens, audit_logs
 
 **Key Tables**:
+
 ```sql
 -- workspaces (Tenant/Core entity)
 -- refresh_tokens (Session management)
@@ -151,6 +160,7 @@ These must be in place before public launch:
 ```
 
 **Critical APIs**:
+
 - `POST /api/auth/signup` — Create workspace + trial
 - `POST /api/auth/login` — Email/password login
 - `POST /api/auth/refresh` — Rotate tokens
@@ -165,9 +175,11 @@ These must be in place before public launch:
 ---
 
 #### Service 2: WhatsApp Service (Port 3002) — **CORE REVENUE**
+
 **Purpose**: Real-time messaging, Meta API integration, automation rules
 
 **Responsibilities**:
+
 - One-click WhatsApp connect (Embedded Signup)
 - Inbound/outbound message handling
 - Message template management
@@ -177,6 +189,7 @@ These must be in place before public launch:
 - Session management via Redis
 
 **Tech Stack**:
+
 - Node.js 22 + Express
 - @meta/wa-api (official Meta client)
 - RabbitMQ for async message processing
@@ -184,6 +197,7 @@ These must be in place before public launch:
 - Cloudflare R2 for media storage (S3-compatible)
 
 **Key Tables**:
+
 ```sql
 -- whatsapp_instances (One per workspace, encrypted token)
 -- whatsapp_messages (Inbound + outbound, indexed by contact_id)
@@ -193,6 +207,7 @@ These must be in place before public launch:
 ```
 
 **Critical APIs**:
+
 - `POST /api/instances/:id/connect` — Initiate Embedded Signup
 - `GET /api/instances/:id` — Get instance details
 - `DELETE /api/instances/:id` — Deactivate instance
@@ -207,6 +222,7 @@ These must be in place before public launch:
 - `POST /api/media/upload` — Upload file to R2
 
 **One-Click Connect Flow** (CRITICAL IMPLEMENTATION):
+
 ```
 1. User clicks "Connect WhatsApp"
 2. Frontend redirects to: POST /api/instances/:id/connect
@@ -223,9 +239,11 @@ These must be in place before public launch:
 ---
 
 #### Service 3: Booking Service (Port 3003)
+
 **Purpose**: Calendar integration, booking scheduling, reminder management
 
 **Responsibilities**:
+
 - Lead-to-booking conversion
 - Calendar sync (Google Calendar, Outlook)
 - Auto-scheduling appointments
@@ -233,12 +251,14 @@ These must be in place before public launch:
 - Booking analytics (revenue, booking rate)
 
 **Tech Stack**:
+
 - Node.js 22 + Express
 - node-cal (for calendar sync)
 - Email service (SendGrid or AWS SES)
 - Twilio (for SMS reminders)
 
 **Key Tables**:
+
 ```sql
 -- bookings (Created when lead status → Booked)
 -- booking_calendars (Workspace calendar connections)
@@ -247,6 +267,7 @@ These must be in place before public launch:
 ```
 
 **Critical APIs**:
+
 - `POST /api/bookings` — Create booking from lead
 - `GET /api/bookings` — List bookings for workspace
 - `PATCH /api/bookings/:id` — Reschedule booking
@@ -256,9 +277,11 @@ These must be in place before public launch:
 ---
 
 #### Service 4: Leads Service (Port 3004)
+
 **Purpose**: CRM functionality, lead pipeline, lead scoring
 
 **Responsibilities**:
+
 - Lead creation, update, deletion
 - Lead status management (Hot, Warm, Cold, Booked)
 - Lead scoring (based on engagement)
@@ -267,10 +290,12 @@ These must be in place before public launch:
 - Lead-to-contact association
 
 **Tech Stack**:
+
 - Node.js 22 + Express
 - PostgreSQL for lead data
 
 **Key Tables**:
+
 ```sql
 -- contacts/leads (Name, phone, source, status, value)
 -- lead_scores (Engagement score, last_interaction)
@@ -279,6 +304,7 @@ These must be in place before public launch:
 ```
 
 **Critical APIs**:
+
 - `POST /api/leads` — Create lead
 - `GET /api/leads` — List leads (filterable by status, search)
 - `PATCH /api/leads/:id` — Update lead status/value
@@ -290,9 +316,11 @@ These must be in place before public launch:
 ---
 
 #### Service 5: Analytics Service (Port 3005)
+
 **Purpose**: Metrics, dashboards, reporting, forecasting
 
 **Responsibilities**:
+
 - Real-time dashboard metrics (Leaks, Cash, On Deck)
 - Booking chart data (Revenue over time)
 - Activity feed (Recent events)
@@ -301,11 +329,13 @@ These must be in place before public launch:
 - Forecasting (basic trend analysis)
 
 **Tech Stack**:
+
 - Node.js 22 + Express
 - PostgreSQL (read replica for reporting)
 - Redis for real-time metric caching
 
 **Key Tables**:
+
 ```sql
 -- analytics_snapshots (Point-in-time metrics)
 -- activity_log (Timeline events)
@@ -313,6 +343,7 @@ These must be in place before public launch:
 ```
 
 **Critical APIs**:
+
 - `GET /api/analytics/overview` — Dashboard cards (Leaks, Cash, On Deck, Response Rate, Booking Rate)
 - `GET /api/analytics/bookings` — Chart data (revenue + count by date)
 - `GET /api/analytics/activity` — Activity feed (limit=10)
@@ -321,9 +352,11 @@ These must be in place before public launch:
 ---
 
 #### Service 6: Notifications Service (Port 3006)
+
 **Purpose**: Multi-channel notifications (Email, Push, Webhook, SMS future)
 
 **Responsibilities**:
+
 - Email notifications (SendGrid)
 - Push notifications (Firebase Cloud Messaging)
 - Webhook callbacks (Custom integrations)
@@ -331,12 +364,14 @@ These must be in place before public launch:
 - Notification preferences per workspace
 
 **Tech Stack**:
+
 - Node.js 22 + Express
 - SendGrid for email
 - FCM for push
 - Redis queue for async processing
 
 **Critical APIs**:
+
 - `POST /api/notifications/send` — Send notification
 - `GET /api/notifications` — List notifications
 - `PUT /api/notifications/preferences` — Update preferences
@@ -348,6 +383,7 @@ These must be in place before public launch:
 Runs in Next.js 15 and acts as the single entry point:
 
 **Responsibilities**:
+
 - JWT token validation
 - workspace_id extraction from token
 - Request routing to microservices
@@ -356,6 +392,7 @@ Runs in Next.js 15 and acts as the single entry point:
 - Error formatting
 
 **Flow**:
+
 ```
 Client Request
     ↓
@@ -381,12 +418,14 @@ Return to Client
 ### Multi-Service Database Strategy
 
 **Option A (Recommended): Per-Service Databases**
+
 - Each service owns its database (schema)
 - Shared PostgreSQL instance but separate schemas
 - Services can read shared read replica for cross-service queries
 - Isolates data at schema level
 
 **Option B: Single Shared Database**
+
 - All services share same database
 - Separate tables per service
 - Stricter access control via database roles
@@ -397,23 +436,27 @@ Return to Client
 ### Shared Infrastructure
 
 **PostgreSQL (Primary)**
+
 - Host: RDS Multi-AZ or managed Postgres
 - Services: Auth, WhatsApp, Leads, Booking, Analytics
 - Read Replica: For analytics/reporting queries
 
 **Redis (Cache + Queue)**
+
 - Session caching
 - Rate limiting
 - Real-time data (presence, typing)
 - Job queue (RabbitMQ alternative)
 
 **Cloudflare R2 (Object Storage)**
+
 - Message attachments
 - Profile images
 - Document uploads
 - Public URLs via CDN
 
 **RabbitMQ (Message Queue)**
+
 - Async processing (Webhook deliveries, emails)
 - Event-driven communication between services
 - Dead letter queue for failed jobs
@@ -424,9 +467,11 @@ Return to Client
 ## Implementation Phases
 
 ### Phase 1: Foundation (Weeks 1-3)
+
 **Goal**: Set up monorepo structure and core services
 
 #### Tasks:
+
 1. **Monorepo Setup**
    - Create `packages/` directory
    - Move frontend → `packages/dashboard` (Next.js 15)
@@ -461,9 +506,11 @@ Return to Client
 ---
 
 ### Phase 2: Core WhatsApp (Weeks 4-6)
+
 **Goal**: Implement WhatsApp messaging and one-click connect
 
 #### Tasks:
+
 1. **WhatsApp Service (Port 3002) — CRITICAL**
    - Create Express app structure
    - Implement Meta API client integration
@@ -497,9 +544,11 @@ Return to Client
 ---
 
 ### Phase 3: CRM & Booking (Weeks 7-9)
+
 **Goal**: Lead management and booking integration
 
 #### Tasks:
+
 1. **Leads Service (Port 3004)**
    - Create Express app structure
    - CRUD operations (Create, Read, Update, Delete leads)
@@ -525,9 +574,11 @@ Return to Client
 ---
 
 ### Phase 4: Analytics & Monitoring (Weeks 10-12)
+
 **Goal**: Metrics, dashboards, and operational visibility
 
 #### Tasks:
+
 1. **Analytics Service (Port 3005)**
    - Implement metric calculations (Leaks, Cash, On Deck, Response Rate, Booking Rate)
    - Implement booking chart data
@@ -551,9 +602,11 @@ Return to Client
 ---
 
 ### Phase 5: Trial & Monetization (Weeks 13-15)
+
 **Goal**: Implement trial system and upgrade flow
 
 #### Tasks:
+
 1. **Trial System**
    - 7-day trial auto-assignment on signup
    - Trial countdown in UI
@@ -575,9 +628,11 @@ Return to Client
 ---
 
 ### Phase 6: Quality & Scale (Weeks 16-18)
+
 **Goal**: Testing, optimization, and production readiness
 
 #### Tasks:
+
 1. **Testing**
    - Unit tests for critical paths (Auth, WhatsApp, Automation)
    - Integration tests for service-to-service flows
@@ -606,6 +661,7 @@ Return to Client
 ## Technology Stack Selection
 
 ### Frontend
+
 - **Framework**: Next.js 15 (App Router)
 - **UI Library**: shadcn/ui + TailwindCSS v4
 - **Data Fetching**: TanStack Query (React Query)
@@ -615,6 +671,7 @@ Return to Client
 - **Notifications**: Sonner (toast library)
 
 ### Backend Services
+
 - **Runtime**: Node.js 22 (LTS)
 - **Framework**: Express (lightweight)
 - **Language**: JavaScript (ES6+) or TypeScript (recommended)
@@ -624,6 +681,7 @@ Return to Client
 - **Storage**: Cloudflare R2 (S3-compatible)
 
 ### DevOps
+
 - **Monorepo Tool**: Turborepo
 - **Container**: Docker
 - **Orchestration**: Kubernetes (or Docker Swarm for small scale)
@@ -636,6 +694,7 @@ Return to Client
 ## Data Flow Diagrams
 
 ### Send Message Flow
+
 ```
 User in Chat UI
     ↓
@@ -659,6 +718,7 @@ Message appears in chat UI
 ```
 
 ### Receive Message Flow
+
 ```
 Meta webhook: POST /api/webhook/meta
     ↓
@@ -682,6 +742,7 @@ Chat UI updates, notification shows
 ```
 
 ### Lead-to-Booking Flow
+
 ```
 User creates/updates lead status → Booked
     ↓
@@ -705,35 +766,45 @@ Dashboard updates in real-time
 ## Risk Mitigation
 
 ### Risk: Data Isolation Breach
+
 **Mitigation**:
+
 - All queries include `WHERE workspace_id = $1` (parameterized)
 - Code review checklist for every query
 - Database role permissions (read-only for analytics replica)
 - Regular security audits
 
 ### Risk: WhatsApp API Rate Limits
+
 **Mitigation**:
+
 - Redis-backed queue for message sending
 - Exponential backoff retry logic
 - Monitor rate limit headers from Meta
 - Batch small messages when possible
 
 ### Risk: Message Loss
+
 **Mitigation**:
+
 - Durable message queue (RabbitMQ with persistence)
 - Database backup strategy (daily snapshots)
 - Webhook retry logic (exponential backoff)
 - Dead letter queue for failed webhooks
 
 ### Risk: Service Failure Cascade
+
 **Mitigation**:
+
 - Circuit breaker pattern between services
 - Graceful degradation (e.g., show cached analytics if service down)
 - Health checks on all services
 - Auto-restart policies
 
 ### Risk: Unscalable Database
+
 **Mitigation**:
+
 - Separate read replica for analytics queries
 - Indexing strategy on workspace_id, contact_id, created_at
 - Partition messages table by date (if > 10M rows)
@@ -744,6 +815,7 @@ Dashboard updates in real-time
 ## Monitoring & Observability
 
 ### Key Metrics to Track
+
 - **Service Uptime**: % uptime per service (target: 99.9%)
 - **Message Latency**: Time from send to delivery (target: < 500ms)
 - **API Response Time**: By endpoint (target: p95 < 500ms)
@@ -753,6 +825,7 @@ Dashboard updates in real-time
 - **Webhook Retry Rate**: % of webhooks requiring retry (target: < 1%)
 
 ### Alerting Rules
+
 - Service down: Trigger PagerDuty immediately
 - Error rate > 1%: Alert engineering team
 - Message latency > 2s: Investigation
@@ -760,6 +833,7 @@ Dashboard updates in real-time
 - Queue depth > 10,000: Investigate consumer lag
 
 ### Logging Strategy
+
 - Structured logging (JSON) from all services
 - Log levels: ERROR, WARN, INFO, DEBUG
 - Include: workspace_id, request_id, service_name, duration
@@ -770,17 +844,20 @@ Dashboard updates in real-time
 ## Migration Path from Monolith
 
 ### Step 1: Parallel Run (Weeks 1-4)
+
 - Deploy microservices alongside monolith
 - Routes point to microservices (via API Gateway)
 - Monolith acts as fallback
 - Both write to same database
 
 ### Step 2: Gradual Cutover (Weeks 5-8)
+
 - Disable monolith routes one by one
 - Monitor metrics closely
 - Keep rollback plan ready
 
 ### Step 3: Monolith Deprecation (Week 9+)
+
 - Archive monolith code
 - Keep database snapshots
 - Document deprecation
@@ -790,6 +867,7 @@ Dashboard updates in real-time
 ## Success Criteria
 
 ### Technical Success
+
 - ✅ All 6 services deployed and healthy
 - ✅ Message latency < 500ms p95
 - ✅ API response time < 500ms p95
@@ -798,6 +876,7 @@ Dashboard updates in real-time
 - ✅ Automated testing coverage > 80%
 
 ### Business Success
+
 - ✅ One-click connect < 2 minutes
 - ✅ 7-day trial conversion rate > 25%
 - ✅ Support ticket reduction (self-service)
@@ -805,6 +884,7 @@ Dashboard updates in real-time
 - ✅ Multi-tenant stability proven
 
 ### Operational Success
+
 - ✅ Service deployments < 5 minutes per service
 - ✅ MTTR (mean time to recovery) < 15 minutes
 - ✅ On-call runbooks documented

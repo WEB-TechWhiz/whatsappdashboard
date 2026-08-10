@@ -1,4 +1,5 @@
-const { ValidationError } = require("../utils/errors");
+// const { ValidationError } = require("../utils/errors");
+import { ValidationError } from "../utils/errors.js";
 
 /**
  * Validation middleware factory using Zod schemas
@@ -16,4 +17,4 @@ function validateRequest(schema) {
   };
 }
 
-module.exports = { validateRequest };
+export default validateRequest;

@@ -1,0 +1,32 @@
+# Cloudflare Named Tunnel — Production Configuration Template
+#
+# Copy this file to `cloudflared.yml` and fill in your values,
+# or run the setup wizard:  .\setup-tunnel.ps1
+#
+# Usage:
+#   cloudflared tunnel run whatsapp-dashboard
+#   npm run tunnel:run
+
+tunnel: <TUNNEL_ID>
+credentials-file: C:\Users\dell\.cloudflared\<TUNNEL_ID>.json
+
+ingress:
+  # ── API + WebSocket backend (port 4000) ──────────────────────────────────
+  # Handles REST API requests and Socket.IO websocket connections.
+  - hostname: api.yourdomain.com
+    service: http://localhost:4000
+    originRequest:
+      noTLSVerify: true
+      # Keep websocket connections alive for Socket.IO realtime updates
+      connectTimeout: 30s
+      keepAliveTimeout: 90s
+
+  # ── Frontend dashboard (port 3000) ───────────────────────────────────────
+  # Serves the TanStack Start / Vite React application.
+  - hostname: dashboard.yourdomain.com
+    service: http://localhost:3000
+    originRequest:
+      noTLSVerify: true
+
+  # ── Catch-all: reject everything else ────────────────────────────────────
+  - service: http_status:404

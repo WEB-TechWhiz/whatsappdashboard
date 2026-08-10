@@ -1,11 +1,11 @@
 /**
  * Gateway Route Dispatcher
- * 
+ *
  * Routes API requests to the appropriate microservice based on URL patterns.
  * This is the core of the API Gateway - determines where each request goes.
  */
 
-import { getServiceForPath, getServiceConfig } from './gateway-config';
+import { getServiceForPath, getServiceConfig } from "./gateway-config";
 
 export interface DispatchResult {
   serviceName: string;
@@ -18,7 +18,7 @@ export interface DispatchResult {
 
 /**
  * Dispatch a request to the appropriate service
- * 
+ *
  * @param path - API path (e.g., /api/v1/auth/login)
  * @param method - HTTP method (GET, POST, etc.)
  * @param body - Request body (optional)
@@ -36,12 +36,12 @@ export async function dispatchRequest(
 
   if (!serviceName) {
     return {
-      serviceName: 'unknown',
-      targetUrl: 'unknown',
+      serviceName: "unknown",
+      targetUrl: "unknown",
       statusCode: 404,
-      responseBody: { error: 'No service registered for this path' },
-      headers: { 'content-type': 'application/json' },
-      error: 'Route not found',
+      responseBody: { error: "No service registered for this path" },
+      headers: { "content-type": "application/json" },
+      error: "Route not found",
     };
   }
 
@@ -50,11 +50,11 @@ export async function dispatchRequest(
   if (!serviceConfig) {
     return {
       serviceName,
-      targetUrl: 'unknown',
+      targetUrl: "unknown",
       statusCode: 503,
-      responseBody: { error: 'Service not configured' },
-      headers: { 'content-type': 'application/json' },
-      error: 'Service configuration missing',
+      responseBody: { error: "Service not configured" },
+      headers: { "content-type": "application/json" },
+      error: "Service configuration missing",
     };
   }
 
@@ -66,23 +66,20 @@ export async function dispatchRequest(
     const fetchOptions: RequestInit = {
       method,
       headers: {
-        'content-type': 'application/json',
+        "content-type": "application/json",
         ...headers,
       },
     };
 
     // Add body if present
-    if (body && method !== 'GET' && method !== 'HEAD') {
-      fetchOptions.body = typeof body === 'string' ? body : JSON.stringify(body);
+    if (body && method !== "GET" && method !== "HEAD") {
+      fetchOptions.body = typeof body === "string" ? body : JSON.stringify(body);
     }
 
     // Make the request to the target service
     // Use AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(
-      () => controller.abort(),
-      serviceConfig.timeout || 30000,
-    );
+    const timeoutId = setTimeout(() => controller.abort(), serviceConfig.timeout || 30000);
 
     try {
       const response = await fetch(targetUrl, {
@@ -94,14 +91,13 @@ export async function dispatchRequest(
       return await handleResponse(response, serviceName, targetUrl);
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-        throw new Error('Request timeout');
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        throw new Error("Request timeout");
       }
       throw fetchError;
     }
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : 'Unknown error during dispatch';
+    const errorMessage = error instanceof Error ? error.message : "Unknown error during dispatch";
 
     console.error(`[Gateway] Dispatch error for ${serviceName}:`, errorMessage);
 
@@ -110,10 +106,10 @@ export async function dispatchRequest(
       targetUrl,
       statusCode: 503,
       responseBody: {
-        error: 'Service unavailable',
+        error: "Service unavailable",
         message: errorMessage,
       },
-      headers: { 'content-type': 'application/json' },
+      headers: { "content-type": "application/json" },
       error: errorMessage,
     };
   }
@@ -129,9 +125,9 @@ async function handleResponse(
 ): Promise<DispatchResult> {
   // Parse response body
   let responseBody: any;
-  const contentType = response.headers.get('content-type');
+  const contentType = response.headers.get("content-type");
 
-  if (contentType?.includes('application/json')) {
+  if (contentType?.includes("application/json")) {
     try {
       responseBody = await response.json();
     } catch {
@@ -143,12 +139,7 @@ async function handleResponse(
 
   // Build response headers to forward back to client
   const responseHeaders: Record<string, string> = {};
-  const headersToForward = [
-    'content-type',
-    'cache-control',
-    'authorization',
-    'set-cookie',
-  ];
+  const headersToForward = ["content-type", "cache-control", "authorization", "set-cookie"];
 
   for (const headerName of headersToForward) {
     const headerValue = response.headers.get(headerName);
@@ -171,7 +162,7 @@ async function handleResponse(
  */
 export function buildResponse(result: DispatchResult): Response {
   const responseBody =
-    typeof result.responseBody === 'string'
+    typeof result.responseBody === "string"
       ? result.responseBody
       : JSON.stringify(result.responseBody);
 

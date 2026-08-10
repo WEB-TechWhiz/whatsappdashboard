@@ -1,11 +1,14 @@
-const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
+// const { Server } = require("socket.io");
+import { Server } from "socket.io";
+// const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
+import { corsOptions } from "../config/cors.js";
 
 let io;
 
 function initSocket(httpServer) {
   io = new Server(httpServer, {
-    cors: { origin: process.env.FRONTEND_ORIGIN, credentials: true },
+    cors: corsOptions,
   });
 
   // Auth happens at the socket handshake — same JWT used for REST.
@@ -47,4 +50,4 @@ function emitToWorkspace(workspaceId, event, payload) {
   io.to(workspaceRoom(workspaceId)).emit(event, payload);
 }
 
-module.exports = { initSocket, emitToWorkspace };
+export { initSocket, emitToWorkspace };

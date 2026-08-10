@@ -2,7 +2,6 @@
 -- Postgres 14+. Run via: psql -d your_db -f db/schema.sql
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto"; -- for gen_random_uuid()
-
 -- ────────────────────────────────────────────────────────────
 -- Workspaces (also acts as the auth/tenant table)
 -- ────────────────────────────────────────────────────────────

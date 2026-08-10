@@ -1,13 +1,37 @@
-const express = require("express");
-const requireAuth = require("../middleware/auth");
-const validate = require("../middleware/validate");
-const asyncHandler = require("../utils/asyncHandler");
-const schemas = require("../validators/schemas");
-const pool = require("../config/db");
-const { encrypt } = require("../utils/crypto");
+// const express = require("express");
+import express from "express";
+// const requireAuth = require("../middleware/auth");
+import requireAuth from "../middleware/auth.js";
+// const validate = require("../middleware/validate");
+import validate from "../middleware/validate.js";
+// const asyncHandler = require("../utils/asyncHandler");
+import asyncHandler from "../utils/asyncHandler.js";
+// const schemas = require("../validators/schemas");
+import * as schemas from "../validators/schemas.js";
+// const pool = require("../config/db");
+import pool from "../config/db.js";
+// const { encrypt } = require("../utils/crypto");
+import { encrypt } from "../utils/crypto.js";
+import * as workspaceSettings from "../services/settings.service.js";
 
+// const router = express.Router();
 const router = express.Router();
 router.use(requireAuth);
+
+router.get(
+  "/settings/workspace",
+  asyncHandler(async (req, res) => {
+    res.json(await workspaceSettings.getSettings(req.workspaceId));
+  }),
+);
+
+router.put(
+  "/settings/workspace",
+  validate(schemas.updateWorkspaceSettings),
+  asyncHandler(async (req, res) => {
+    res.json(await workspaceSettings.upsertSettings(req.workspaceId, req.body));
+  }),
+);
 
 router.put(
   "/settings/profile",
@@ -85,4 +109,4 @@ router.put(
   }),
 );
 
-module.exports = router;
+export default router;

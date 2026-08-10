@@ -2,12 +2,12 @@ import { io, Socket } from "socket.io-client";
 
 export const API_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || "http://localhost:4000/api/v1"
+    ? import.meta.env.VITE_API_URL || `${window.location.origin}/api/v1`
     : "http://localhost:4000/api/v1";
 
 export const SOCKET_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_SOCKET_URL || "http://localhost:4000"
+    ? import.meta.env.VITE_SOCKET_URL || window.location.origin
     : "http://localhost:4000";
 
 let socket: Socket | null = null;
@@ -15,7 +15,9 @@ let socket: Socket | null = null;
 export const auth = {
   getToken(): string | null {
     if (typeof window === "undefined") return null;
-    return localStorage.getItem("workspace_access_token") || localStorage.getItem("workspace_token");
+    return (
+      localStorage.getItem("workspace_access_token") || localStorage.getItem("workspace_token")
+    );
   },
   getRefreshToken(): string | null {
     if (typeof window === "undefined") return null;
@@ -30,7 +32,12 @@ export const auth = {
     if (typeof window === "undefined") return;
     localStorage.setItem("workspace_refresh_token", token);
   },
-  setSession(session: { accessToken?: string; token?: string; refreshToken?: string; workspace?: any }) {
+  setSession(session: {
+    accessToken?: string;
+    token?: string;
+    refreshToken?: string;
+    workspace?: any;
+  }) {
     const accessToken = session.accessToken || session.token;
     if (accessToken) this.setToken(accessToken);
     if (session.refreshToken) this.setRefreshToken(session.refreshToken);

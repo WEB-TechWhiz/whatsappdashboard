@@ -1,4 +1,5 @@
-const pool = require("../config/db");
+// const pool = require("../config/db");
+import pool from "../config/db.js";
 
 const RANGE_TO_INTERVAL = {
   today: "1 day",
@@ -131,4 +132,4 @@ async function getSummaryStats(workspaceId) {
   };
 }
 
-module.exports = { getOverview, getBookingsChart, getActivity, getSummaryStats };
+export { getOverview, getBookingsChart, getActivity, getSummaryStats };

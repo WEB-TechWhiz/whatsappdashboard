@@ -1,4 +1,5 @@
-const { ValidationError } = require("../utils/errors");
+// const { ValidationError } = require("../utils/errors");
+import { ValidationError } from "../utils/errors.js";
 
 // Usage: router.post('/x', validate(schemas.createLead), handler)
 function validate(schema) {
@@ -12,4 +13,5 @@ function validate(schema) {
   };
 }
 
-module.exports = validate;
+export default validate;
+export const validateRequest = validate;

@@ -1,8 +1,12 @@
-const express = require("express");
-const requireAuth = require("../middleware/auth");
-const asyncHandler = require("../utils/asyncHandler");
-const analytics = require("../services/analytics.service");
-
+// const express = require("express");
+import express from "express";
+// const requireAuth = require("../middleware/auth");
+import requireAuth from "../middleware/auth.js";
+// const asyncHandler = require("../utils/asyncHandler");
+import asyncHandler from "../utils/asyncHandler.js";
+// const analytics = require("../services/analytics.service");
+import * as analytics from "../services/analytics.service.js";
+// const router = express.Router();
 const router = express.Router();
 router.use(requireAuth);
 
@@ -44,4 +48,4 @@ router.get(
   }),
 );
 
-module.exports = router;
+export default router;

@@ -1,4 +1,5 @@
-const { z } = require("zod");
+// const { z } = require("zod");
+import z from "zod";
 
 const login = z.object({
   email: z.string().email(),
@@ -75,7 +76,15 @@ const inboundWhatsappMessage = z.object({
   source: z.enum(["Instagram", "Website", "Facebook", "Referral"]).default("Website"),
 });
 
-module.exports = {
+const updateWorkspaceSettings = z.object({
+  businessName: z.string().trim().max(200).optional(),
+  industry: z.string().trim().max(120).optional(),
+  teamSize: z.string().trim().max(40).optional(),
+  features: z.record(z.string(), z.boolean()).optional(),
+  onboardingCompleted: z.boolean().optional(),
+});
+
+export {
   login,
   signup,
   refreshToken,
@@ -88,4 +97,5 @@ module.exports = {
   updateWhatsappSettings,
   updateRules,
   inboundWhatsappMessage,
+  updateWorkspaceSettings,
 };
