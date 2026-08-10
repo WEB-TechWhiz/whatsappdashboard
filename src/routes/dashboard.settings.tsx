@@ -21,6 +21,16 @@ export const Route = createFileRoute("/dashboard/settings")({
   component: SettingsPage,
 });
 
+type WhatsAppConnection = {
+  id: string;
+  status: string;
+  displayName?: string | null;
+  phoneNumber?: string | null;
+  phoneNumberId?: string | null;
+  tokenLast4?: string | null;
+  connectedAt?: string | null;
+};
+
 type Profile = {
   id: string;
   name: string;
@@ -42,6 +52,11 @@ function SettingsPage() {
   const [autoReply, setAutoReply] = useState(false);
   const [notifyNewLeads, setNotifyNewLeads] = useState(true);
   const [flagLeaks, setFlagLeaks] = useState(true);
+  const [connectionName, setConnectionName] = useState("");
+  const [connectionPhone, setConnectionPhone] = useState("");
+  const [connectionPhoneId, setConnectionPhoneId] = useState("");
+  const [connectionWabaId, setConnectionWabaId] = useState("");
+  const [connectionToken, setConnectionToken] = useState("");
 
   const { data: profile, isLoading } = useQuery<Profile>({
     queryKey: ["workspace-profile"],
@@ -58,6 +73,39 @@ function SettingsPage() {
     setNotifyNewLeads(profile.notify_new_leads);
     setFlagLeaks(profile.flag_leaks);
   }, [profile]);
+
+  const { data: connectionData, isLoading: connectionsLoading } = useQuery<{ connections: WhatsAppConnection[] }>({
+    queryKey: ["whatsapp-connections"],
+    queryFn: () => apiFetch("/whatsapp/connections"),
+  });
+
+  const createConnection = useMutation({
+    mutationFn: () => apiFetch("/whatsapp/connections", {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: connectionName,
+        phoneNumber: connectionPhone,
+        phoneNumberId: connectionPhoneId,
+        wabaId: connectionWabaId,
+        accessToken: connectionToken,
+      }),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-connections"] });
+      setConnectionToken("");
+      toast.success("WhatsApp connection added");
+    },
+    onError: (err) => toast.error(err.message || "Failed to add connection"),
+  });
+
+  const disconnectConnection = useMutation({
+    mutationFn: (id: string) => apiFetch(`/whatsapp/connections/${id}/disconnect`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-connections"] });
+      toast.success("Connection disconnected");
+    },
+    onError: (err) => toast.error(err.message || "Failed to disconnect connection"),
+  });
 
   const saveProfile = useMutation({
     mutationFn: () =>
@@ -157,7 +205,39 @@ function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>WhatsApp integration</CardTitle>
+          <CardTitle>WhatsApp Business connections</CardTitle>
+          <CardDescription>Connect Cloud API numbers securely. Access tokens are encrypted and never shown again.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-5">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input placeholder="Connection name" value={connectionName} onChange={(e) => setConnectionName(e.target.value)} />
+            <Input placeholder="Business phone" value={connectionPhone} onChange={(e) => setConnectionPhone(e.target.value)} />
+            <Input placeholder="Phone number ID" value={connectionPhoneId} onChange={(e) => setConnectionPhoneId(e.target.value)} />
+            <Input placeholder="WhatsApp Business Account ID" value={connectionWabaId} onChange={(e) => setConnectionWabaId(e.target.value)} />
+            <Input className="sm:col-span-2" type="password" placeholder="Permanent access token" value={connectionToken} onChange={(e) => setConnectionToken(e.target.value)} />
+          </div>
+          <Button onClick={() => createConnection.mutate()} disabled={createConnection.isPending || !connectionToken.trim()}>
+            {createConnection.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add WhatsApp connection"}
+          </Button>
+          <div className="grid gap-2">
+            {connectionsLoading ? <p className="text-sm text-muted-foreground">Loading connections...</p> : null}
+            {!connectionsLoading && !connectionData?.connections?.length ? <p className="text-sm text-muted-foreground">No WhatsApp connections yet.</p> : null}
+            {connectionData?.connections?.map((connection) => (
+              <div key={connection.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3">
+                <div>
+                  <p className="text-sm font-medium">{connection.displayName || connection.phoneNumber || "Unnamed connection"}</p>
+                  <p className="text-xs text-muted-foreground">{connection.status} · {connection.phoneNumberId || "Phone ID pending"}{connection.tokenLast4 ? ` · token ending ${connection.tokenLast4}` : ""}</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => disconnectConnection.mutate(connection.id)} disabled={disconnectConnection.isPending || connection.status === "DISCONNECTED"}>Disconnect</Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Legacy WhatsApp bridge</CardTitle>
           <CardDescription>Connect your Business number and webhook bridge.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
