@@ -1,7 +1,7 @@
-const crypto = require("crypto");
-const pool = require("../config/db");
-const { encrypt } = require("../utils/crypto");
-const { NotFoundError, ConflictError } = require("../utils/errors");
+import crypto from "node:crypto";
+import pool from "../config/db.js";
+import { encrypt } from "../utils/crypto.js";
+import { NotFoundError, ConflictError } from "../utils/errors.js";
 
 function hashVerifyToken(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
@@ -75,4 +75,4 @@ async function disconnectConnection(organizationId, id) {
   return redact(rows[0]);
 }
 
-module.exports = { listConnections, createConnection, disconnectConnection };
+export { listConnections, createConnection, disconnectConnection };

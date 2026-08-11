@@ -1,8 +1,8 @@
-const express = require("express");
-const requireAuth = require("../middleware/auth");
-const asyncHandler = require("../utils/asyncHandler");
-const pool = require("../config/db");
-const billing = require("../services/billing.service");
+import express from "express";
+import requireAuth from "../middleware/auth.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import pool from "../config/db.js";
+import * as billing from "../services/billing.service.js";
 
 const router = express.Router();
 
@@ -44,4 +44,4 @@ router.post("/billing/checkout", requireAuth, asyncHandler(async (req, res) => {
   res.json({ url: session.url });
 }));
 
-module.exports = router;
+export default router;

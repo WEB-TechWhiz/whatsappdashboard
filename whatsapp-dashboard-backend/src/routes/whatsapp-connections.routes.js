@@ -1,7 +1,7 @@
-const express = require("express");
-const requireAuth = require("../middleware/auth");
-const asyncHandler = require("../utils/asyncHandler");
-const service = require("../services/whatsapp-connections.service");
+import express from "express";
+import requireAuth from "../middleware/auth.js";
+import asyncHandler from "../utils/asyncHandler.js";
+import * as service from "../services/whatsapp-connections.service.js";
 
 const router = express.Router();
 router.use(requireAuth);
@@ -19,4 +19,4 @@ router.post("/whatsapp/connections/:id/disconnect", asyncHandler(async (req, res
   res.json({ connection: await service.disconnectConnection(req.workspaceId, req.params.id) });
 }));
 
-module.exports = router;
+export default router;
