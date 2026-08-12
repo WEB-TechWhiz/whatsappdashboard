@@ -1,0 +1,19 @@
+* [33m9864d51[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m add claudflare tunnel
+[31m|[m * [33m276c4ea[m[33m ([m[1;31morigin/cloudflare/workers-autoconfig[m[33m)[m Add Cloudflare Workers configuration
+[31m|[m * [33mcc004d1[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Added Cloudflare tunnel setup
+[31m|[m[31m/[m[34m|[m 
+[31m|[m * [33md127483[m Changes
+[31m|[m[31m/[m  
+*   [33m96e8976[m Wired dashboard & notifications
+[35m|[m[36m\[m  
+[35m|[m * [33m8423197[m Changes
+[35m|[m * [33m26a4aa5[m Changes
+[35m|[m * [33mabbae39[m Changes
+[35m|[m * [33me963689[m Changes
+[35m|[m * [33m9b81d88[m Changes
+[35m|[m * [33m92e0567[m Changes
+[35m|[m * [33m749207a[m Changes
+[35m|[m * [33mb256ab3[m Changes
+[35m|[m * [33m993ede9[m Changes
+[35m|[m[35m/[m  
+* [33mafa1db7[m add new components
