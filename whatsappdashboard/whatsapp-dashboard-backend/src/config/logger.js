@@ -8,7 +8,11 @@ const logger = pino({
     "*.password",
     "*.password_hash",
     "*.apiToken",
+    "*.accessToken",
+    "*.access_token",
     "*.whatsapp_api_token",
+    "*.access_token_encrypted",
+    "*.app_secret",
   ],
   transport:
     process.env.NODE_ENV === "production"

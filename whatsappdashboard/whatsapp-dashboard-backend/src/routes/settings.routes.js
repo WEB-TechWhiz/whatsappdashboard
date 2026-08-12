@@ -10,9 +10,8 @@ import asyncHandler from "../utils/asyncHandler.js";
 import * as schemas from "../validators/schemas.js";
 // const pool = require("../config/db");
 import pool from "../config/db.js";
-// const { encrypt } = require("../utils/crypto");
-import { encrypt } from "../utils/crypto.js";
 import * as workspaceSettings from "../services/settings.service.js";
+import * as whatsappConnections from "../services/whatsapp-connections.service.js";
 
 // const router = express.Router();
 const router = express.Router();
@@ -51,26 +50,7 @@ router.put(
   "/settings/whatsapp",
   validate(schemas.updateWhatsappSettings),
   asyncHandler(async (req, res) => {
-    const { phone, apiToken, webhookUrl } = req.body;
-
-    if (apiToken) {
-      const encryptedToken = encrypt(apiToken);
-      await pool.query(
-        `UPDATE workspaces
-         SET whatsapp_phone = $1, whatsapp_api_token = $2, whatsapp_webhook_url = $3, updated_at = now()
-         WHERE id = $4`,
-        [phone, encryptedToken, webhookUrl, req.workspaceId],
-      );
-    } else {
-      await pool.query(
-        `UPDATE workspaces
-         SET whatsapp_phone = $1, whatsapp_webhook_url = $2, updated_at = now()
-         WHERE id = $3`,
-        [phone, webhookUrl, req.workspaceId],
-      );
-    }
-
-    res.json({ phone, webhookUrl, connected: true });
+    res.json(await whatsappConnections.saveManualConnection(req.workspaceId, req.body));
   }),
 );
 

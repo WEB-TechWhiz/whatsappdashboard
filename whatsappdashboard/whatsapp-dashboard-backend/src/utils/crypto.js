@@ -6,10 +6,14 @@ import { ServiceUnavailableError } from "./errors.js";
 // Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 const KEY = Buffer.from(process.env.ENCRYPTION_KEY || "", "hex");
 
-function encrypt(plaintext) {
-  if (!KEY.length) {
+function requireValidKey() {
+  if (KEY.length !== 32) {
     throw new ServiceUnavailableError("Server encryption is not configured", "ENCRYPTION_NOT_CONFIGURED");
   }
+}
+
+function encrypt(plaintext) {
+  requireValidKey();
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", KEY, iv);
   const encrypted = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
@@ -18,9 +22,7 @@ function encrypt(plaintext) {
 }
 
 function decrypt(payload) {
-  if (!KEY.length) {
-    throw new ServiceUnavailableError("Server encryption is not configured", "ENCRYPTION_NOT_CONFIGURED");
-  }
+  requireValidKey();
   const buf = Buffer.from(payload, "base64");
   const iv = buf.subarray(0, 12);
   const authTag = buf.subarray(12, 28);

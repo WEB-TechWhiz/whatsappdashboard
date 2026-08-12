@@ -33,6 +33,76 @@ CREATE UNIQUE INDEX idx_workspaces_oauth_identity
   ON workspaces (oauth_provider, oauth_subject)
   WHERE oauth_provider IS NOT NULL AND oauth_subject IS NOT NULL;
 
+-- WhatsApp Business connection records.
+-- F1 foundation for official Meta connection lifecycle.
+CREATE TABLE whatsapp_connections (
+  id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  workspace_id            UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+
+  waba_id                 TEXT,
+  phone_number_id         TEXT,
+  display_phone_number    TEXT,
+  business_name           TEXT,
+
+  provider                TEXT NOT NULL DEFAULT 'META',
+  provider_account_id     TEXT,
+  connection_mode         TEXT NOT NULL DEFAULT 'CLOUD_API_ONLY',
+  access_token_encrypted  TEXT,
+  webhook_url             TEXT,
+
+  status                  TEXT NOT NULL DEFAULT 'PENDING',
+  webhook_status          TEXT NOT NULL DEFAULT 'PENDING',
+  status_reason           TEXT,
+  last_error_code         TEXT,
+  last_error_message      TEXT,
+  last_health_check_at    TIMESTAMPTZ,
+  connected_at            TIMESTAMPTZ,
+  disconnected_at         TIMESTAMPTZ,
+
+  created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+  CONSTRAINT whatsapp_connections_mode_check
+    CHECK (connection_mode IN ('CLOUD_API_ONLY', 'COEXISTENCE')),
+  CONSTRAINT whatsapp_connections_status_check
+    CHECK (status IN (
+      'PENDING',
+      'AUTHENTICATED',
+      'ASSETS_DISCOVERED',
+      'PHONE_REGISTERED',
+      'WEBHOOK_SUBSCRIBED',
+      'CONNECTED',
+      'ERROR',
+      'DEGRADED',
+      'DISCONNECTED',
+      'RECONNECTING'
+    )),
+  CONSTRAINT whatsapp_connections_webhook_status_check
+    CHECK (webhook_status IN ('PENDING', 'SUBSCRIBED', 'FAILED', 'UNKNOWN'))
+);
+
+CREATE INDEX idx_whatsapp_connections_workspace
+  ON whatsapp_connections (workspace_id);
+
+CREATE INDEX idx_whatsapp_connections_phone_number_id
+  ON whatsapp_connections (phone_number_id)
+  WHERE phone_number_id IS NOT NULL;
+
+CREATE INDEX idx_whatsapp_connections_waba_id
+  ON whatsapp_connections (waba_id)
+  WHERE waba_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_whatsapp_connections_workspace_phone_unique
+  ON whatsapp_connections (workspace_id, phone_number_id)
+  WHERE phone_number_id IS NOT NULL;
+
+CREATE UNIQUE INDEX idx_whatsapp_connections_workspace_display_phone_unique
+  ON whatsapp_connections (workspace_id, display_phone_number)
+  WHERE phone_number_id IS NULL AND display_phone_number IS NOT NULL;
+
+CREATE INDEX idx_whatsapp_connections_status
+  ON whatsapp_connections (workspace_id, status);
+
 CREATE TABLE refresh_tokens (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id    UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,

@@ -62,7 +62,7 @@ function normalizeError(err) {
     });
   }
 
-  if (err?.message === "ENCRYPTION_KEY is not set") {
+  if (err?.code === "ENCRYPTION_NOT_CONFIGURED" || err?.message === "ENCRYPTION_KEY is not set") {
     return new AppError("Server encryption is not configured", 503, "ENCRYPTION_NOT_CONFIGURED");
   }
 

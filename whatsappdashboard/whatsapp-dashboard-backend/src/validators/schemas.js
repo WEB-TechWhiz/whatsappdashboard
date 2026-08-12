@@ -53,7 +53,10 @@ const updateProfile = z.object({
 
 const updateWhatsappSettings = z.object({
   phone: z.string().trim().min(6).max(20),
-  apiToken: z.string().trim().min(10).optional(),
+  apiToken: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().trim().min(10).optional(),
+  ),
   webhookUrl: z.string().url(),
 });
 
