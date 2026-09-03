@@ -33,8 +33,8 @@ export async function getOverview(workspaceId, range = "week") {
     activityRows,
     pipelineRow,
   ] = await Promise.all([
-      pool.query(
-        `SELECT
+    pool.query(
+      `SELECT
            (SELECT COALESCE(SUM(value),0)::numeric FROM bookings
               WHERE workspace_id = $1 AND booked_at::date = CURRENT_DATE) AS revenue_today,
            (SELECT COALESCE(SUM(value),0)::numeric FROM bookings
@@ -56,45 +56,45 @@ export async function getOverview(workspaceId, range = "week") {
                 AND created_at < now() - interval '5 minutes') AS leaks,
            (SELECT COALESCE(AVG(deal_value),0)::numeric FROM contacts
               WHERE workspace_id = $1) AS avg_deal_value`,
-        [workspaceId, interval],
-      ),
-      pool.query(
-        `SELECT date_trunc('day', booked_at)::date AS day, COALESCE(SUM(value),0)::numeric AS value
+      [workspaceId, interval],
+    ),
+    pool.query(
+      `SELECT date_trunc('day', booked_at)::date AS day, COALESCE(SUM(value),0)::numeric AS value
          FROM bookings
          WHERE workspace_id = $1 AND booked_at > now() - $2::interval
          GROUP BY day ORDER BY day ASC`,
-        [workspaceId, interval],
-      ),
-      pool.query(
-        `SELECT date_trunc('day', booked_at)::date AS day, COUNT(*)::int AS value
+      [workspaceId, interval],
+    ),
+    pool.query(
+      `SELECT date_trunc('day', booked_at)::date AS day, COUNT(*)::int AS value
          FROM bookings
          WHERE workspace_id = $1 AND booked_at > now() - $2::interval
          GROUP BY day ORDER BY day ASC`,
-        [workspaceId, interval],
-      ),
-      pool.query(
-        `SELECT date_trunc('day', created_at)::date AS day, COUNT(*)::int AS value
+      [workspaceId, interval],
+    ),
+    pool.query(
+      `SELECT date_trunc('day', created_at)::date AS day, COUNT(*)::int AS value
          FROM contacts
          WHERE workspace_id = $1 AND created_at > now() - $2::interval
          GROUP BY day ORDER BY day ASC`,
-        [workspaceId, interval],
-      ),
-      pool.query(
-        `SELECT status, COUNT(*)::int AS count
+      [workspaceId, interval],
+    ),
+    pool.query(
+      `SELECT status, COUNT(*)::int AS count
          FROM contacts WHERE workspace_id = $1
          GROUP BY status`,
-        [workspaceId],
-      ),
-      pool.query(
-        `SELECT a.id, a.type, a.description, a.created_at, c.name AS contact_name
+      [workspaceId],
+    ),
+    pool.query(
+      `SELECT a.id, a.type, a.description, a.created_at, c.name AS contact_name
          FROM activity_log a
          LEFT JOIN contacts c ON c.id = a.contact_id
          WHERE a.workspace_id = $1
          ORDER BY a.created_at DESC LIMIT 20`,
-        [workspaceId],
-      ),
-      pool.query(
-        `SELECT
+      [workspaceId],
+    ),
+    pool.query(
+      `SELECT
            (SELECT COUNT(*)::int FROM messages
             WHERE workspace_id = $1 AND is_agent = false AND created_at > now() - $2::interval) AS inbound,
            (SELECT COUNT(*)::int FROM messages
@@ -103,9 +103,9 @@ export async function getOverview(workspaceId, range = "week") {
             WHERE workspace_id = $1 AND created_at > now() - $2::interval) AS total_leads,
            (SELECT COUNT(*)::int FROM contacts
             WHERE workspace_id = $1 AND status = 'Booked' AND updated_at > now() - $2::interval) AS booked_leads`,
-        [workspaceId, interval],
-      ),
-    ]);
+      [workspaceId, interval],
+    ),
+  ]);
 
   const k = kpisRow.rows[0];
   const totalLeads =

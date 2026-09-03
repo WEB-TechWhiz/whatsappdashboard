@@ -58,10 +58,14 @@ async function sendOutboundText({ workspaceId, messageId, contact, text }) {
   );
 
   try {
-    const result = await sendTextMessage(decrypt(connection.access_token_encrypted), connection.phone_number_id, {
-      to: recipient,
-      text,
-    });
+    const result = await sendTextMessage(
+      decrypt(connection.access_token_encrypted),
+      connection.phone_number_id,
+      {
+        to: recipient,
+        text,
+      },
+    );
     const providerMessageId = result.messages?.[0]?.id || null;
 
     const { rows } = await pool.query(
@@ -84,7 +88,12 @@ async function sendOutboundText({ workspaceId, messageId, contact, text }) {
            failure_code = $1,
            failure_message = $2
        WHERE id = $3 AND workspace_id = $4`,
-      [error?.code || "WHATSAPP_SEND_FAILED", error?.message || String(error), messageId, workspaceId],
+      [
+        error?.code || "WHATSAPP_SEND_FAILED",
+        error?.message || String(error),
+        messageId,
+        workspaceId,
+      ],
     );
     throw error;
   }

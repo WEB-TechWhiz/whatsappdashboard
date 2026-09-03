@@ -17,7 +17,7 @@ function getPublicConfig() {
     sessionInfoVersion: process.env.META_EMBEDDED_SIGNUP_SESSION_VERSION || "3",
     enabled: Boolean(
       (process.env.META_APP_ID || process.env.WHATSAPP_APP_ID) &&
-        process.env.META_EMBEDDED_SIGNUP_CONFIG_ID,
+      process.env.META_EMBEDDED_SIGNUP_CONFIG_ID,
     ),
   };
 }
@@ -79,11 +79,15 @@ async function exchangeCodeForToken(code) {
   const body = await response.json().catch(() => ({}));
 
   if (!response.ok || !body.access_token) {
-    throw new ExternalServiceError("Meta authorization code exchange failed", "META_CODE_EXCHANGE_FAILED", {
-      status: response.status,
-      error: body.error?.code || body.error?.type,
-      message: body.error?.message,
-    });
+    throw new ExternalServiceError(
+      "Meta authorization code exchange failed",
+      "META_CODE_EXCHANGE_FAILED",
+      {
+        status: response.status,
+        error: body.error?.code || body.error?.type,
+        message: body.error?.message,
+      },
+    );
   }
 
   return {

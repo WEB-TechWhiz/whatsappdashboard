@@ -142,7 +142,11 @@ function getOAuthFrontendOrigin(req) {
     return fallbackOrigin;
   }
 
-  throw new AppError("No allowed frontend origin is configured for OAuth", 503, "OAUTH_FRONTEND_ORIGIN_NOT_CONFIGURED");
+  throw new AppError(
+    "No allowed frontend origin is configured for OAuth",
+    503,
+    "OAUTH_FRONTEND_ORIGIN_NOT_CONFIGURED",
+  );
 }
 
 function normalizeOrigin(value) {
@@ -169,7 +173,11 @@ function getApiPublicOrigin(req) {
 
   const host = req.get("host");
   if (!host) {
-    throw new AppError("Cannot determine API public origin", 503, "API_PUBLIC_ORIGIN_NOT_CONFIGURED");
+    throw new AppError(
+      "Cannot determine API public origin",
+      503,
+      "API_PUBLIC_ORIGIN_NOT_CONFIGURED",
+    );
   }
 
   return `${req.protocol}://${host}`;
@@ -191,7 +199,11 @@ function getOAuthRedirectUri(req) {
       return url.toString();
     } catch (err) {
       if (err instanceof AppError) throw err;
-      throw new AppError("GOOGLE_OAUTH_REDIRECT_URI is not a valid URL", 503, "GOOGLE_OAUTH_REDIRECT_URI_INVALID");
+      throw new AppError(
+        "GOOGLE_OAUTH_REDIRECT_URI is not a valid URL",
+        503,
+        "GOOGLE_OAUTH_REDIRECT_URI_INVALID",
+      );
     }
   }
 
@@ -207,8 +219,15 @@ function getOAuthRedirectWarnings(req, redirectUri) {
     if (url.protocol !== "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1") {
       warnings.push("Google OAuth redirect URI should use HTTPS outside local development.");
     }
-    if (requestHost && url.host !== requestHost && !process.env.API_PUBLIC_ORIGIN && !process.env.GOOGLE_OAUTH_REDIRECT_URI) {
-      warnings.push("Redirect URI host differs from request host. Set API_PUBLIC_ORIGIN if this is intentional.");
+    if (
+      requestHost &&
+      url.host !== requestHost &&
+      !process.env.API_PUBLIC_ORIGIN &&
+      !process.env.GOOGLE_OAUTH_REDIRECT_URI
+    ) {
+      warnings.push(
+        "Redirect URI host differs from request host. Set API_PUBLIC_ORIGIN if this is intentional.",
+      );
     }
   } catch (err) {
     warnings.push("Redirect URI could not be parsed.");
@@ -390,11 +409,16 @@ router.get(
 
     if (!tokenResponse.ok) {
       const details = await tokenResponse.json().catch(() => ({}));
-      throw new AppError("Google OAuth token exchange failed", 502, "GOOGLE_OAUTH_TOKEN_EXCHANGE_FAILED", {
-        status: tokenResponse.status,
-        error: details.error,
-        errorDescription: details.error_description,
-      });
+      throw new AppError(
+        "Google OAuth token exchange failed",
+        502,
+        "GOOGLE_OAUTH_TOKEN_EXCHANGE_FAILED",
+        {
+          status: tokenResponse.status,
+          error: details.error,
+          errorDescription: details.error_description,
+        },
+      );
     }
 
     const googleTokens = await tokenResponse.json();
@@ -403,9 +427,14 @@ router.get(
     });
 
     if (!profileResponse.ok) {
-      throw new AppError("Google OAuth profile lookup failed", 502, "GOOGLE_OAUTH_PROFILE_LOOKUP_FAILED", {
-        status: profileResponse.status,
-      });
+      throw new AppError(
+        "Google OAuth profile lookup failed",
+        502,
+        "GOOGLE_OAUTH_PROFILE_LOOKUP_FAILED",
+        {
+          status: profileResponse.status,
+        },
+      );
     }
 
     const profile = await profileResponse.json();
@@ -436,7 +465,11 @@ router.get(
 
     const frontendOrigin = parsedState.frontendOrigin || getFallbackFrontendOrigin();
     if (!frontendOrigin || !isAllowedOrigin(frontendOrigin)) {
-      throw new AppError("OAuth frontend origin is no longer allowed", 400, "OAUTH_FRONTEND_ORIGIN_INVALID");
+      throw new AppError(
+        "OAuth frontend origin is no longer allowed",
+        400,
+        "OAUTH_FRONTEND_ORIGIN_INVALID",
+      );
     }
 
     res.redirect(`${frontendOrigin}/login#${fragment.toString()}`);

@@ -2,21 +2,21 @@ import logger from "../config/logger.js";
 import { AppError } from "../utils/errors.js";
 
 const PG_ERROR_MAP = {
-  "23502": [400, "DB_NOT_NULL_VIOLATION", "A required value is missing"],
-  "23503": [409, "DB_FOREIGN_KEY_VIOLATION", "Referenced record does not exist"],
-  "23505": [409, "DB_UNIQUE_VIOLATION", "Record already exists"],
-  "23514": [400, "DB_CHECK_VIOLATION", "Request violates a data constraint"],
+  23502: [400, "DB_NOT_NULL_VIOLATION", "A required value is missing"],
+  23503: [409, "DB_FOREIGN_KEY_VIOLATION", "Referenced record does not exist"],
+  23505: [409, "DB_UNIQUE_VIOLATION", "Record already exists"],
+  23514: [400, "DB_CHECK_VIOLATION", "Request violates a data constraint"],
   "22P02": [400, "DB_INVALID_TEXT_REPRESENTATION", "Invalid identifier or value format"],
-  "22001": [400, "DB_VALUE_TOO_LONG", "One of the provided values is too long"],
-  "42601": [500, "DB_SYNTAX_ERROR", "Database query syntax error"],
-  "42703": [500, "DB_UNDEFINED_COLUMN", "Database schema mismatch"],
+  22001: [400, "DB_VALUE_TOO_LONG", "One of the provided values is too long"],
+  42601: [500, "DB_SYNTAX_ERROR", "Database query syntax error"],
+  42703: [500, "DB_UNDEFINED_COLUMN", "Database schema mismatch"],
   "42P01": [500, "DB_UNDEFINED_TABLE", "Database schema is missing a required table"],
   "28P01": [503, "DB_AUTH_FAILED", "Database authentication failed"],
   "3D000": [503, "DB_NOT_FOUND", "Configured database does not exist"],
   "08000": [503, "DB_CONNECTION_ERROR", "Database connection failed"],
   "08003": [503, "DB_CONNECTION_ERROR", "Database connection is not open"],
   "08006": [503, "DB_CONNECTION_ERROR", "Database connection failed"],
-  "53300": [503, "DB_TOO_MANY_CONNECTIONS", "Database is temporarily overloaded"],
+  53300: [503, "DB_TOO_MANY_CONNECTIONS", "Database is temporarily overloaded"],
   "57P01": [503, "DB_CONNECTION_TERMINATED", "Database connection was interrupted"],
 };
 
@@ -56,7 +56,10 @@ function normalizeError(err) {
     });
   }
 
-  if (err?.message?.startsWith("WhatsApp API error") || err?.message?.startsWith("WhatsApp sender returned")) {
+  if (
+    err?.message?.startsWith("WhatsApp API error") ||
+    err?.message?.startsWith("WhatsApp sender returned")
+  ) {
     return new AppError("WhatsApp upstream request failed", 502, "WHATSAPP_UPSTREAM_ERROR", {
       cause: err.message,
     });

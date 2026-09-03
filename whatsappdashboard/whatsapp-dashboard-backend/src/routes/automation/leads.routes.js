@@ -69,23 +69,23 @@ router.post(
     }),
   ),
   asyncHandler(async (req, res) => {
-      const workspaceId = req.workspace.id;
-      const { leadId } = req.params;
-      const { response, phone_number, analysis } = req.body;
+    const workspaceId = req.workspace.id;
+    const { leadId } = req.params;
+    const { response, phone_number, analysis } = req.body;
 
-      const result = await leadCaptureWorkflow.handleQualificationResponse({
-        workspaceId,
-        leadId,
-        phoneNumber: phone_number,
-        response,
-        analysis,
-      });
+    const result = await leadCaptureWorkflow.handleQualificationResponse({
+      workspaceId,
+      leadId,
+      phoneNumber: phone_number,
+      response,
+      analysis,
+    });
 
-      res.json({
-        success: true,
-        message: "Response recorded successfully",
-        data: result,
-      });
+    res.json({
+      success: true,
+      message: "Response recorded successfully",
+      data: result,
+    });
   }),
 );
 

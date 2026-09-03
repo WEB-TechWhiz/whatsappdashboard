@@ -119,7 +119,10 @@ async function sendMessage(workspaceId, contactId, { text, mediaUrl }) {
       message = await sendOutboundText({ workspaceId, messageId: message.id, contact, text });
     }
   } catch (err) {
-    logger.error({ err, workspaceId, contactId: contact.id, messageId: message.id }, "Outbound WhatsApp delivery failed");
+    logger.error(
+      { err, workspaceId, contactId: contact.id, messageId: message.id },
+      "Outbound WhatsApp delivery failed",
+    );
     await pool.query(
       `UPDATE messages
        SET provider_status = 'FAILED',
@@ -222,7 +225,9 @@ async function receiveInboundMessage(
 
 async function deliverOutboundMessage(workspaceId, contact, payload) {
   if (!process.env.WHATSAPP_SEND_URL) {
-    throw new Error("Media sends require WHATSAPP_SEND_URL until media Cloud API support is implemented");
+    throw new Error(
+      "Media sends require WHATSAPP_SEND_URL until media Cloud API support is implemented",
+    );
   }
 
   await sendLegacyBridge({

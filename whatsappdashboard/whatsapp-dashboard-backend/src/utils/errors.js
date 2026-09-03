@@ -64,7 +64,11 @@ class ServiceUnavailableError extends AppError {
 }
 
 class ExternalServiceError extends AppError {
-  constructor(message = "External service failed", code = "EXTERNAL_SERVICE_ERROR", details = undefined) {
+  constructor(
+    message = "External service failed",
+    code = "EXTERNAL_SERVICE_ERROR",
+    details = undefined,
+  ) {
     super(message, 502, code, details);
   }
 }

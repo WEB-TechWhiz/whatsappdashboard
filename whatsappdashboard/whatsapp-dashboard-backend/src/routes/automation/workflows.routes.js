@@ -58,7 +58,8 @@ router.post(
   ),
   asyncHandler(async (req, res) => {
     const workspaceId = req.workspaceId;
-    const { name, description, trigger_type, workflow_type, trigger_keywords, workflow_config } = req.body;
+    const { name, description, trigger_type, workflow_type, trigger_keywords, workflow_config } =
+      req.body;
 
     const { rows } = await pool.query(
       `INSERT INTO automation_rules 

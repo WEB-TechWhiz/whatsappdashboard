@@ -13,7 +13,10 @@ router.use(requireAuth);
 router.use((req, res, next) => {
   // In initial build, workspace user or superadmin flag is checked
   if (req.user && req.user.is_admin === false) {
-    throw new ForbiddenError("Super-admin privileges required for platform operations", "ADMIN_REQUIRED");
+    throw new ForbiddenError(
+      "Super-admin privileges required for platform operations",
+      "ADMIN_REQUIRED",
+    );
   }
   next();
 });

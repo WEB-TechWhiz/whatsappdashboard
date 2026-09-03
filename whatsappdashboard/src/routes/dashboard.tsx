@@ -4,15 +4,7 @@ import { AppSidebar } from "@/components/dashboard/AppSidebar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Search,
-  Plus,
-  Sparkles,
-  Moon,
-  Sun,
-  CircleDot,
-  Command as CommandIcon,
-} from "lucide-react";
+import { Search, Plus, Sparkles, Moon, Sun, CircleDot, Command as CommandIcon } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,

@@ -39,7 +39,12 @@ async function createTopupOrder(workspaceId, { amount, provider = "RAZORPAY", cu
  * Handle payment gateway callback idempotently.
  * Receiving 10 duplicate callbacks results in exactly 1 wallet credit.
  */
-async function processPaymentCallback({ providerPaymentId, providerOrderId, status = "COMPLETED", rawPayload = {} }) {
+async function processPaymentCallback({
+  providerPaymentId,
+  providerOrderId,
+  status = "COMPLETED",
+  rawPayload = {},
+}) {
   if (!providerPaymentId) {
     throw new BadRequestError("Provider payment ID is required", "MISSING_PAYMENT_ID");
   }
@@ -84,7 +89,10 @@ async function processPaymentCallback({ providerPaymentId, providerOrderId, stat
   }
 
   if (!workspaceId || amount <= 0) {
-    throw new BadRequestError("Unable to match payment to workspace or amount", "INVALID_PAYMENT_MATCH");
+    throw new BadRequestError(
+      "Unable to match payment to workspace or amount",
+      "INVALID_PAYMENT_MATCH",
+    );
   }
 
   // 3. Record transaction
@@ -94,7 +102,15 @@ async function processPaymentCallback({ providerPaymentId, providerOrderId, stat
      )
      VALUES ($1, 'RAZORPAY', $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [workspaceId, providerPaymentId, providerOrderId || null, amount, currency, status, JSON.stringify(rawPayload)],
+    [
+      workspaceId,
+      providerPaymentId,
+      providerOrderId || null,
+      amount,
+      currency,
+      status,
+      JSON.stringify(rawPayload),
+    ],
   );
   const tx = rows[0];
 
@@ -119,7 +135,4 @@ async function processPaymentCallback({ providerPaymentId, providerOrderId, stat
   };
 }
 
-export {
-  createTopupOrder,
-  processPaymentCallback,
-};
+export { createTopupOrder, processPaymentCallback };

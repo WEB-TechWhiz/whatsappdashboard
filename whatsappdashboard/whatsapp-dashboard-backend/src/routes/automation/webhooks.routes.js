@@ -37,9 +37,15 @@ function verifyWebhookSignature(req) {
 
   if (!secret) {
     if (process.env.NODE_ENV === "production") {
-      throw new AppError("WhatsApp webhook secret is not configured", 503, "WEBHOOK_SECRET_NOT_CONFIGURED");
+      throw new AppError(
+        "WhatsApp webhook secret is not configured",
+        503,
+        "WEBHOOK_SECRET_NOT_CONFIGURED",
+      );
     }
-    logger.warn("[Webhook] WHATSAPP_WEBHOOK_SECRET is not set; skipping signature verification in development");
+    logger.warn(
+      "[Webhook] WHATSAPP_WEBHOOK_SECRET is not set; skipping signature verification in development",
+    );
     return;
   }
 
@@ -85,7 +91,9 @@ function extractMessageText(message) {
 
 function extractMediaUrl(message) {
   if (!message) return null;
-  return message.image?.id || message.video?.id || message.audio?.id || message.document?.id || null;
+  return (
+    message.image?.id || message.video?.id || message.audio?.id || message.document?.id || null
+  );
 }
 
 function normalizePhone(value) {
@@ -132,11 +140,16 @@ async function handleIncomingMessages(value) {
   const workspaceId = connection?.workspace_id || (await resolveWorkspaceId(value?.metadata));
 
   if (!workspaceId) {
-    logger.warn({ metadata: value?.metadata }, "[Webhook] Could not resolve workspace for WhatsApp webhook");
+    logger.warn(
+      { metadata: value?.metadata },
+      "[Webhook] Could not resolve workspace for WhatsApp webhook",
+    );
     return { processed: false, reason: "WORKSPACE_NOT_FOUND" };
   }
 
-  const contactsByWaId = new Map((value?.contacts || []).map((contact) => [contact.wa_id, contact]));
+  const contactsByWaId = new Map(
+    (value?.contacts || []).map((contact) => [contact.wa_id, contact]),
+  );
   const processed = [];
 
   for (const message of value?.messages || []) {
@@ -162,8 +175,14 @@ async function handleIncomingMessages(value) {
     }
 
     if (!phone || !text) {
-      logger.warn({ messageId: message?.id, type: message?.type }, "[Webhook] Skipping unsupported WhatsApp message");
-      await webhookEvents.markWebhookEventSkipped(storedEvent.event.id, "Unsupported or empty message");
+      logger.warn(
+        { messageId: message?.id, type: message?.type },
+        "[Webhook] Skipping unsupported WhatsApp message",
+      );
+      await webhookEvents.markWebhookEventSkipped(
+        storedEvent.event.id,
+        "Unsupported or empty message",
+      );
       continue;
     }
 
@@ -252,7 +271,10 @@ async function handleStatuses(value) {
   }
 
   if (statuses.length > 0) {
-    logger.info({ count: statuses.length, workspaceId }, "[Webhook] Processed WhatsApp message status update");
+    logger.info(
+      { count: statuses.length, workspaceId },
+      "[Webhook] Processed WhatsApp message status update",
+    );
   }
   return { processed: processed.length > 0, statuses: processed };
 }
@@ -263,10 +285,15 @@ router.get(
     const mode = req.query["hub.mode"];
     const token = req.query["hub.verify_token"];
     const challenge = req.query["hub.challenge"];
-    const verifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN;
+    const verifyToken =
+      process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || process.env.WHATSAPP_VERIFY_TOKEN;
 
     if (!verifyToken) {
-      throw new AppError("WhatsApp webhook verify token is not configured", 503, "WEBHOOK_VERIFY_TOKEN_NOT_CONFIGURED");
+      throw new AppError(
+        "WhatsApp webhook verify token is not configured",
+        503,
+        "WEBHOOK_VERIFY_TOKEN_NOT_CONFIGURED",
+      );
     }
 
     if (mode === "subscribe" && token === verifyToken && typeof challenge === "string") {
@@ -274,7 +301,10 @@ router.get(
       return res.status(200).type("text/plain").send(challenge);
     }
 
-    throw new ForbiddenError("Invalid WhatsApp webhook verification token", "INVALID_WEBHOOK_TOKEN");
+    throw new ForbiddenError(
+      "Invalid WhatsApp webhook verification token",
+      "INVALID_WEBHOOK_TOKEN",
+    );
   }),
 );
 
@@ -292,7 +322,10 @@ router.post(
     for (const entry of webhookData.entry || []) {
       for (const change of entry.changes || []) {
         if (change.field !== "messages") {
-          logger.info({ field: change.field }, "[Webhook] Ignoring unsupported WhatsApp webhook field");
+          logger.info(
+            { field: change.field },
+            "[Webhook] Ignoring unsupported WhatsApp webhook field",
+          );
           continue;
         }
 

@@ -94,7 +94,7 @@ export const DEFAULT_CONFIG: BusinessConfig = {
   },
 };
 
-let listeners = new Set<() => void>();
+const listeners = new Set<() => void>();
 let cache: BusinessConfig | null = null;
 let hydrated = false;
 let hydrating: Promise<void> | null = null;
