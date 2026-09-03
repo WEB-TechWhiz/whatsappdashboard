@@ -4,7 +4,11 @@ import pool from "../config/db.js";
  * Find effective rate for country and category at a specific timestamp.
  * Fallback chain: specific country -> 'DEFAULT' -> 0.0000 fallback
  */
-async function getEffectiveRate({ countryCode = "DEFAULT", category = "SERVICE", timestamp = new Date() }) {
+async function getEffectiveRate({
+  countryCode = "DEFAULT",
+  category = "SERVICE",
+  timestamp = new Date(),
+}) {
   const normCountry = (countryCode || "DEFAULT").toUpperCase();
   const normCategory = (category || "SERVICE").toUpperCase();
 
@@ -32,7 +36,7 @@ async function getEffectiveRate({ countryCode = "DEFAULT", category = "SERVICE",
   }
 
   return {
-    rate: 0.0100,
+    rate: 0.01,
     currency: "USD",
     matchedCountry: "DEFAULT_FALLBACK",
     category: normCategory,
@@ -77,19 +81,28 @@ async function listRates({ countryCode, category } = {}) {
 /**
  * Upsert a pricing rate record.
  */
-async function upsertRate({ countryCode = "DEFAULT", category, rate, currency = "USD", provider = "META", effectiveFrom = new Date() }) {
+async function upsertRate({
+  countryCode = "DEFAULT",
+  category,
+  rate,
+  currency = "USD",
+  provider = "META",
+  effectiveFrom = new Date(),
+}) {
   const { rows } = await pool.query(
     `INSERT INTO whatsapp_pricing_rates (country_code, currency, message_category, rate, provider, effective_from)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [countryCode.toUpperCase(), currency.toUpperCase(), category.toUpperCase(), rate, provider, effectiveFrom],
+    [
+      countryCode.toUpperCase(),
+      currency.toUpperCase(),
+      category.toUpperCase(),
+      rate,
+      provider,
+      effectiveFrom,
+    ],
   );
   return rows[0];
 }
 
-export {
-  calculateCost,
-  getEffectiveRate,
-  listRates,
-  upsertRate,
-};
+export { calculateCost, getEffectiveRate, listRates, upsertRate };

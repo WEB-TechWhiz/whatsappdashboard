@@ -2,7 +2,10 @@ import crypto from "crypto";
 import pool from "../config/db.js";
 
 function stableEventId(prefix, payload) {
-  const hash = crypto.createHash("sha256").update(JSON.stringify(payload || {})).digest("hex");
+  const hash = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(payload || {}))
+    .digest("hex");
   return `${prefix}:${hash}`;
 }
 
@@ -32,7 +35,13 @@ async function resolveConnectionByMetadata(metadata) {
   return rows[0] || null;
 }
 
-async function createWebhookEvent({ workspaceId, connectionId, eventType, providerEventId, payload }) {
+async function createWebhookEvent({
+  workspaceId,
+  connectionId,
+  eventType,
+  providerEventId,
+  payload,
+}) {
   const { rows } = await pool.query(
     `INSERT INTO whatsapp_webhook_events (
        workspace_id,

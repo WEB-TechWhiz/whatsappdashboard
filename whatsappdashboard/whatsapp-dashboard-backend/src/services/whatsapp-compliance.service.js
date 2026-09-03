@@ -9,7 +9,9 @@ function normalizePhone(value) {
 }
 
 function normalizeKeyword(text) {
-  return String(text || "").trim().toUpperCase();
+  return String(text || "")
+    .trim()
+    .toUpperCase();
 }
 
 function isOptOutText(text) {
@@ -260,9 +262,18 @@ async function assertCanSend(workspaceId, { contact, messageId = null, source = 
       resourceId: messageId,
       contactId: contact.id,
       phone: normalizedPhone,
-      details: { reason: "DAILY_LIMIT_REACHED", sentToday, limit: settings.dailyOutboundLimit, source },
+      details: {
+        reason: "DAILY_LIMIT_REACHED",
+        sentToday,
+        limit: settings.dailyOutboundLimit,
+        source,
+      },
     });
-    throw new AppError("Daily WhatsApp outbound limit reached", 429, "DAILY_OUTBOUND_LIMIT_REACHED");
+    throw new AppError(
+      "Daily WhatsApp outbound limit reached",
+      429,
+      "DAILY_OUTBOUND_LIMIT_REACHED",
+    );
   }
 
   if (sentLastMinute >= settings.perMinuteOutboundLimit) {
@@ -279,7 +290,11 @@ async function assertCanSend(workspaceId, { contact, messageId = null, source = 
         source,
       },
     });
-    throw new AppError("Per-minute WhatsApp outbound limit reached", 429, "PER_MINUTE_LIMIT_REACHED");
+    throw new AppError(
+      "Per-minute WhatsApp outbound limit reached",
+      429,
+      "PER_MINUTE_LIMIT_REACHED",
+    );
   }
 
   return true;

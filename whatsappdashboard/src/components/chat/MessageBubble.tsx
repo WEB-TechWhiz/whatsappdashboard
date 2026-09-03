@@ -53,7 +53,11 @@ export function MessageBubble({
           ) : null}
           {isAgent && !failed && pending ? <Clock className="h-3 w-3" /> : null}
           {isAgent && !failed && !pending ? (
-            delivered || read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />
+            delivered || read ? (
+              <CheckCheck className="h-3 w-3" />
+            ) : (
+              <Check className="h-3 w-3" />
+            )
           ) : null}
         </div>
       </div>

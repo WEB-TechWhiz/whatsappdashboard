@@ -61,7 +61,10 @@ async function executeLedgerTransaction({
 
     const newBalance = Number.parseFloat((currentBalance + parsedAmount).toFixed(4));
     if (newBalance < 0) {
-      throw new PaymentRequiredError("Insufficient wallet balance for operation", "INSUFFICIENT_FUNDS");
+      throw new PaymentRequiredError(
+        "Insufficient wallet balance for operation",
+        "INSUFFICIENT_FUNDS",
+      );
     }
 
     // 2. Update wallet balance
@@ -93,7 +96,11 @@ async function executeLedgerTransaction({
  * Rate unrated message usage record and debit wallet.
  */
 async function rateAndDebitUsage(usageRecord) {
-  if (!usageRecord || usageRecord.billing_status === "BILLED" || usageRecord.billing_status === "IGNORED") {
+  if (
+    !usageRecord ||
+    usageRecord.billing_status === "BILLED" ||
+    usageRecord.billing_status === "IGNORED"
+  ) {
     return null;
   }
 
@@ -172,9 +179,4 @@ async function listLedger(workspaceId, { limit = 100 } = {}) {
   }));
 }
 
-export {
-  executeLedgerTransaction,
-  getWallet,
-  listLedger,
-  rateAndDebitUsage,
-};
+export { executeLedgerTransaction, getWallet, listLedger, rateAndDebitUsage };

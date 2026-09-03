@@ -69,36 +69,36 @@ router.post(
     }),
   ),
   asyncHandler(async (req, res) => {
-      const workspaceId = req.workspace.id;
-      const { escalationId } = req.params;
-      const { message, phone_number } = req.body;
-      const agentId = req.user.id;
+    const workspaceId = req.workspace.id;
+    const { escalationId } = req.params;
+    const { message, phone_number } = req.body;
+    const agentId = req.user.id;
 
-      // Get WhatsApp connection details
-      const [connections] = await db.query(
-        `SELECT access_token, phone_number_id FROM whatsapp_connections
+    // Get WhatsApp connection details
+    const [connections] = await db.query(
+      `SELECT access_token, phone_number_id FROM whatsapp_connections
          WHERE workspace_id = ? LIMIT 1`,
-        [workspaceId],
-      );
+      [workspaceId],
+    );
 
-      const accessToken = connections[0]?.access_token || process.env.WHATSAPP_ACCESS_TOKEN;
-      const phoneNumberId = connections[0]?.phone_number_id || process.env.WHATSAPP_PHONE_ID;
+    const accessToken = connections[0]?.access_token || process.env.WHATSAPP_ACCESS_TOKEN;
+    const phoneNumberId = connections[0]?.phone_number_id || process.env.WHATSAPP_PHONE_ID;
 
-      const result = await routingEngine.handleAgentReply({
-        workspaceId,
-        escalationId,
-        agentId,
-        replyMessage: message,
-        phoneNumber: phone_number,
-        accessToken,
-        phoneNumberId,
-      });
+    const result = await routingEngine.handleAgentReply({
+      workspaceId,
+      escalationId,
+      agentId,
+      replyMessage: message,
+      phoneNumber: phone_number,
+      accessToken,
+      phoneNumberId,
+    });
 
-      res.json({
-        success: true,
-        message: "Reply sent successfully",
-        data: result,
-      });
+    res.json({
+      success: true,
+      message: "Reply sent successfully",
+      data: result,
+    });
   }),
 );
 
@@ -114,22 +114,22 @@ router.post(
     }),
   ),
   asyncHandler(async (req, res) => {
-      const workspaceId = req.workspace.id;
-      const { escalationId } = req.params;
-      const { resolution } = req.body;
-      const agentId = req.user.id;
+    const workspaceId = req.workspace.id;
+    const { escalationId } = req.params;
+    const { resolution } = req.body;
+    const agentId = req.user.id;
 
-      const result = await routingEngine.resolveEscalation({
-        escalationId,
-        resolution,
-        agentId,
-      });
+    const result = await routingEngine.resolveEscalation({
+      escalationId,
+      resolution,
+      agentId,
+    });
 
-      res.json({
-        success: true,
-        message: "Escalation resolved successfully",
-        data: result,
-      });
+    res.json({
+      success: true,
+      message: "Escalation resolved successfully",
+      data: result,
+    });
   }),
 );
 

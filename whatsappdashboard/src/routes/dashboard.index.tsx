@@ -382,7 +382,11 @@ function DashboardOverview() {
                 {hasAnyValue(funnelSeries, "value") ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={funnelSeries} layout="vertical" margin={{ left: 8 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                        horizontal={false}
+                      />
                       <XAxis type="number" stroke="var(--muted-foreground)" fontSize={11} />
                       <YAxis
                         dataKey="stage"
@@ -419,7 +423,11 @@ function DashboardOverview() {
                 {hasAnyValue(appointmentSeries, "booked") ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={appointmentSeries}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                        vertical={false}
+                      />
                       <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} />
                       <YAxis stroke="var(--muted-foreground)" fontSize={11} />
                       <Tooltip
@@ -450,7 +458,11 @@ function DashboardOverview() {
                 {hasAnyValue(growthSeries, "customers") ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={growthSeries}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="var(--border)"
+                        vertical={false}
+                      />
                       <XAxis dataKey="m" stroke="var(--muted-foreground)" fontSize={11} />
                       <YAxis stroke="var(--muted-foreground)" fontSize={11} />
                       <Tooltip

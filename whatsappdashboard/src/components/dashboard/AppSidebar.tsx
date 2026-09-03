@@ -176,9 +176,7 @@ export function AppSidebar() {
     ...g,
     items: g.items
       .map((i) =>
-        i.children
-          ? { ...i, children: i.children.filter((child) => isEnabled(child.feature)) }
-          : i,
+        i.children ? { ...i, children: i.children.filter((child) => isEnabled(child.feature)) } : i,
       )
       .filter((i) => isEnabled(i.feature) && (!i.children || i.children.length > 0)),
   })).filter((g) => g.items.length > 0);

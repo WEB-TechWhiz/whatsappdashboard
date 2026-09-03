@@ -8,7 +8,10 @@ const KEY = Buffer.from(process.env.ENCRYPTION_KEY || "", "hex");
 
 function requireValidKey() {
   if (KEY.length !== 32) {
-    throw new ServiceUnavailableError("Server encryption is not configured", "ENCRYPTION_NOT_CONFIGURED");
+    throw new ServiceUnavailableError(
+      "Server encryption is not configured",
+      "ENCRYPTION_NOT_CONFIGURED",
+    );
   }
 }
 

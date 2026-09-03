@@ -257,7 +257,10 @@ class RoutingEngine {
       );
 
       if (!sendResult.success) {
-        throw new ExternalServiceError("Failed to send message to customer", "WHATSAPP_UPSTREAM_ERROR");
+        throw new ExternalServiceError(
+          "Failed to send message to customer",
+          "WHATSAPP_UPSTREAM_ERROR",
+        );
       }
 
       // Record agent message

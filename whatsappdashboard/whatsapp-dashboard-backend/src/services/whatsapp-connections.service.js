@@ -107,7 +107,8 @@ function localHealthFromRow(row) {
   if (!checks.webhookSubscribed) {
     return {
       status: "AUTHENTICATED",
-      statusReason: "Local credentials exist. Official webhook subscription still needs verification.",
+      statusReason:
+        "Local credentials exist. Official webhook subscription still needs verification.",
       lastErrorCode: null,
       lastErrorMessage: null,
       checks,
@@ -632,7 +633,10 @@ async function getConnectionSecret(workspaceId) {
   const row = rows[0];
   if (!row) throw new NotFoundError("WhatsApp connection");
   if (!row.access_token_encrypted) {
-    throw new BadRequestError("WhatsApp connection is missing credentials", "WHATSAPP_CREDENTIALS_MISSING");
+    throw new BadRequestError(
+      "WhatsApp connection is missing credentials",
+      "WHATSAPP_CREDENTIALS_MISSING",
+    );
   }
   return { row, accessToken: decrypt(row.access_token_encrypted) };
 }
@@ -645,7 +649,8 @@ async function discoverAssets(workspaceId) {
 
   const waba = await fetchWabaInfo(accessToken, row.waba_id);
   const phones = await fetchPhoneNumbers(accessToken, row.waba_id);
-  const primaryPhone = phones.data?.find((phone) => phone.id === row.phone_number_id) || phones.data?.[0];
+  const primaryPhone =
+    phones.data?.find((phone) => phone.id === row.phone_number_id) || phones.data?.[0];
 
   const { rows } = await pool.query(
     `UPDATE whatsapp_connections
