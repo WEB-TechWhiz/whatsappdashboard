@@ -26,8 +26,13 @@ Create a Postman environment with these variables:
 | `workspaceId` | set after login/signup |
 | `leadId` | set after creating/listing a lead |
 | `conversationId` | set after listing conversations |
+| `contactId` | set after listing conversations/messages with a contact |
 | `notificationId` | set after listing notifications |
+| `ruleId` | set after creating/listing an automation rule |
+| `automationLeadId` | set after listing automation leads |
+| `escalationId` | set after listing automation escalations |
 | `internalToken` | same as backend `INTERNAL_INTEGRATION_TOKEN` |
+| `webhookVerifyToken` | same as backend `WHATSAPP_VERIFY_TOKEN` |
 
 For protected endpoints, add this header:
 
@@ -50,6 +55,82 @@ if (json.refreshToken) pm.environment.set("refreshToken", json.refreshToken);
 if (json.workspace?.id) pm.environment.set("workspaceId", json.workspace.id);
 ```
 
+## Complete Mounted Endpoint Inventory
+
+Use this as the master checklist. `{{baseUrl}}` means `http://localhost:4000/api/v1`; `/health` is the only endpoint outside that prefix.
+
+| Area | Method | Endpoint | Auth/Test Header | Notes |
+|---|---:|---|---|---|
+| Health | `GET` | `http://localhost:4000/health` | none | Server liveness check |
+| Auth | `POST` | `/auth/signup` | none | Create workspace and tokens |
+| Auth | `POST` | `/auth/login` | none | Create session tokens |
+| Auth | `POST` | `/auth/refresh` | none | Rotate refresh token |
+| Auth | `POST` | `/auth/logout` | none | Revoke refresh token |
+| Auth | `GET` | `/auth/oauth/google/debug` | none | Debug OAuth config/redirect URI |
+| Auth | `GET` | `/auth/oauth/google` | none | Start Google OAuth |
+| Auth | `GET` | `/auth/oauth/google/callback` | none | Google redirects here |
+| Workspace | `GET` | `/workspace/profile` | `Authorization` | Current workspace/account |
+| Settings | `GET` | `/settings/workspace` | `Authorization` | Read onboarding/settings |
+| Settings | `PUT` | `/settings/workspace` | `Authorization` | Update onboarding/settings |
+| Settings | `PUT` | `/settings/profile` | `Authorization` | Update workspace name/email |
+| Settings | `PUT` | `/settings/whatsapp` | `Authorization` | Manual WhatsApp settings compatibility alias |
+| Settings | `PUT` | `/settings/rules` | `Authorization` | Workspace notification/rule toggles |
+| WhatsApp | `GET` | `/whatsapp/connection` | `Authorization` | Current WhatsApp connection |
+| WhatsApp | `GET` | `/whatsapp/embedded-signup/config` | `Authorization` | Public Embedded Signup config |
+| WhatsApp | `POST` | `/whatsapp/embedded-signup/complete` | `Authorization` | Finish Embedded Signup token exchange |
+| WhatsApp | `POST` | `/whatsapp/connect` | `Authorization` | Start connection flow placeholder |
+| WhatsApp | `POST` | `/whatsapp/disconnect` | `Authorization` | Mark connection disconnected |
+| WhatsApp | `POST` | `/whatsapp/reconnect` | `Authorization` | Move disconnected connection to connecting |
+| WhatsApp | `POST` | `/whatsapp/health-check` | `Authorization` | Check configured Meta assets |
+| WhatsApp | `POST` | `/whatsapp/discover-assets` | `Authorization` | Discover WABA/phone assets through Graph API |
+| WhatsApp | `POST` | `/whatsapp/subscribe-webhook` | `Authorization` | Subscribe app to WABA webhooks |
+| WhatsApp | `GET` | `/whatsapp/compliance/settings` | `Authorization` | Messaging pause/rate-limit settings |
+| WhatsApp | `PUT` | `/whatsapp/compliance/settings` | `Authorization` | Update pause/rate-limit settings |
+| WhatsApp | `PUT` | `/whatsapp/contacts/:id/preference` | `Authorization` | Opt contact in/out |
+| WhatsApp | `GET` | `/whatsapp/usage` | `Authorization` | Usage records list |
+| WhatsApp | `GET` | `/whatsapp/usage/summary` | `Authorization` | Usage totals by direction/category |
+| WhatsApp | `PUT` | `/whatsapp/connection/manual` | `Authorization` | Save manual connection details |
+| Leads | `GET` | `/leads` | `Authorization` | List CRM leads |
+| Leads | `POST` | `/leads` | `Authorization` | Create CRM lead |
+| Leads | `PATCH` | `/leads/:id` | `Authorization` | Update CRM lead status/value |
+| Conversations | `GET` | `/conversations` | `Authorization` | List conversations |
+| Conversations | `GET` | `/conversations/:id/messages` | `Authorization` | Paginated messages |
+| Conversations | `POST` | `/conversations/:id/messages` | `Authorization` | Send outbound WhatsApp message |
+| Conversations | `POST` | `/conversations/:id/typing` | `Authorization` | Broadcast typing state |
+| Dashboard | `GET` | `/dashboard/overview` | `Authorization` | KPI/report overview |
+| Analytics | `GET` | `/analytics/overview` | `Authorization` | Dashboard KPI cards |
+| Analytics | `GET` | `/analytics/bookings` | `Authorization` | Booking chart data |
+| Analytics | `GET` | `/analytics/activity` | `Authorization` | Activity feed |
+| Analytics | `GET` | `/analytics/summary` | `Authorization` | Summary totals |
+| Notifications | `GET` | `/notifications` | `Authorization` | Notification list |
+| Notifications | `GET` | `/notifications/unread-count` | `Authorization` | Unread badge count |
+| Notifications | `POST` | `/notifications/:id/read` | `Authorization` | Mark one notification read |
+| Notifications | `POST` | `/notifications/read-all` | `Authorization` | Mark all notifications read |
+| Internal Integration | `POST` | `/integrations/whatsapp/inbound` | `x-internal-token` | Internal inbound bridge |
+| Meta Webhook | `GET` | `/webhooks/whatsapp` | verify token query | Meta verification challenge |
+| Meta Webhook | `POST` | `/webhooks/whatsapp` | `x-hub-signature-256` | Signed Meta webhook receiver |
+| Automation Webhook Alias | `GET` | `/automation/whatsapp` | verify token query | Same router mounted under automation |
+| Automation Webhook Alias | `POST` | `/automation/whatsapp` | `x-hub-signature-256` | Same router mounted under automation |
+| Automation Workflows | `GET` | `/automation/rules` | `Authorization` | List automation rules |
+| Automation Workflows | `POST` | `/automation/rules` | `Authorization` | Create automation rule |
+| Automation Workflows | `PUT` | `/automation/rules/:ruleId` | `Authorization` | Update automation rule |
+| Automation Workflows | `DELETE` | `/automation/rules/:ruleId` | `Authorization` | Delete automation rule |
+| Automation Workflows | `POST` | `/automation/analyze` | `Authorization` | AI intent/entity analysis |
+| Automation Workflows | `POST` | `/automation/execute` | `Authorization` | Execute workflow for a message |
+| Automation Workflows | `GET` | `/automation/executions` | `Authorization` | Workflow execution history |
+| Automation Workflows | `GET` | `/automation/statistics` | `Authorization` | Workflow stats |
+| Automation Workflows | `GET` | `/automation/analyses` | `Authorization` | Message analysis history |
+| Automation Leads | `GET` | `/automation/leads` | `Authorization` | List AI-captured leads |
+| Automation Leads | `GET` | `/automation/leads/:leadId` | `Authorization` | AI lead details |
+| Automation Leads | `POST` | `/automation/leads/:leadId/response` | `Authorization` | Record qualification response |
+| Automation Leads | `GET` | `/automation/leads/statistics/overview` | `Authorization` | AI lead statistics |
+| Automation Escalations | `GET` | `/automation/escalations` | `Authorization` | List active escalations |
+| Automation Escalations | `GET` | `/automation/escalations/:escalationId` | `Authorization` | Escalation details |
+| Automation Escalations | `POST` | `/automation/escalations/:escalationId/reply` | `Authorization` | Send human reply |
+| Automation Escalations | `POST` | `/automation/escalations/:escalationId/resolve` | `Authorization` | Resolve escalation |
+| Automation Escalations | `GET` | `/automation/escalations/statistics/overview` | `Authorization` | Escalation stats |
+| Automation Escalations | `GET` | `/automation/escalations/wait-time/estimate` | `Authorization` | Estimated wait time |
+
 ## MVP Readiness Summary
 
 The core MVP API is real and connected for:
@@ -58,16 +139,18 @@ The core MVP API is real and connected for:
 - Workspace profile and onboarding settings.
 - Leads and lead status changes.
 - Conversations and message storage.
+- WhatsApp connection lifecycle, Embedded Signup, webhook ingestion, compliance controls, and usage reporting.
 - Dashboard KPIs, charts, reports, analytics, and activity from real workspace data.
 - Notifications.
 - Internal inbound WhatsApp bridge.
+- Mounted automation workflow, lead, escalation, and webhook routes.
 
 Important benchmark notes:
 
 - Dashboard fake/demo data has been removed from the main overview and reports route.
 - Staff performance, service popularity, task counts, renewals, invoice aging, and product/service mix need real database tables before those widgets should be considered MVP-ready.
-- `src/routes/automation/workflows.routes.js` exists but is not mounted in `server.js`; it is not currently reachable as written.
-- Mounted automation lead/escalation routes rely on `req.workspace.id`; current auth middleware sets both `req.workspaceId` and `req.workspace.id`, so they can authenticate, but some automation services use `src/database.js` and MySQL-style `?` SQL while the main app uses Postgres. Treat automation as integration-candidate, not fully benchmarked MVP, until runtime-tested against the actual configured DB.
+- `src/routes/automation/workflows.routes.js` is now mounted at `/api/v1/automation`.
+- Mounted automation routes rely on `req.workspace.id`; current auth middleware sets both `req.workspaceId` and `req.workspace.id`, so they can authenticate, but some automation services use `src/database.js` and MySQL-style `?` SQL while the main app uses Postgres. Treat automation as integration-candidate, not fully benchmarked MVP, until runtime-tested against the actual configured DB.
 
 ## Health
 
@@ -197,6 +280,26 @@ Body:
 
 Expected: `204 No Content`.
 
+### `GET /auth/oauth/google/debug`
+
+Purpose: Confirms the backend's Google OAuth origins, redirect URI, and client ID wiring before testing browser OAuth.
+
+Frontend dependency: Debug/support endpoint for OAuth setup.
+
+If missing: OAuth can still work, but diagnosing redirect URI mismatches is slower.
+
+Expected:
+
+```json
+{
+  "configured": true,
+  "clientId": "google-client-id",
+  "redirectUri": "http://localhost:4000/api/v1/auth/oauth/google/callback",
+  "frontendOrigin": "http://localhost:5173",
+  "warnings": []
+}
+```
+
 ### `GET /auth/oauth/google`
 
 Purpose: Starts Google OAuth by returning a Google authorization URL.
@@ -261,7 +364,6 @@ Expected fields:
 - `flag_leaks`
 
 ## Workspace Settings & Onboarding
-<!-- please check it twice -->
 ### `GET /settings/workspace`
 
 Purpose: Loads onboarding state, business details, and selected dashboard feature flags.
@@ -372,6 +474,290 @@ Body:
 ```
 
 Expected: updated rule flags.
+
+## WhatsApp Connection, Embedded Signup, Compliance & Usage
+
+All endpoints in this section require:
+
+```text
+Authorization: Bearer {{accessToken}}
+```
+
+### `GET /whatsapp/connection`
+
+Purpose: Returns the current WhatsApp connection state for the workspace.
+
+Postman verification:
+
+- Method: `GET`
+- URL: `{{baseUrl}}/whatsapp/connection`
+- Expected: `connected`, `status`, `webhookStatus`, `connectionMode`, and provider/account fields when configured.
+
+Example response when nothing is configured:
+
+```json
+{
+  "connected": false,
+  "status": "PENDING",
+  "webhookStatus": "PENDING",
+  "connectionMode": "CLOUD_API_ONLY",
+  "provider": "META"
+}
+```
+
+### `GET /whatsapp/embedded-signup/config`
+
+Purpose: Returns frontend-safe Meta Embedded Signup config.
+
+Requires backend env for `enabled: true`:
+
+- `META_APP_ID` or `WHATSAPP_APP_ID`
+- `META_EMBEDDED_SIGNUP_CONFIG_ID`
+
+Expected:
+
+```json
+{
+  "appId": "1234567890",
+  "configId": "9876543210",
+  "graphApiVersion": "v23.0",
+  "solutionId": null,
+  "sessionInfoVersion": "3",
+  "enabled": true
+}
+```
+
+### `POST /whatsapp/embedded-signup/complete`
+
+Purpose: Completes the official Meta Embedded Signup flow by exchanging the returned code for an access token and saving discovered business/phone identifiers.
+
+Requires backend env:
+
+- `META_APP_ID` or `WHATSAPP_APP_ID`
+- `META_APP_SECRET` or `WHATSAPP_APP_SECRET`
+
+Body:
+
+```json
+{
+  "code": "meta-authorization-code",
+  "wabaId": "123456789012345",
+  "phoneNumberId": "987654321098765",
+  "businessId": "112233445566778",
+  "displayPhoneNumber": "+15550000000",
+  "businessName": "Test Business",
+  "event": "FINISH",
+  "version": "3"
+}
+```
+
+Expected: saved WhatsApp connection with status `ASSETS_DISCOVERED` or `AUTHENTICATED`.
+
+### `POST /whatsapp/connect`
+
+Purpose: Initializes a connection row and marks disconnected connections ready for reauthorization.
+
+Body: none.
+
+Expected:
+
+- `202 Accepted`
+- connection status `PENDING`, `RECONNECTING`, or existing state.
+
+### `POST /whatsapp/disconnect`
+
+Purpose: Marks the current WhatsApp connection as disconnected.
+
+Body: none.
+
+Expected: connection status `DISCONNECTED`.
+
+### `POST /whatsapp/reconnect`
+
+Purpose: Moves a disconnected or pending connection back toward a reconnect flow.
+
+Body: none.
+
+Expected:
+
+- `202 Accepted`
+- connection status `RECONNECTING` when credentials exist, otherwise `PENDING`.
+
+### `POST /whatsapp/health-check`
+
+Purpose: Checks whether local connection requirements are present: credentials, phone identity, webhook URL, and webhook subscription status.
+
+Body: none.
+
+Expected:
+
+```json
+{
+  "connection": {
+    "status": "AUTHENTICATED"
+  },
+  "checks": {
+    "credentialStored": true,
+    "phoneIdentityPresent": true,
+    "webhookConfigured": true,
+    "webhookSubscribed": false
+  }
+}
+```
+
+### `POST /whatsapp/discover-assets`
+
+Purpose: Calls Meta Graph API to fetch WABA info and phone numbers, then stores the primary phone identity.
+
+Preconditions:
+
+- A saved connection has an encrypted access token.
+- The saved connection has `wabaId`.
+
+Body: none.
+
+Expected: `connection`, `waba`, and `phoneNumbers`.
+
+Common negative tests:
+
+- Missing credentials returns `WHATSAPP_CREDENTIALS_MISSING`.
+- Missing WABA ID returns `WABA_ID_MISSING`.
+- Invalid/expired Meta token returns `META_GRAPH_REQUEST_FAILED`.
+
+### `POST /whatsapp/subscribe-webhook`
+
+Purpose: Calls Meta Graph API to subscribe the app to the saved WABA webhooks and updates local webhook status.
+
+Preconditions:
+
+- A saved connection has an encrypted access token.
+- The saved connection has `wabaId`.
+
+Body: none.
+
+Expected: `connection.webhookStatus` becomes `SUBSCRIBED` and response includes Meta subscription data.
+
+### `GET /whatsapp/compliance/settings`
+
+Purpose: Reads workspace WhatsApp safety controls.
+
+Expected:
+
+```json
+{
+  "messagingPaused": false,
+  "pauseReason": null,
+  "dailyOutboundLimit": 1000,
+  "perMinuteOutboundLimit": 60,
+  "updatedAt": "2026-08-12T00:00:00.000Z"
+}
+```
+
+### `PUT /whatsapp/compliance/settings`
+
+Purpose: Updates outbound messaging pause and rate-limit controls.
+
+Body:
+
+```json
+{
+  "messagingPaused": false,
+  "pauseReason": null,
+  "dailyOutboundLimit": 1000,
+  "perMinuteOutboundLimit": 60
+}
+```
+
+Expected: updated compliance settings plus an audit-log entry.
+
+Negative tests:
+
+- `dailyOutboundLimit` must be a positive integer up to `100000`.
+- `perMinuteOutboundLimit` must be a positive integer up to `10000`.
+
+### `PUT /whatsapp/contacts/:id/preference`
+
+Purpose: Opts a contact out of or back into outbound WhatsApp messages.
+
+Body:
+
+```json
+{
+  "optedOut": true,
+  "reason": "Customer requested no more WhatsApp messages."
+}
+```
+
+Expected:
+
+```json
+{
+  "id": "preference-id",
+  "contactId": "{{contactId}}",
+  "phone": "15550123456",
+  "optedOut": true,
+  "optedOutAt": "2026-08-12T00:00:00.000Z",
+  "optedInAt": null
+}
+```
+
+Negative test: unknown contact ID returns `404 Not Found`.
+
+### `GET /whatsapp/usage`
+
+Purpose: Lists recorded WhatsApp message usage rows for the workspace.
+
+Query examples:
+
+```text
+limit=100
+billingStatus=UNRATED
+```
+
+Expected: array of usage records with `direction`, `category`, `quantity`, `provider`, `billable`, and `billingStatus`.
+
+### `GET /whatsapp/usage/summary`
+
+Purpose: Summarizes WhatsApp usage by direction, category, and billing status.
+
+Query:
+
+```text
+days=30
+```
+
+Expected:
+
+```json
+{
+  "days": 30,
+  "rows": [
+    {
+      "direction": "OUTBOUND",
+      "category": "UNKNOWN",
+      "billing_status": "UNRATED",
+      "messages": 3,
+      "quantity": 3
+    }
+  ]
+}
+```
+
+### `PUT /whatsapp/connection/manual`
+
+Purpose: Saves manual Cloud API connection details. This is the preferred explicit WhatsApp endpoint; `PUT /settings/whatsapp` remains a compatibility alias.
+
+Body:
+
+```json
+{
+  "phone": "+15550000000",
+  "apiToken": "sample-token-12345",
+  "webhookUrl": "https://example.com/api/v1/webhooks/whatsapp"
+}
+```
+
+Expected: saved connection DTO with `displayPhoneNumber`, `webhookUrl`, and `status` set to `AUTHENTICATED` when `apiToken` is supplied.
 
 ## Leads
 
@@ -774,7 +1160,7 @@ Query:
 
 ```text
 hub.mode=subscribe
-hub.verify_token={{WHATSAPP_VERIFY_TOKEN}}
+hub.verify_token={{webhookVerifyToken}}
 hub.challenge=12345
 ```
 
@@ -883,27 +1269,87 @@ Body for resolve:
 }
 ```
 
-### Not Currently Mounted: Automation Workflow Rules
+### Mounted Automation Workflow Rules
 
-File exists:
+Base:
 
 ```text
-src/routes/automation/workflows.routes.js
+{{baseUrl}}/automation
 ```
 
-But it is not mounted by `server.js`. Therefore these documented routes are not currently reachable:
+Endpoints:
 
-- `GET /automation/rules`
-- `POST /automation/rules`
-- `PUT /automation/rules/:ruleId`
-- `DELETE /automation/rules/:ruleId`
-- `POST /automation/analyze`
-- `POST /automation/execute`
-- `GET /automation/executions`
-- `GET /automation/statistics`
-- `GET /automation/analyses`
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/automation/rules` | List automation rules |
+| `POST` | `/automation/rules` | Create automation rule |
+| `PUT` | `/automation/rules/:ruleId` | Update automation rule |
+| `DELETE` | `/automation/rules/:ruleId` | Delete automation rule |
+| `POST` | `/automation/analyze` | Analyze a message for intent/entities |
+| `POST` | `/automation/execute` | Execute workflow for a message |
+| `GET` | `/automation/executions` | Workflow execution history |
+| `GET` | `/automation/statistics` | Workflow statistics |
+| `GET` | `/automation/analyses` | Message analysis history |
 
-Recommendation: If these are part of your MVP, mount `workflows.routes.js` separately and runtime-test against the actual DB schema.
+Body for creating a rule:
+
+```json
+{
+  "name": "Lead capture from pricing keywords",
+  "description": "Qualify customers asking about price",
+  "trigger_type": "keyword_match",
+  "workflow_type": "lead_capture",
+  "trigger_keywords": ["price", "pricing", "cost"],
+  "workflow_config": {
+    "qualificationQuestions": ["What budget range are you considering?"]
+  }
+}
+```
+
+Body for updating a rule:
+
+```json
+{
+  "name": "Updated rule name",
+  "description": "Updated description",
+  "enabled": true,
+  "workflow_config": {
+    "qualificationQuestions": ["When do you want to start?"]
+  }
+}
+```
+
+Body for analyze:
+
+```json
+{
+  "message": "Hi, I want pricing for a team of five.",
+  "sender_name": "Aisha Khan",
+  "phone_number": "+15550123456"
+}
+```
+
+Body for execute:
+
+```json
+{
+  "conversation_id": "{{conversationId}}",
+  "message_id": "message-id-from-db",
+  "phone_number": "+15550123456",
+  "message": "Hi, I want pricing for a team of five.",
+  "analysis": {}
+}
+```
+
+Query examples:
+
+```text
+/automation/executions?limit=50&offset=0
+/automation/statistics?days_back=30
+/automation/analyses?limit=50&offset=0
+```
+
+MVP caution: These routes are mounted, but they use the automation DB/service layer. Runtime-test against the actual configured database before treating them as benchmark-ready.
 
 ## Realtime Socket Events
 
@@ -938,21 +1384,33 @@ Use this sequence to verify MVP business flow end to end:
 1. `POST /auth/signup`
 2. `GET /workspace/profile`
 3. `PUT /settings/workspace`
-4. `POST /leads`
-5. `GET /leads`
-6. `PATCH /leads/:id` with `status = Booked`
-7. `GET /dashboard/overview?range=week`
-8. `GET /analytics/bookings?range=7days`
-9. `GET /analytics/summary`
-10. `POST /integrations/whatsapp/inbound`
-11. `GET /conversations`
-12. `GET /conversations/:id/messages`
-13. `POST /conversations/:id/messages`
-14. `GET /notifications`
-15. `GET /notifications/unread-count`
-16. `POST /notifications/read-all`
-17. `POST /auth/refresh`
-18. `POST /auth/logout`
+4. `GET /whatsapp/embedded-signup/config`
+5. `PUT /whatsapp/connection/manual`
+6. `GET /whatsapp/connection`
+7. `POST /whatsapp/health-check`
+8. `GET /whatsapp/compliance/settings`
+9. `PUT /whatsapp/compliance/settings`
+10. `POST /leads`
+11. `GET /leads`
+12. `PATCH /leads/:id` with `status = Booked`
+13. `GET /dashboard/overview?range=week`
+14. `GET /analytics/bookings?range=7days`
+15. `GET /analytics/summary`
+16. `POST /integrations/whatsapp/inbound`
+17. `GET /conversations`
+18. `GET /conversations/:id/messages`
+19. `POST /conversations/:id/messages`
+20. `PUT /whatsapp/contacts/:id/preference`
+21. `GET /whatsapp/usage`
+22. `GET /whatsapp/usage/summary?days=30`
+23. `GET /notifications`
+24. `GET /notifications/unread-count`
+25. `POST /notifications/read-all`
+26. `GET /webhooks/whatsapp?hub.mode=subscribe&hub.verify_token={{webhookVerifyToken}}&hub.challenge=12345`
+27. `GET /automation/rules`
+28. `POST /automation/analyze`
+29. `POST /auth/refresh`
+30. `POST /auth/logout`
 
 ## Benchmark Acceptance Checklist
 
@@ -981,6 +1439,16 @@ Messaging:
 - Inbound integration creates unread inbound message.
 - Fetching messages marks inbound messages read.
 - Sending message writes agent message.
+- Compliance pause and contact opt-out block outbound sends.
+- WhatsApp usage records are created for inbound/outbound/status events where applicable.
+
+WhatsApp connection:
+
+- Manual connection saves encrypted credentials.
+- Connection lifecycle endpoints return the correct status.
+- Health check reports missing credentials, phone identity, webhook URL, and subscription status.
+- Embedded Signup config reflects Meta env values.
+- Discover-assets and subscribe-webhook work when real Meta credentials are present.
 
 Dashboard:
 
@@ -1000,7 +1468,7 @@ Realtime:
 Production readiness gaps to close before claiming full benchmark parity:
 
 - Add real schemas/endpoints for tasks, invoices, payments, products, services, employees, and staff performance if those modules remain selectable.
-- Mount and verify automation workflow routes or remove them from the MVP claim.
+- Runtime-test automation workflow routes against the actual automation schema and DB adapter.
 - Runtime-test Meta webhook raw-body signature handling.
 - Add automated API tests for the suggested Postman flow.
 - Export a Postman collection after validating the above manually.

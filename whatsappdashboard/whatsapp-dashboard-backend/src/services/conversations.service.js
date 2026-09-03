@@ -5,6 +5,9 @@ import logger from "../config/logger.js";
 // const { NotFoundError } = require("../utils/errors");
 import { NotFoundError } from "../utils/errors.js";
 import { createNotification } from "./notifications.service.js";
+import { assertCanSend } from "./whatsapp-compliance.service.js";
+import { sendLegacyBridge, sendOutboundText } from "./whatsapp-message-gateway.service.js";
+import { recordMessageUsage } from "./whatsapp-usage.service.js";
 
 function toConversationDTO(row) {
   return {
@@ -25,6 +28,12 @@ function toMessageDTO(row) {
     time: row.created_at,
     read: row.read,
     mediaUrl: row.media_url || undefined,
+    providerMessageId: row.provider_message_id || undefined,
+    providerStatus: row.provider_status || undefined,
+    failureCode: row.failure_code || undefined,
+    failureMessage: row.failure_message || undefined,
+    direction: row.direction || (row.is_agent ? "OUTBOUND" : "INBOUND"),
+    source: row.message_source || (row.is_agent ? "CRM_AGENT" : "CUSTOMER"),
   };
 }
 
@@ -75,21 +84,75 @@ async function sendMessage(workspaceId, contactId, { text, mediaUrl }) {
   );
   if (contactResult.rows.length === 0) throw new NotFoundError("Conversation");
   const contact = contactResult.rows[0];
+  await assertCanSend(workspaceId, { contact, source: "CRM_AGENT" });
 
   const { rows } = await pool.query(
-    `INSERT INTO messages (workspace_id, contact_id, text, media_url, is_agent, read)
-     VALUES ($1, $2, $3, $4, true, true)
+    `INSERT INTO messages (
+       workspace_id,
+       contact_id,
+       text,
+       media_url,
+       is_agent,
+       read,
+       direction,
+       message_source,
+       provider_status
+     )
+     VALUES ($1, $2, $3, $4, true, true, 'OUTBOUND', 'CRM_AGENT', 'QUEUED')
      RETURNING *`,
     [workspaceId, contactId, text, mediaUrl || null],
   );
+  let message = rows[0];
 
   await pool.query(`UPDATE contacts SET updated_at = now() WHERE id = $1`, [contactId]);
-  await deliverOutboundMessage(workspaceId, contact, { text, mediaUrl });
 
-  return toMessageDTO(rows[0]);
+  try {
+    if (mediaUrl) {
+      await deliverOutboundMessage(workspaceId, contact, { text, mediaUrl });
+      const updated = await pool.query(
+        `UPDATE messages SET provider_status = 'LEGACY_BRIDGE' WHERE id = $1 RETURNING *`,
+        [message.id],
+      );
+      message = updated.rows[0];
+      await recordMessageUsage(message);
+    } else {
+      message = await sendOutboundText({ workspaceId, messageId: message.id, contact, text });
+    }
+  } catch (err) {
+    logger.error({ err, workspaceId, contactId: contact.id, messageId: message.id }, "Outbound WhatsApp delivery failed");
+    await pool.query(
+      `UPDATE messages
+       SET provider_status = 'FAILED',
+           failure_code = $1,
+           failure_message = $2
+       WHERE id = $3 AND workspace_id = $4`,
+      [err?.code || "WHATSAPP_SEND_FAILED", err?.message || String(err), message.id, workspaceId],
+    );
+    if (process.env.WHATSAPP_SEND_STRICT === "true") throw err;
+    const failed = await pool.query(`SELECT * FROM messages WHERE id = $1 AND workspace_id = $2`, [
+      message.id,
+      workspaceId,
+    ]);
+    message = failed.rows[0] || message;
+  }
+
+  return toMessageDTO(message);
 }
 
-async function receiveInboundMessage(workspaceId, { phone, name, text, mediaUrl, source }) {
+async function receiveInboundMessage(
+  workspaceId,
+  {
+    phone,
+    name,
+    text,
+    mediaUrl,
+    source,
+    connectionId,
+    providerMessageId,
+    providerTimestamp,
+    messageSource = "CUSTOMER",
+  },
+) {
   const contactResult = await pool.query(
     `INSERT INTO contacts (workspace_id, name, phone, source)
      VALUES ($1, $2, $3, $4)
@@ -101,11 +164,37 @@ async function receiveInboundMessage(workspaceId, { phone, name, text, mediaUrl,
   const contact = contactResult.rows[0];
 
   const { rows } = await pool.query(
-    `INSERT INTO messages (workspace_id, contact_id, text, media_url, is_agent, read)
-     VALUES ($1, $2, $3, $4, false, false)
+    `INSERT INTO messages (
+       workspace_id,
+       contact_id,
+       connection_id,
+       text,
+       media_url,
+       is_agent,
+       read,
+       provider_message_id,
+       direction,
+       message_source,
+       provider_status,
+       provider_timestamp
+     )
+     VALUES ($1, $2, $3, $4, $5, false, false, $6, 'INBOUND', $7, 'RECEIVED', $8)
+     ON CONFLICT (workspace_id, provider_message_id)
+     WHERE provider_message_id IS NOT NULL
+     DO UPDATE SET provider_status = 'RECEIVED'
      RETURNING *`,
-    [workspaceId, contact.id, text, mediaUrl || null],
+    [
+      workspaceId,
+      contact.id,
+      connectionId || null,
+      text,
+      mediaUrl || null,
+      providerMessageId || null,
+      messageSource,
+      providerTimestamp ? new Date(Number(providerTimestamp) * 1000) : null,
+    ],
   );
+  await recordMessageUsage(rows[0]);
 
   await pool.query(
     `INSERT INTO activity_log (workspace_id, contact_id, type, description)
@@ -132,33 +221,16 @@ async function receiveInboundMessage(workspaceId, { phone, name, text, mediaUrl,
 }
 
 async function deliverOutboundMessage(workspaceId, contact, payload) {
-  if (!process.env.WHATSAPP_SEND_URL) return;
-
-  try {
-    const response = await fetch(process.env.WHATSAPP_SEND_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(process.env.WHATSAPP_SEND_TOKEN
-          ? { Authorization: `Bearer ${process.env.WHATSAPP_SEND_TOKEN}` }
-          : {}),
-      },
-      body: JSON.stringify({
-        workspaceId,
-        contactId: contact.id,
-        phone: contact.phone,
-        text: payload.text,
-        mediaUrl: payload.mediaUrl,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`WhatsApp sender returned ${response.status}`);
-    }
-  } catch (err) {
-    logger.error({ err, workspaceId, contactId: contact.id }, "Outbound WhatsApp delivery failed");
-    if (process.env.WHATSAPP_SEND_STRICT === "true") throw err;
+  if (!process.env.WHATSAPP_SEND_URL) {
+    throw new Error("Media sends require WHATSAPP_SEND_URL until media Cloud API support is implemented");
   }
+
+  await sendLegacyBridge({
+    workspaceId,
+    contact,
+    text: payload.text,
+    mediaUrl: payload.mediaUrl,
+  });
 }
 
 async function markRead(workspaceId, contactId) {

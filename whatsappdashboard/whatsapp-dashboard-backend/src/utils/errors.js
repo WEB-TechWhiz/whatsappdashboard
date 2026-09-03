@@ -51,6 +51,12 @@ class RateLimitError extends AppError {
   }
 }
 
+class PaymentRequiredError extends AppError {
+  constructor(message = "Payment required", code = "PAYMENT_REQUIRED", details = undefined) {
+    super(message, 402, code, details);
+  }
+}
+
 class ServiceUnavailableError extends AppError {
   constructor(message = "Service unavailable", code = "SERVICE_UNAVAILABLE") {
     super(message, 503, code);
@@ -71,6 +77,7 @@ export {
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  PaymentRequiredError,
   RateLimitError,
   ServiceUnavailableError,
   ExternalServiceError,

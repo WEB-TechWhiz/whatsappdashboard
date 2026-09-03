@@ -54,4 +54,5 @@ WHATSAPP-AUTOMATION_GUIDE.md
 WhatsApp_CRM_Master_Feature_Wise_Implementation_Roadmap.docx
 whatsapp-dashboard-backend.zip
 scratch_docx/
-.env
+.env.example
+

@@ -60,6 +60,29 @@ const updateWhatsappSettings = z.object({
   webhookUrl: z.string().url(),
 });
 
+const completeEmbeddedSignup = z.object({
+  code: z.string().trim().min(8),
+  wabaId: z.string().trim().min(1).optional(),
+  phoneNumberId: z.string().trim().min(1).optional(),
+  businessId: z.string().trim().min(1).optional(),
+  displayPhoneNumber: z.string().trim().min(6).max(32).optional(),
+  businessName: z.string().trim().max(200).optional(),
+  event: z.string().trim().max(80).optional(),
+  version: z.union([z.string(), z.number()]).optional(),
+});
+
+const updateComplianceSettings = z.object({
+  messagingPaused: z.boolean().optional(),
+  pauseReason: z.string().trim().max(500).nullable().optional(),
+  dailyOutboundLimit: z.number().int().positive().max(100000).optional(),
+  perMinuteOutboundLimit: z.number().int().positive().max(10000).optional(),
+});
+
+const updateContactPreference = z.object({
+  optedOut: z.boolean(),
+  reason: z.string().trim().max(500).optional(),
+});
+
 const updateRules = z.object({
   autoReply: z.boolean().optional(),
   notifyNewLeads: z.boolean().optional(),
@@ -94,6 +117,9 @@ export {
   updateLead,
   updateProfile,
   updateWhatsappSettings,
+  completeEmbeddedSignup,
+  updateComplianceSettings,
+  updateContactPreference,
   updateRules,
   inboundWhatsappMessage,
   updateWorkspaceSettings,

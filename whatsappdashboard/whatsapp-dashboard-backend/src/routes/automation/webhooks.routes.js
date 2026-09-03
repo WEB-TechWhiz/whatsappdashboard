@@ -11,6 +11,9 @@ import {
 } from "../../utils/errors.js";
 import * as conversations from "../../services/conversations.service.js";
 import { emitToWorkspace } from "../../realtime/socket.js";
+import * as webhookEvents from "../../services/whatsapp-webhook-events.service.js";
+import * as compliance from "../../services/whatsapp-compliance.service.js";
+import * as usage from "../../services/whatsapp-usage.service.js";
 
 const router = express.Router();
 
@@ -125,7 +128,8 @@ async function resolveWorkspaceId(metadata) {
 }
 
 async function handleIncomingMessages(value) {
-  const workspaceId = await resolveWorkspaceId(value?.metadata);
+  const connection = await webhookEvents.resolveConnectionByMetadata(value?.metadata);
+  const workspaceId = connection?.workspace_id || (await resolveWorkspaceId(value?.metadata));
 
   if (!workspaceId) {
     logger.warn({ metadata: value?.metadata }, "[Webhook] Could not resolve workspace for WhatsApp webhook");
@@ -139,27 +143,68 @@ async function handleIncomingMessages(value) {
     const phone = message.from;
     const contact = contactsByWaId.get(phone);
     const text = extractMessageText(message);
+    const eventId = webhookEvents.inboundMessageEventId(message);
+    const storedEvent = await webhookEvents.createWebhookEvent({
+      workspaceId,
+      connectionId: connection?.id || null,
+      eventType: "message",
+      providerEventId: eventId,
+      payload: {
+        metadata: value?.metadata || null,
+        contact: contact || null,
+        message,
+      },
+    });
 
-    if (!phone || !text) {
-      logger.warn({ messageId: message?.id, type: message?.type }, "[Webhook] Skipping unsupported WhatsApp message");
+    if (!storedEvent.shouldProcess) {
+      processed.push({ messageId: message.id || null, duplicate: true });
       continue;
     }
 
-    const result = await conversations.receiveInboundMessage(workspaceId, {
-      phone,
-      name: contact?.profile?.name || phone,
-      text,
-      mediaUrl: extractMediaUrl(message),
-      source: "Facebook",
-    });
+    if (!phone || !text) {
+      logger.warn({ messageId: message?.id, type: message?.type }, "[Webhook] Skipping unsupported WhatsApp message");
+      await webhookEvents.markWebhookEventSkipped(storedEvent.event.id, "Unsupported or empty message");
+      continue;
+    }
 
-    emitToWorkspace(workspaceId, "message:new", {
-      contactId: result.contact.id,
-      message: result.message,
-    });
-    emitToWorkspace(workspaceId, "lead:updated", result.contact);
+    try {
+      const result = await conversations.receiveInboundMessage(workspaceId, {
+        phone,
+        name: contact?.profile?.name || phone,
+        text,
+        mediaUrl: extractMediaUrl(message),
+        source: "Facebook",
+        connectionId: connection?.id || null,
+        providerMessageId: message.id || null,
+        providerTimestamp: message.timestamp || null,
+        messageSource: "CUSTOMER",
+      });
 
-    processed.push({ messageId: message.id || null, contactId: result.contact.id });
+      emitToWorkspace(workspaceId, "message:new", {
+        contactId: result.contact.id,
+        message: result.message,
+      });
+      emitToWorkspace(workspaceId, "lead:updated", result.contact);
+      const preference = await compliance.handleInboundPreference(workspaceId, {
+        contactId: result.contact.id,
+        phone,
+        text,
+        providerMessageId: message.id || null,
+      });
+      if (preference.action) {
+        emitToWorkspace(workspaceId, "contact:preference", {
+          contactId: result.contact.id,
+          action: preference.action,
+          preference: preference.preference,
+        });
+      }
+      await webhookEvents.markWebhookEventProcessed(storedEvent.event.id);
+
+      processed.push({ messageId: message.id || null, contactId: result.contact.id });
+    } catch (error) {
+      await webhookEvents.markWebhookEventFailed(storedEvent.event.id, error);
+      throw error;
+    }
   }
 
   return { processed: processed.length > 0, messages: processed };
@@ -167,10 +212,49 @@ async function handleIncomingMessages(value) {
 
 async function handleStatuses(value) {
   const statuses = value?.statuses || [];
-  if (statuses.length > 0) {
-    logger.info({ statuses }, "[Webhook] Received WhatsApp message status update");
+  const connection = await webhookEvents.resolveConnectionByMetadata(value?.metadata);
+  const workspaceId = connection?.workspace_id || (await resolveWorkspaceId(value?.metadata));
+  const processed = [];
+
+  for (const status of statuses) {
+    const storedEvent = await webhookEvents.createWebhookEvent({
+      workspaceId,
+      connectionId: connection?.id || null,
+      eventType: "status",
+      providerEventId: webhookEvents.statusEventId(status),
+      payload: {
+        metadata: value?.metadata || null,
+        status,
+      },
+    });
+
+    if (!storedEvent.shouldProcess) {
+      processed.push({ messageId: status.id || null, duplicate: true });
+      continue;
+    }
+
+    try {
+      const updated = await webhookEvents.updateMessageProviderStatus(workspaceId, status);
+      const usageRecord = await usage.recordUsageFromStatus(workspaceId, status);
+      if (updated?.contactId && updated?.message) {
+        emitToWorkspace(workspaceId, "message:updated", updated);
+      }
+      await webhookEvents.markWebhookEventProcessed(storedEvent.event.id);
+      processed.push({
+        messageId: status.id || null,
+        updated: Boolean(updated),
+        usageRecorded: Boolean(usageRecord),
+      });
+    } catch (error) {
+      await webhookEvents.markWebhookEventFailed(storedEvent.event.id, error);
+      throw error;
+    }
   }
-  return { processed: true, statuses: statuses.length };
+
+  if (statuses.length > 0) {
+    logger.info({ count: statuses.length, workspaceId }, "[Webhook] Processed WhatsApp message status update");
+  }
+  return { processed: processed.length > 0, statuses: processed };
 }
 
 router.get(

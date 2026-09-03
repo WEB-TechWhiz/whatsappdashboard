@@ -1,26 +1,15 @@
-// const express = require("express");
 import express from "express";
-// const { v4: uuidv4 } = require("uuid");
 import { v4 as uuidv4 } from "uuid";
-// const requireAuth = require("../../middleware/auth");
 import requireAuth from "../../middleware/auth.js";
-// const { validateRequest } = require("../../middleware/validate.js");
 import { validateRequest } from "../../middleware/validate.js";
-// const { z } = require("zod");
 import z from "zod";
-// const db = require("../../config/db.js");
-// const db = require("../../../db")
-import db from "../../database.js";
-// const aiAnalyzer = require("../../services/ai-agent/analyzer");
+import pool from "../../config/db.js";
 import aiAnalyzer from "../../services/ai-agent/analyzer.js";
-// const workflowEngine = require("../../services/ai-agent/workflow-engine");
 import workflowEngine from "../../services/ai-agent/workflow-engine.js";
 import asyncHandler from "../../utils/asyncHandler.js";
 import { BadRequestError, NotFoundError } from "../../utils/errors.js";
 
 const router = express.Router();
-
-// Apply authentication middleware
 router.use(requireAuth);
 
 /**
@@ -30,17 +19,17 @@ router.use(requireAuth);
 router.get(
   "/rules",
   asyncHandler(async (req, res) => {
-    const workspaceId = req.workspace.id;
+    const workspaceId = req.workspaceId;
 
-    const [rules] = await db.query(
+    const { rows } = await pool.query(
       `SELECT id, name, description, trigger_type, workflow_type, enabled, created_at, updated_at
        FROM automation_rules
-       WHERE workspace_id = ?
+       WHERE workspace_id = $1
        ORDER BY created_at DESC`,
       [workspaceId],
     );
 
-    res.json({ success: true, data: rules });
+    res.json({ success: true, data: rows });
   }),
 );
 
@@ -68,35 +57,31 @@ router.post(
     }),
   ),
   asyncHandler(async (req, res) => {
-      const workspaceId = req.workspace.id;
-      const { name, description, trigger_type, workflow_type, trigger_keywords, workflow_config } =
-        req.body;
+    const workspaceId = req.workspaceId;
+    const { name, description, trigger_type, workflow_type, trigger_keywords, workflow_config } = req.body;
 
-      const ruleId = uuidv4();
+    const { rows } = await pool.query(
+      `INSERT INTO automation_rules 
+       (workspace_id, name, description, trigger_type, workflow_type, 
+        trigger_keywords, workflow_config, enabled)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+       RETURNING *`,
+      [
+        workspaceId,
+        name,
+        description || null,
+        trigger_type,
+        workflow_type,
+        JSON.stringify(trigger_keywords || []),
+        JSON.stringify(workflow_config),
+      ],
+    );
 
-      await db.query(
-        `INSERT INTO automation_rules 
-         (id, workspace_id, name, description, trigger_type, workflow_type, 
-          trigger_keywords, workflow_config, enabled, created_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, true, ?)`,
-        [
-          ruleId,
-          workspaceId,
-          name,
-          description || null,
-          trigger_type,
-          workflow_type,
-          JSON.stringify(trigger_keywords || []),
-          JSON.stringify(workflow_config),
-          req.user.id,
-        ],
-      );
-
-      res.status(201).json({
-        success: true,
-        message: "Automation rule created successfully",
-        data: { id: ruleId },
-      });
+    res.status(201).json({
+      success: true,
+      message: "Automation rule created successfully",
+      data: rows[0],
+    });
   }),
 );
 
@@ -108,16 +93,15 @@ router.put(
   "/rules/:ruleId",
   asyncHandler(async (req, res) => {
     const { ruleId } = req.params;
-    const workspaceId = req.workspace.id;
+    const workspaceId = req.workspaceId;
     const { name, description, enabled, workflow_config } = req.body;
 
-    // Verify rule belongs to workspace
-    const [rules] = await db.query(
-      `SELECT id FROM automation_rules WHERE id = ? AND workspace_id = ?`,
+    const existing = await pool.query(
+      `SELECT id FROM automation_rules WHERE id = $1 AND workspace_id = $2`,
       [ruleId, workspaceId],
     );
 
-    if (rules.length === 0) {
+    if (existing.rows.length === 0) {
       throw new NotFoundError("Automation rule");
     }
 
@@ -125,20 +109,20 @@ router.put(
     const params = [];
 
     if (name !== undefined) {
-      updates.push("name = ?");
       params.push(name);
+      updates.push(`name = $${params.length}`);
     }
     if (description !== undefined) {
-      updates.push("description = ?");
       params.push(description);
+      updates.push(`description = $${params.length}`);
     }
     if (enabled !== undefined) {
-      updates.push("enabled = ?");
       params.push(enabled);
+      updates.push(`enabled = $${params.length}`);
     }
     if (workflow_config !== undefined) {
-      updates.push("workflow_config = ?");
       params.push(JSON.stringify(workflow_config));
+      updates.push(`workflow_config = $${params.length}`);
     }
 
     if (updates.length === 0) {
@@ -146,12 +130,14 @@ router.put(
     }
 
     params.push(ruleId);
+    const ruleIdIdx = params.length;
     params.push(workspaceId);
+    const workspaceIdIdx = params.length;
 
-    await db.query(
+    await pool.query(
       `UPDATE automation_rules 
        SET ${updates.join(", ")}, updated_at = NOW()
-       WHERE id = ? AND workspace_id = ?`,
+       WHERE id = $${ruleIdIdx} AND workspace_id = $${workspaceIdIdx}`,
       params,
     );
 
@@ -170,14 +156,14 @@ router.delete(
   "/rules/:ruleId",
   asyncHandler(async (req, res) => {
     const { ruleId } = req.params;
-    const workspaceId = req.workspace.id;
+    const workspaceId = req.workspaceId;
 
-    const [deleted] = await db.query(
-      `DELETE FROM automation_rules WHERE id = ? AND workspace_id = ? RETURNING id`,
+    const { rows } = await pool.query(
+      `DELETE FROM automation_rules WHERE id = $1 AND workspace_id = $2 RETURNING id`,
       [ruleId, workspaceId],
     );
 
-    if (deleted.length === 0) {
+    if (rows.length === 0) {
       throw new NotFoundError("Automation rule");
     }
 
@@ -199,104 +185,16 @@ router.post(
     }),
   ),
   asyncHandler(async (req, res) => {
-      const workspaceId = req.workspace.id;
-      const { message, sender_name, phone_number } = req.body;
+    const { message, sender_name, phone_number } = req.body;
 
-      const analysis = await aiAnalyzer.analyzeMessage({
-        message,
-        senderName: sender_name || "Unknown",
-        phoneNumber: phone_number || "Unknown",
-        businessContext: req.workspace.business_name || "",
-      });
+    const analysis = await aiAnalyzer.analyzeMessage({
+      message,
+      senderName: sender_name || "Unknown",
+      phoneNumber: phone_number || "Unknown",
+      businessContext: req.workspace?.name || "",
+    });
 
-      res.json({ success: true, data: analysis });
-  }),
-);
-
-/**
- * POST /api/v1/automation/execute
- * Execute a workflow based on message analysis
- */
-router.post(
-  "/execute",
-  validateRequest(
-    z.object({
-      conversation_id: z.string(),
-      message_id: z.string(),
-      phone_number: z.string(),
-      message: z.string(),
-      analysis: z.object({}).passthrough().optional(),
-    }),
-  ),
-  asyncHandler(async (req, res) => {
-      const workspaceId = req.workspace.id;
-      const {
-        conversation_id,
-        message_id,
-        phone_number,
-        message,
-        analysis: providedAnalysis,
-      } = req.body;
-
-      // Analyze message if not provided
-      let analysis = providedAnalysis;
-      if (!analysis) {
-        analysis = await aiAnalyzer.analyzeMessage({
-          message,
-          senderName: "Customer",
-          phoneNumber: phone_number,
-          businessContext: req.workspace.business_name || "",
-        });
-      }
-
-      // Execute workflow
-      const result = await workflowEngine.executeWorkflow({
-        workspaceId,
-        conversationId: conversation_id,
-        messageId: message_id,
-        phoneNumber: phone_number,
-        message,
-        analysis,
-      });
-
-      res.json({
-        success: true,
-        message: "Workflow execution completed",
-        data: result,
-      });
-  }),
-);
-
-/**
- * GET /api/v1/automation/executions
- * Get workflow execution history
- */
-router.get(
-  "/executions",
-  asyncHandler(async (req, res) => {
-    const workspaceId = req.workspace.id;
-    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
-    const offset = parseInt(req.query.offset) || 0;
-
-    const executions = await workflowEngine.getExecutionHistory(workspaceId, limit, offset);
-
-    res.json({ success: true, data: executions });
-  }),
-);
-
-/**
- * GET /api/v1/automation/statistics
- * Get automation statistics
- */
-router.get(
-  "/statistics",
-  asyncHandler(async (req, res) => {
-    const workspaceId = req.workspace.id;
-    const daysBack = Math.min(parseInt(req.query.days_back) || 30, 365);
-
-    const stats = await workflowEngine.getStatistics(workspaceId, daysBack);
-
-    res.json({ success: true, data: stats });
+    res.json({ success: true, data: analysis });
   }),
 );
 
@@ -307,21 +205,21 @@ router.get(
 router.get(
   "/analyses",
   asyncHandler(async (req, res) => {
-    const workspaceId = req.workspace.id;
-    const limit = Math.min(parseInt(req.query.limit) || 50, 100);
-    const offset = parseInt(req.query.offset) || 0;
+    const workspaceId = req.workspaceId;
+    const limit = Math.min(Number.parseInt(req.query.limit) || 50, 100);
+    const offset = Number.parseInt(req.query.offset) || 0;
 
-    const [analyses] = await db.query(
+    const { rows } = await pool.query(
       `SELECT id, message_content, intent, sentiment, confidence_score, 
               should_escalate, created_at
        FROM automation_analyses
-       WHERE workspace_id = ?
+       WHERE workspace_id = $1
        ORDER BY created_at DESC
-       LIMIT ? OFFSET ?`,
+       LIMIT $2 OFFSET $3`,
       [workspaceId, limit, offset],
     );
 
-    res.json({ success: true, data: analyses });
+    res.json({ success: true, data: rows });
   }),
 );
 

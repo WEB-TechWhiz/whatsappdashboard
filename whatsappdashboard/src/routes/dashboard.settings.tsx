@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch, auth } from "@/lib/api";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 import {
   FEATURE_META,
   FeatureKey,
@@ -39,6 +39,82 @@ type Profile = {
   flag_leaks: boolean;
 };
 
+type EmbeddedSignupConfig = {
+  appId: string | null;
+  configId: string | null;
+  graphApiVersion: string;
+  solutionId: string | null;
+  sessionInfoVersion: string;
+  enabled: boolean;
+};
+
+type WhatsAppSignupSession = {
+  event?: string;
+  version?: string | number;
+  data?: {
+    waba_id?: string;
+    phone_number_id?: string;
+    business_id?: string;
+    display_phone_number?: string;
+    business_name?: string;
+  };
+};
+
+declare global {
+  interface Window {
+    FB?: {
+      init: (options: {
+        appId: string;
+        autoLogAppEvents?: boolean;
+        xfbml?: boolean;
+        version: string;
+      }) => void;
+      login: (
+        callback: (response: { authResponse?: { code?: string } }) => void,
+        options: Record<string, unknown>,
+      ) => void;
+    };
+    fbAsyncInit?: () => void;
+  }
+}
+
+function loadFacebookSdk(config: EmbeddedSignupConfig) {
+  return new Promise<void>((resolve, reject) => {
+    if (!config.appId) {
+      reject(new Error("Meta App ID is not configured"));
+      return;
+    }
+
+    const initialize = () => {
+      window.FB?.init({
+        appId: config.appId!,
+        autoLogAppEvents: true,
+        xfbml: true,
+        version: config.graphApiVersion || "v23.0",
+      });
+      resolve();
+    };
+
+    if (window.FB) {
+      initialize();
+      return;
+    }
+
+    window.fbAsyncInit = initialize;
+
+    if (document.getElementById("facebook-jssdk")) return;
+
+    const script = document.createElement("script");
+    script.id = "facebook-jssdk";
+    script.async = true;
+    script.defer = true;
+    script.crossOrigin = "anonymous";
+    script.src = "https://connect.facebook.net/en_US/sdk.js";
+    script.onerror = () => reject(new Error("Could not load Facebook SDK"));
+    document.body.appendChild(script);
+  });
+}
+
 function SettingsPage() {
   const queryClient = useQueryClient();
   const business = useBusinessConfig();
@@ -51,10 +127,16 @@ function SettingsPage() {
   const [autoReply, setAutoReply] = useState(false);
   const [notifyNewLeads, setNotifyNewLeads] = useState(true);
   const [flagLeaks, setFlagLeaks] = useState(true);
+  const signupSessionRef = useRef<WhatsAppSignupSession | null>(null);
 
   const { data: profile, isLoading } = useQuery<Profile>({
     queryKey: ["workspace-profile"],
     queryFn: () => apiFetch("/workspace/profile"),
+  });
+
+  const { data: embeddedConfig } = useQuery<EmbeddedSignupConfig>({
+    queryKey: ["whatsapp-embedded-signup-config"],
+    queryFn: () => apiFetch("/whatsapp/embedded-signup/config"),
   });
 
   useEffect(() => {
@@ -109,7 +191,83 @@ function SettingsPage() {
     onError: (err) => toast.error(err.message || "Failed to update rules"),
   });
 
+  const completeEmbeddedSignup = useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      apiFetch("/whatsapp/embedded-signup/complete", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      }),
+    onSuccess: (connection: any) => {
+      queryClient.invalidateQueries({ queryKey: ["workspace-profile"] });
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-embedded-signup-config"] });
+      if (connection.displayPhoneNumber) setPhone(connection.displayPhoneNumber);
+      toast.success("WhatsApp authorization completed");
+    },
+    onError: (err) => toast.error(err.message || "WhatsApp authorization failed"),
+  });
+
   const saving = saveProfile.isPending || saveWhatsapp.isPending || saveRules.isPending;
+  const connecting = completeEmbeddedSignup.isPending;
+
+  useEffect(() => {
+    const listener = (event: MessageEvent) => {
+      if (event.origin !== "https://www.facebook.com") return;
+      try {
+        const payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
+        if (payload?.type === "WA_EMBEDDED_SIGNUP") {
+          signupSessionRef.current = payload;
+        }
+      } catch {
+        // Ignore non-JSON SDK messages.
+      }
+    };
+
+    window.addEventListener("message", listener);
+    return () => window.removeEventListener("message", listener);
+  }, []);
+
+  const connectWithEmbeddedSignup = async () => {
+    if (!embeddedConfig?.enabled || !embeddedConfig.configId) {
+      toast.error("Meta Embedded Signup is not configured");
+      return;
+    }
+
+    try {
+      await loadFacebookSdk(embeddedConfig);
+      window.FB?.login(
+        (response) => {
+          const code = response.authResponse?.code;
+          if (!code) {
+            toast.error("WhatsApp authorization was cancelled");
+            return;
+          }
+
+          completeEmbeddedSignup.mutate({
+            code,
+            wabaId: signupSessionRef.current?.data?.waba_id,
+            phoneNumberId: signupSessionRef.current?.data?.phone_number_id,
+            businessId: signupSessionRef.current?.data?.business_id,
+            displayPhoneNumber: signupSessionRef.current?.data?.display_phone_number,
+            businessName: signupSessionRef.current?.data?.business_name,
+            event: signupSessionRef.current?.event,
+            version: signupSessionRef.current?.version,
+          });
+        },
+        {
+          config_id: embeddedConfig.configId,
+          auth_type: "rerequest",
+          response_type: "code",
+          override_default_response_type: true,
+          extras: {
+            sessionInfoVersion: embeddedConfig.sessionInfoVersion || "3",
+            setup: embeddedConfig.solutionId ? { solutionID: embeddedConfig.solutionId } : {},
+          },
+        },
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not start WhatsApp signup");
+    }
+  };
 
   const saveAll = async () => {
     if (!name.trim() || !email.trim()) {
@@ -207,6 +365,27 @@ function SettingsPage() {
           <CardDescription>Connect your Business number and webhook bridge.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
+          <div className="flex flex-col gap-3 rounded-md border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">Official Meta connection</p>
+              <p className="text-xs text-muted-foreground">
+                Use Embedded Signup to authorize WhatsApp Cloud API assets.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={connectWithEmbeddedSignup}
+              disabled={!embeddedConfig?.enabled || connecting}
+            >
+              {connecting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MessageCircle className="h-4 w-4" />
+              )}
+              Connect WhatsApp
+            </Button>
+          </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
               <Label htmlFor="phone">Business phone</Label>

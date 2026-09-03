@@ -7,7 +7,8 @@ export const API_BASE_URL =
 
 export const SOCKET_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_SOCKET_URL || window.location.origin
+    ? import.meta.env.VITE_SOCKET_URL ||
+      (import.meta.env.DEV ? "http://localhost:4000" : window.location.origin)
     : "http://localhost:4000";
 
 let socket: Socket | null = null;

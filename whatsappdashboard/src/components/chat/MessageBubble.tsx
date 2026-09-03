@@ -1,18 +1,27 @@
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Check, CheckCheck } from "lucide-react";
+import { AlertCircle, Check, CheckCheck, Clock } from "lucide-react";
 
 export function MessageBubble({
   message,
   isAgent,
   time,
   read,
+  providerStatus,
+  failureMessage,
 }: {
   message: string;
   isAgent: boolean;
   time: string;
   read?: boolean;
+  providerStatus?: string;
+  failureMessage?: string;
 }) {
+  const normalizedStatus = providerStatus?.toUpperCase();
+  const failed = normalizedStatus === "FAILED";
+  const pending = normalizedStatus === "QUEUED" || normalizedStatus === "SENDING";
+  const delivered = normalizedStatus === "DELIVERED" || normalizedStatus === "READ";
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 6, scale: 0.98 }}
@@ -36,7 +45,16 @@ export function MessageBubble({
           )}
         >
           <span>{time}</span>
-          {isAgent && (read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />)}
+          {isAgent && failed ? (
+            <>
+              <span className="max-w-32 truncate">{failureMessage || "Failed"}</span>
+              <AlertCircle className="h-3 w-3" />
+            </>
+          ) : null}
+          {isAgent && !failed && pending ? <Clock className="h-3 w-3" /> : null}
+          {isAgent && !failed && !pending ? (
+            delivered || read ? <CheckCheck className="h-3 w-3" /> : <Check className="h-3 w-3" />
+          ) : null}
         </div>
       </div>
     </motion.div>

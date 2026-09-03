@@ -96,6 +96,9 @@ function ConversationsPage() {
       // Optmistically append or update query
       queryClient.setQueryData(["messages", activeId], (old: any) => [...(old || []), newMessage]);
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      if (newMessage.providerStatus === "FAILED") {
+        toast.error(newMessage.failureMessage || "Message could not be sent");
+      }
     },
     onError: (err) => {
       toast.error("Failed to send message: " + err.message);
@@ -149,6 +152,17 @@ function ConversationsPage() {
         }
       };
 
+      const handleUpdatedMessage = ({ contactId, message }: any) => {
+        queryClient.invalidateQueries({ queryKey: ["conversations"] });
+
+        if (contactId === activeId) {
+          queryClient.setQueryData(["messages", activeId], (old: any) => {
+            const list = old || [];
+            return list.map((m: any) => (m.id === message.id ? { ...m, ...message } : m));
+          });
+        }
+      };
+
       const handleTyping = ({ contactId, isTyping }: any) => {
         setTypingContacts((prev) => ({
           ...prev,
@@ -157,10 +171,12 @@ function ConversationsPage() {
       };
 
       socket.on("message:new", handleNewMessage);
+      socket.on("message:updated", handleUpdatedMessage);
       socket.on("typing", handleTyping);
 
       return () => {
         socket.off("message:new", handleNewMessage);
+        socket.off("message:updated", handleUpdatedMessage);
         socket.off("typing", handleTyping);
       };
     } catch (e) {
@@ -314,6 +330,8 @@ function ConversationsPage() {
                         minute: "2-digit",
                       })}
                       read={m.read}
+                      providerStatus={m.providerStatus}
+                      failureMessage={m.failureMessage}
                     />
                   ))
                 ) : (
