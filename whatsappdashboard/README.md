@@ -1,1154 +1,611 @@
-# WhatsApp CRM Dashboard
+# WhatsApp Dashboard
 
-A standalone WhatsApp CRM dashboard built with TanStack Start, Vite, React, Tailwind CSS v4, Express, PostgreSQL, Redis, and Socket.IO.
+A full-stack WhatsApp CRM and automation platform designed to help businesses manage WhatsApp conversations, leads, automation workflows, analytics, notifications, billing, and WhatsApp Business integrations from a centralized dashboard.
 
-The project is split into two main parts:
+## Overview
 
-- Frontend: a TanStack Start React dashboard for login, signup, conversations, leads, analytics, and workspace settings.
-- Backend: an Express API that handles authentication, workspace data, conversations, leads, analytics, WhatsApp integration events, and realtime updates.
+WhatsApp Dashboard provides a web-based interface for managing business communication through WhatsApp.
 
-## Tech Stack
+The project consists of two primary applications:
 
-Frontend:
+* **Frontend:** React + TypeScript application built with TanStack Start, TanStack Router, Vite, and Tailwind CSS.
+* **Backend:** Node.js + Express API providing authentication, business logic, WhatsApp integrations, automation, billing, analytics, realtime communication, and database access.
 
-- TanStack Start and TanStack Router
-- React 19
-- React Query
-- Tailwind CSS v4
-- shadcn-style UI components
-- Socket.IO client
-- Zod, React Hook Form, Sonner, Framer Motion, Recharts
+```text
+┌─────────────────────────────────────────────┐
+│              WhatsApp Dashboard             │
+│          React + TanStack + Vite            │
+└──────────────────────┬──────────────────────┘
+                       │
+                       │ HTTP / WebSocket
+                       ▼
+┌─────────────────────────────────────────────┐
+│                 Backend API                 │
+│             Node.js + Express               │
+├─────────────────────────────────────────────┤
+│ Auth │ WhatsApp │ Automation │ Analytics    │
+│ Leads│ Billing  │ Settings   │ Notifications │
+└──────────────────────┬──────────────────────┘
+                       │
+             ┌─────────┴─────────┐
+             ▼                   ▼
+      PostgreSQL               Redis
+```
 
-Backend:
+## Core Features
 
-- Node.js and Express
-- PostgreSQL with `pg`
-- Redis with `ioredis`
-- Socket.IO
-- JWT access tokens and rotating refresh tokens
-- Google OAuth 2.0 authorization-code login
-- Bcrypt password hashing
-- Zod request validation
-- Helmet, CORS, rate limiting, Pino logging
+### Dashboard
+
+* Centralized business dashboard
+* Analytics and reporting
+* Lead management
+* Conversation management
+* Notifications
+* Business settings
+* Onboarding workflow
+
+### WhatsApp Integration
+
+The backend contains services and routes for WhatsApp Business functionality, including:
+
+* WhatsApp connections
+* WhatsApp messaging
+* Webhook processing
+* Webhook event handling
+* Meta Embedded Signup
+* WhatsApp connection lifecycle
+* WhatsApp compliance and safety
+* WhatsApp pricing
+* Usage tracking
+
+### Conversations
+
+* Conversation management
+* Message processing
+* Realtime communication
+* Socket.IO integration
+* Message gateway architecture
+
+### Lead Management
+
+* Lead capture
+* Lead management
+* Lead automation
+* Lead-related workflows
+
+### Automation
+
+The backend includes an automation engine with support for:
+
+* Automation workflows
+* Workflow execution
+* Lead capture
+* Product inquiries
+* FAQ and feedback
+* Appointment booking
+* Escalation handling
+* Webhook-based automation
+
+### AI Agent Layer
+
+The backend contains an AI-agent architecture including:
+
+* Analyzer
+* Routing engine
+* Workflow engine
+* Webhook handler
+* AI-powered workflow processing
+
+### Billing & Usage
+
+The backend includes:
+
+* WhatsApp pricing engine
+* Usage tracking
+* Billing gateway
+* Wallet management
+* Ledger management
+
+### Authentication & Security
+
+The application includes:
+
+* User authentication
+* JWT-based authorization
+* Password hashing with bcrypt
+* Request validation with Zod
+* Rate limiting
+* HTTP security headers through Helmet
+* CORS configuration
+* Centralized error handling
+* Structured logging
+
+## Technology Stack
+
+### Frontend
+
+| Technology           | Purpose                       |
+| -------------------- | ----------------------------- |
+| React 19             | UI framework                  |
+| TypeScript           | Type-safe development         |
+| TanStack Start       | Full-stack React framework    |
+| TanStack Router      | Application routing           |
+| TanStack React Query | Server-state management       |
+| Vite                 | Development and build tooling |
+| Tailwind CSS         | Styling                       |
+| Radix UI             | Accessible UI primitives      |
+| React Hook Form      | Form management               |
+| Zod                  | Validation                    |
+| Recharts             | Charts and analytics          |
+| Socket.IO Client     | Realtime communication        |
+| Framer Motion        | UI animations                 |
+| Lucide React         | Icons                         |
+
+### Backend
+
+| Technology           | Purpose                       |
+| -------------------- | ----------------------------- |
+| Node.js              | Runtime                       |
+| Express              | HTTP API                      |
+| PostgreSQL           | Primary database              |
+| Redis                | Caching / supporting services |
+| Socket.IO            | Realtime communication        |
+| JWT                  | Authentication                |
+| bcrypt               | Password hashing              |
+| Zod                  | Validation                    |
+| Pino                 | Application logging           |
+| Helmet               | HTTP security                 |
+| CORS                 | Cross-origin configuration    |
+| Express Rate Limit   | Request rate limiting         |
+| Google Generative AI | AI integration                |
+
+### Infrastructure
+
+* Cloudflare Wrangler
+* Cloudflare Tunnel
+* PostgreSQL
+* Redis
+* Environment-based configuration
 
 ## Project Structure
 
 ```text
 whatsappdashboard/
-├── README.md
-├── AGENTS.md
-├── package.json
-├── package-lock.json
-├── bun.lock
-├── bunfig.toml
-├── components.json
-├── eslint.config.js
-├── tsconfig.json
-├── vite.config.ts
-├── frontend_api_overview.md
+│
 ├── public/
 │   └── favicon.ico
+│
 ├── src/
-│   ├── start.ts
-│   ├── server.ts
-│   ├── router.tsx
-│   ├── routeTree.gen.ts
-│   ├── styles.css
+│   ├── components/
+│   │   ├── chat/
+│   │   ├── dashboard/
+│   │   └── ui/
+│   │
+│   ├── hooks/
+│   │
 │   ├── lib/
 │   │   ├── api.ts
-│   │   ├── utils.ts
+│   │   ├── business-config.ts
+│   │   ├── error-capture.ts
 │   │   ├── error-page.ts
-│   │   └── error-capture.ts
-│   ├── hooks/
-│   │   └── use-mobile.tsx
+│   │   ├── gateway-config.ts
+│   │   ├── gateway-dispatcher.ts
+│   │   ├── gateway-health.ts
+│   │   ├── gateway-startup.ts
+│   │   └── utils.ts
+│   │
 │   ├── routes/
-│   │   ├── __root.tsx
-│   │   ├── index.tsx
-│   │   ├── login.tsx
-│   │   ├── signup.tsx
-│   │   ├── dashboard.tsx
-│   │   ├── dashboard.index.tsx
-│   │   ├── dashboard.conversations.tsx
-│   │   ├── dashboard.leads.tsx
+│   │   ├── api/
+│   │   ├── middleware/
 │   │   ├── dashboard.analytics.tsx
-│   │   └── dashboard.settings.tsx
-│   └── components/
-│       ├── dashboard/
-│       │   └── AppSidebar.tsx
-│       ├── chat/
-│       │   ├── MessageBubble.tsx
-│       │   └── TypingIndicator.tsx
-│       └── ui/
-│           └── Reusable UI primitives
-└── whatsapp-dashboard-backend/
-    ├── README.md
-    ├── package.json
-    ├── package-lock.json
-    ├── test-db.js
-    ├── prisma.config.ts
-    ├── prisma/
-    │   └── schema.prisma
-    ├── db/
-    │   ├── schema.sql
-    │   └── auth_migration.sql
-    └── src/
-        ├── server.js
-        ├── config/
-        │   ├── db.js
-        │   ├── logger.js
-        │   └── redis.js
-        ├── middleware/
-        │   ├── auth.js
-        │   ├── errorHandler.js
-        │   └── validate.js
-        ├── realtime/
-        │   └── socket.js
-        ├── routes/
-        │   ├── auth.routes.js
-        │   ├── conversations.routes.js
-        │   ├── leads.routes.js
-        │   ├── analytics.routes.js
-        │   ├── settings.routes.js
-        │   └── integrations.routes.js
-        ├── services/
-        │   ├── analytics.service.js
-        │   ├── conversations.service.js
-        │   └── leads.service.js
-        ├── utils/
-        │   ├── asyncHandler.js
-        │   ├── crypto.js
-        │   └── errors.js
-        └── validators/
-            └── schemas.js
+│   │   ├── dashboard.conversations.tsx
+│   │   ├── dashboard.index.tsx
+│   │   ├── dashboard.leads.tsx
+│   │   ├── dashboard.reports.tsx
+│   │   ├── dashboard.settings.tsx
+│   │   ├── login.tsx
+│   │   └── signup.tsx
+│   │
+│   ├── router.tsx
+│   ├── server.ts
+│   ├── start.ts
+│   └── styles.css
+│
+├── whatsapp-dashboard-backend/
+│   │
+│   ├── db/
+│   │   ├── migrations/
+│   │   ├── auth_migration.sql
+│   │   └── schema.sql
+│   │
+│   ├── prisma/
+│   │   └── schema.prisma
+│   │
+│   ├── src/
+│   │   ├── config/
+│   │   ├── middleware/
+│   │   ├── realtime/
+│   │   ├── routes/
+│   │   ├── services/
+│   │   │   ├── ai-agent/
+│   │   │   ├── analytics.service.js
+│   │   │   ├── billing-gateway.service.js
+│   │   │   ├── conversations.service.js
+│   │   │   ├── dashboard.service.js
+│   │   │   ├── leads.service.js
+│   │   │   ├── meta-embedded-signup.service.js
+│   │   │   ├── notifications.service.js
+│   │   │   ├── settings.service.js
+│   │   │   ├── whatsapp-compliance.service.js
+│   │   │   ├── whatsapp-connections.service.js
+│   │   │   ├── whatsapp-message-gateway.service.js
+│   │   │   ├── whatsapp-pricing.service.js
+│   │   │   ├── whatsapp-usage.service.js
+│   │   │   ├── whatsapp-wallet.service.js
+│   │   │   └── whatsapp-webhook-events.service.js
+│   │   ├── utils/
+│   │   ├── validators/
+│   │   └── server.js
+│   │
+│   ├── tests/
+│   ├── package.json
+│   └── test-db.js
+│
+├── setup-tunnel.ps1
+├── start-tunnel.ps1
+├── vite.config.ts
+├── tsconfig.json
+├── package.json
+├── .env.example
+└── README.md
 ```
 
-## What Each Part Does
+## Prerequisites
+
+Install the following before running the project:
+
+* Node.js
+* npm
+* PostgreSQL
+* Redis
+* Cloudflare `cloudflared` if tunnel functionality is required
+
+## Installation
+
+Clone the repository and enter the project directory:
+
+```bash
+git clone <repository-url>
+cd whatsappdashboard
+```
+
+Install frontend dependencies:
+
+```bash
+npm install
+```
+
+Install backend dependencies:
+
+```bash
+cd whatsapp-dashboard-backend
+npm install
+cd ..
+```
+
+## Environment Configuration
+
+Create the required environment files from the provided examples.
 
 ### Frontend
 
-`src/routes/index.tsx`
+```text
+.env.example
+```
 
-- Public landing page.
-- Sends users to login or signup.
+Create:
 
-`src/routes/login.tsx`
-
-- Email/password login.
-- Google OAuth 2.0 login.
-- Reads OAuth callback tokens from the URL hash and stores the session.
-
-`src/routes/signup.tsx`
-
-- Creates a new workspace with name, email, and password.
-- Supports Google OAuth signup through the same OAuth flow.
-
-`src/routes/dashboard.tsx`
-
-- Protected dashboard layout.
-- Redirects unauthenticated users to `/login`.
-- Renders sidebar, top bar, and nested dashboard pages.
-
-`src/routes/dashboard.index.tsx`
-
-- Main dashboard overview.
-- Shows summary metrics, recent activity, and business health cards.
-
-`src/routes/dashboard.conversations.tsx`
-
-- Lists WhatsApp conversations.
-- Loads messages for a selected contact.
-- Sends outbound messages.
-- Shows realtime message and typing updates.
-
-`src/routes/dashboard.leads.tsx`
-
-- Lists CRM leads.
-- Creates leads.
-- Updates lead status and value.
-
-`src/routes/dashboard.analytics.tsx`
-
-- Shows revenue, booking, activity, and performance analytics.
-
-`src/routes/dashboard.settings.tsx`
-
-- Updates workspace profile.
-- Saves WhatsApp integration settings.
-- Updates automation rules.
-
-`src/lib/api.ts`
-
-- Central API client.
-- Stores access token, refresh token, and workspace profile in localStorage.
-- Adds `Authorization: Bearer <token>` to API calls.
-- Refreshes sessions automatically after a `401`.
-- Handles logout and Socket.IO setup.
-
-`src/components/dashboard/AppSidebar.tsx`
-
-- Dashboard navigation.
-- Loads workspace profile and unread conversation count.
-- Handles logout.
+```text
+.env
+```
 
 ### Backend
 
-`whatsapp-dashboard-backend/src/server.js`
-
-- Creates the Express app.
-- Enables Helmet, CORS, JSON parsing, and request logging.
-- Mounts all API route groups under `/api/v1`.
-- Starts HTTP and Socket.IO servers.
-- Exposes `/health`.
-
-`src/config/db.js`
-
-- Creates the PostgreSQL connection pool.
-
-`src/config/redis.js`
-
-- Creates the Redis client used by realtime/integration infrastructure.
-
-`src/config/logger.js`
-
-- Configures Pino logging.
-
-`src/middleware/auth.js`
-
-- Verifies JWT access tokens.
-- Places the verified `workspaceId` on `req.workspaceId`.
-- All protected routes use this instead of trusting request body/query workspace IDs.
-
-`src/middleware/validate.js`
-
-- Validates request bodies using Zod schemas.
-- Replaces `req.body` with parsed and normalized data.
-
-`src/middleware/errorHandler.js`
-
-- Converts app errors into JSON API responses.
-- Hides unexpected server error details from clients.
-
-`src/routes/auth.routes.js`
-
-- Signup, login, refresh, logout, Google OAuth 2.0, and workspace profile.
-
-`src/routes/conversations.routes.js`
-
-- Conversation list.
-- Conversation messages.
-- Send message.
-- Typing broadcast.
-
-`src/routes/leads.routes.js`
-
-- Lead list.
-- Lead creation.
-- Lead status/value updates.
-
-`src/routes/analytics.routes.js`
-
-- Dashboard overview metrics.
-- Booking chart data.
-- Activity feed.
-- Summary stats.
-
-`src/routes/settings.routes.js`
-
-- Workspace profile updates.
-- WhatsApp connection settings.
-- Automation rules.
-
-`src/routes/integrations.routes.js`
-
-- Internal inbound WhatsApp bridge endpoint.
-- This lets an external WhatsApp webhook service push inbound messages into the dashboard database and realtime layer.
-
-`src/services/conversations.service.js`
-
-- Reads conversations and messages.
-- Marks inbound messages as read when a conversation is opened.
-- Stores outbound agent messages.
-- Stores inbound customer messages.
-- Optionally forwards outbound messages to another WhatsApp sending service.
-
-`src/services/leads.service.js`
-
-- Lists contacts as leads.
-- Creates contacts/leads.
-- Updates lead status and deal value.
-- Creates booking snapshots when a lead becomes `Booked`.
-
-`src/services/analytics.service.js`
-
-- Computes leaks, cash, on-deck count, response rate, booking rate, booking chart, activity feed, and summary stats.
-
-`src/realtime/socket.js`
-
-- Authenticates Socket.IO clients with JWT.
-- Joins clients to workspace-specific rooms.
-- Emits workspace events such as new messages, typing, and lead updates.
-
-`db/schema.sql`
-
-- Main PostgreSQL schema for a fresh database.
-- Defines workspaces, refresh tokens, contacts, messages, activity log, and bookings.
-
-`db/auth_migration.sql`
-
-- Upgrade script for existing databases.
-- Adds auth provider fields and refresh token storage.
-
-`prisma/schema.prisma`
-
-- Minimal Prisma datasource/client configuration.
-- The current backend code uses `pg` directly, not Prisma models.
-
-`test-db.js`
-
-- Simple PostgreSQL connection test script.
-
-## Database Tables
-
-`workspaces`
-
-- Tenant and auth table.
-- Stores workspace name, email, password hash, OAuth identity, WhatsApp settings, and automation preferences.
-
-`refresh_tokens`
-
-- Stores hashed refresh tokens.
-- Tokens are rotated during refresh and revoked on logout.
-
-`contacts`
-
-- Stores leads and conversation contacts.
-- Includes phone, source, status, deal value, online state, and follow-up time.
-
-`messages`
-
-- Stores inbound customer messages and outbound agent messages.
-
-`activity_log`
-
-- Stores timeline events such as lead creation, status changes, bookings, and inbound messages.
-
-`bookings`
-
-- Stores booking snapshots used for revenue and booking analytics.
-
-## Environment Variables
-
-Backend `.env` file:
-
-```env
-PORT=4000
-NODE_ENV=development
-
-DATABASE_URL=postgres://user:password@localhost:5432/whatsapp_dashboard
-REDIS_URL=redis://localhost:6379
-
-JWT_SECRET=replace-with-a-long-random-string
-JWT_ACCESS_EXPIRES_IN=15m
-REFRESH_TOKEN_DAYS=30
-
-GOOGLE_OAUTH_CLIENT_ID=
-GOOGLE_OAUTH_CLIENT_SECRET=
-API_PUBLIC_ORIGIN=http://localhost:4000
-GOOGLE_OAUTH_REDIRECT_URI=auto
-
-FRONTEND_ORIGIN=http://localhost:3000
-FRONTEND_ORIGIN_PATTERNS=
-
-WHATSAPP_WEBHOOK_VERIFY_TOKEN=replace-me
-WHATSAPP_WEBHOOK_SECRET=replace-with-your-meta-app-secret
-WHATSAPP_PHONE_NUMBER_ID=
-WHATSAPP_WORKSPACE_ID=
-INTERNAL_INTEGRATION_TOKEN=replace-with-a-long-random-string
-
-WHATSAPP_SEND_URL=http://localhost:5000/internal/whatsapp/send
-WHATSAPP_SEND_TOKEN=replace-with-your-automation-service-token
-WHATSAPP_SEND_STRICT=false
-
-ENCRYPTION_KEY=replace-with-32-byte-hex-key
+```text
+whatsapp-dashboard-backend/.env.example
 ```
 
-Frontend environment variables:
+Create:
 
-```env
-VITE_API_URL=
-VITE_SOCKET_URL=
+```text
+whatsapp-dashboard-backend/.env
 ```
 
-Leave `VITE_API_URL` and `VITE_SOCKET_URL` empty for local development and Cloudflare Tunnel. The browser will use the current frontend origin, while Vite proxies `/api/v1` and `/socket.io` to the backend on `localhost:4000`.
+Do not commit real environment files or API credentials.
 
-## Setup
+## Database
 
-### 1. Install Frontend Dependencies
+The backend uses PostgreSQL.
 
-```bash
-npm install
+Database schema and migrations are located in:
+
+```text
+whatsapp-dashboard-backend/db/
 ```
 
-### 2. Install Backend Dependencies
+The backend provides a migration command:
 
 ```bash
 cd whatsapp-dashboard-backend
-npm install
+npm run migrate
 ```
 
-### 3. Configure Backend Environment
+The migration command expects `DATABASE_URL` to be configured.
+
+## Running the Frontend
+
+From the project root:
 
 ```bash
-cd whatsapp-dashboard-backend
-cp .env.example .env
+npm run dev
 ```
 
-Fill in `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `ENCRYPTION_KEY`, and any OAuth or WhatsApp integration values you want to use.
+The frontend development server is configured through Vite.
 
-Generate a strong JWT secret:
+## Running the Backend
 
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-Generate an encryption key:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
-
-### 4. Create Database Tables
-
-For a fresh database:
-
-```bash
-cd whatsapp-dashboard-backend
-psql $DATABASE_URL -f db/schema.sql
-```
-
-For an existing database:
-
-```bash
-cd whatsapp-dashboard-backend
-psql $DATABASE_URL -f db/auth_migration.sql
-```
-
-### 5. Test Database Connection
-
-```bash
-cd whatsapp-dashboard-backend
-node test-db.js
-```
-
-### 6. Run Backend
+Open another terminal:
 
 ```bash
 cd whatsapp-dashboard-backend
 npm run dev
 ```
 
-Backend runs at:
+The backend development server uses Nodemon.
 
-```text
-http://localhost:4000
-```
-
-### 7. Run Frontend
-
-In a second terminal:
+For production-style execution:
 
 ```bash
-npm run dev
+npm start
 ```
 
-Frontend runs at:
+## Building the Frontend
 
-```text
-http://localhost:3000
+```bash
+npm run build
 ```
 
-### 8. Run Cloudflare Tunnel
+For a development-mode build:
 
-Install `cloudflared`, then keep the backend and frontend terminals running and start a third terminal:
+```bash
+npm run build:dev
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+## Code Quality
+
+Run ESLint:
+
+```bash
+npm run lint
+```
+
+Format the project:
+
+```bash
+npm run format
+```
+
+## Cloudflare Tunnel
+
+The project contains scripts for Cloudflare Tunnel development.
+
+Quick tunnel:
 
 ```bash
 npm run tunnel
 ```
 
-Open the `https://...trycloudflare.com` URL printed by Cloudflare. This exposes the frontend only; API and Socket.IO traffic stay routed through the local Vite proxy to `localhost:4000`.
+Setup a named tunnel:
 
-For a named tunnel on your own domain, copy `cloudflared.example.yml` to your Cloudflare config directory, replace `dashboard.example.com`, create/login to the tunnel with `cloudflared`, then run:
+```bash
+npm run tunnel:setup
+```
+
+Run the development tunnel:
+
+```bash
+npm run tunnel:dev
+```
+
+Run the configured named tunnel:
 
 ```bash
 npm run tunnel:run
 ```
 
-For production/custom domains, add the public dashboard URL to `FRONTEND_ORIGIN` and the public API URL to `API_PUBLIC_ORIGIN` in `whatsapp-dashboard-backend/.env`, for example `FRONTEND_ORIGIN=http://localhost:3000,https://dashboard.example.com` and `API_PUBLIC_ORIGIN=https://api.example.com`.
+Cloudflare tunnel configuration should never expose private credentials or secrets in Git.
 
-## Authentication Flow
+## Backend API Areas
 
-Email/password signup:
-
-1. Frontend sends `name`, `email`, and `password` to `POST /api/v1/auth/signup`.
-2. Backend hashes the password with bcrypt.
-3. Backend creates the workspace.
-4. Backend returns an access token, refresh token, and workspace profile.
-
-Email/password login:
-
-1. Frontend sends `email` and `password` to `POST /api/v1/auth/login`.
-2. Backend verifies the bcrypt password hash.
-3. Backend returns an access token, refresh token, and workspace profile.
-
-Google OAuth 2.0:
-
-1. Frontend requests `GET /api/v1/auth/oauth/google`.
-2. Backend returns a Google authorization URL.
-3. User signs in with Google.
-4. Google redirects to `GET /api/v1/auth/oauth/google/callback`.
-5. Backend exchanges the code for Google tokens and reads the Google profile.
-6. Backend creates or updates a workspace.
-7. Backend redirects back to `/login#accessToken=...&refreshToken=...`.
-8. Frontend stores the session and navigates to the dashboard.
-
-Refresh:
-
-1. Frontend retries expired sessions with `POST /api/v1/auth/refresh`.
-2. Backend checks the hashed refresh token.
-3. Backend revokes the old refresh token.
-4. Backend returns a new access token and refresh token.
-
-Logout:
-
-1. Frontend calls `POST /api/v1/auth/logout`.
-2. Backend revokes the refresh token.
-3. Frontend clears local session data.
-
-## API Base URL
-
-All backend API routes are mounted under:
+The backend currently contains route groups for:
 
 ```text
-/api/v1
+/admin
+/analytics
+/auth
+/automation
+/billing
+/conversations
+/dashboard
+/integrations
+/leads
+/notifications
+/settings
+/whatsapp
 ```
 
-Protected routes require:
+The project also provides a health endpoint through the API layer.
 
-```http
-Authorization: Bearer <accessToken>
-```
-
-Most errors use this shape:
-
-```json
-{
-  "error": "ERROR_CODE",
-  "message": "Human readable message"
-}
-```
-
-Validation errors also include `details`.
-
-## API Endpoints
-
-### Health
-
-| Method | Endpoint  | Auth | Purpose                            |
-| ------ | --------- | ---: | ---------------------------------- |
-| GET    | `/health` |   No | Checks whether backend is running. |
-
-Response:
-
-```json
-{
-  "status": "ok"
-}
-```
-
-### Auth and Workspace
-
-| Method | Endpoint                             | Auth | Purpose                                         |
-| ------ | ------------------------------------ | ---: | ----------------------------------------------- |
-| POST   | `/api/v1/auth/signup`                |   No | Create a new workspace with email/password.     |
-| POST   | `/api/v1/auth/login`                 |   No | Login with email/password.                      |
-| POST   | `/api/v1/auth/refresh`               |   No | Rotate refresh token and get a new session.     |
-| POST   | `/api/v1/auth/logout`                |   No | Revoke refresh token.                           |
-| GET    | `/api/v1/auth/oauth/google`          |   No | Get Google OAuth authorization URL.             |
-| GET    | `/api/v1/auth/oauth/google/callback` |   No | Google OAuth callback endpoint.                 |
-| GET    | `/api/v1/workspace/profile`          |  Yes | Get the current workspace profile and settings. |
-
-`POST /api/v1/auth/signup`
-
-Request:
-
-```json
-{
-  "name": "Acme Sales",
-  "email": "owner@example.com",
-  "password": "password123"
-}
-```
-
-Response:
-
-```json
-{
-  "accessToken": "jwt-access-token",
-  "refreshToken": "refresh-token",
-  "token": "jwt-access-token",
-  "workspace": {
-    "id": "workspace-uuid",
-    "name": "Acme Sales",
-    "email": "owner@example.com",
-    "avatarUrl": null,
-    "authProvider": "password"
-  }
-}
-```
-
-`POST /api/v1/auth/login`
-
-Request:
-
-```json
-{
-  "email": "owner@example.com",
-  "password": "password123"
-}
-```
-
-Response is the same session shape as signup.
-
-`POST /api/v1/auth/refresh`
-
-Request:
-
-```json
-{
-  "refreshToken": "refresh-token"
-}
-```
-
-Response is a new session object with a new access token and refresh token.
-
-`POST /api/v1/auth/logout`
-
-Request:
-
-```json
-{
-  "refreshToken": "refresh-token"
-}
-```
-
-Response:
+For detailed endpoint testing, refer to:
 
 ```text
-204 No Content
+API-ENDPOINTS-POSTMAN-TEST-GUIDE.md
 ```
 
-`GET /api/v1/auth/oauth/google?redirect=/dashboard`
+## Database Migrations
 
-Response:
-
-```json
-{
-  "url": "https://accounts.google.com/o/oauth2/v2/auth?..."
-}
-```
-
-`GET /api/v1/workspace/profile`
-
-Response:
-
-```json
-{
-  "id": "workspace-uuid",
-  "name": "Acme Sales",
-  "email": "owner@example.com",
-  "avatar_url": null,
-  "auth_provider": "password",
-  "whatsapp_phone": "+15550000000",
-  "whatsapp_webhook_url": "https://example.com/webhook",
-  "auto_reply": false,
-  "notify_new_leads": true,
-  "flag_leaks": true,
-  "created_at": "2026-07-06T10:00:00.000Z"
-}
-```
-
-### Conversations
-
-| Method | Endpoint                             | Auth | Purpose                                                           |
-| ------ | ------------------------------------ | ---: | ----------------------------------------------------------------- |
-| GET    | `/api/v1/conversations`              |  Yes | List conversations for the workspace.                             |
-| GET    | `/api/v1/conversations/:id/messages` |  Yes | Get messages for one conversation and mark inbound messages read. |
-| POST   | `/api/v1/conversations/:id/messages` |  Yes | Send an agent message.                                            |
-| POST   | `/api/v1/conversations/:id/typing`   |  Yes | Broadcast typing state over Socket.IO.                            |
-
-`GET /api/v1/conversations`
-
-Query params:
-
-- `search` optional. Searches contact name or phone.
-
-Response:
-
-```json
-[
-  {
-    "id": "contact-uuid",
-    "name": "Priya Sharma",
-    "preview": "Can you send pricing?",
-    "time": "2026-07-06T10:00:00.000Z",
-    "unread": 2,
-    "online": false
-  }
-]
-```
-
-`GET /api/v1/conversations/:id/messages?limit=50&offset=0`
-
-Query params:
-
-- `limit` optional, default `50`, max `200`.
-- `offset` optional, default `0`.
-
-Response:
-
-```json
-[
-  {
-    "id": "message-uuid",
-    "text": "Hello",
-    "isAgent": false,
-    "time": "2026-07-06T10:00:00.000Z",
-    "read": true,
-    "mediaUrl": "https://example.com/file.jpg"
-  }
-]
-```
-
-`POST /api/v1/conversations/:id/messages`
-
-Request:
-
-```json
-{
-  "text": "Thanks for reaching out.",
-  "mediaUrl": "https://example.com/file.jpg"
-}
-```
-
-`mediaUrl` is optional.
-
-Response:
-
-```json
-{
-  "id": "message-uuid",
-  "text": "Thanks for reaching out.",
-  "isAgent": true,
-  "time": "2026-07-06T10:00:00.000Z",
-  "read": true,
-  "mediaUrl": "https://example.com/file.jpg"
-}
-```
-
-`POST /api/v1/conversations/:id/typing`
-
-Request:
-
-```json
-{
-  "isTyping": true
-}
-```
-
-Response:
+Database migrations are stored under:
 
 ```text
-204 No Content
+whatsapp-dashboard-backend/db/migrations/
 ```
 
-### Leads
+Current migration areas include:
 
-| Method | Endpoint            | Auth | Purpose                          |
-| ------ | ------------------- | ---: | -------------------------------- |
-| GET    | `/api/v1/leads`     |  Yes | List leads.                      |
-| POST   | `/api/v1/leads`     |  Yes | Create a lead.                   |
-| PATCH  | `/api/v1/leads/:id` |  Yes | Update lead status and/or value. |
+* Automation workflows
+* Dashboard platform
+* WhatsApp connections
+* Automation rules
+* WhatsApp webhook foundation
+* WhatsApp compliance and safety
+* WhatsApp usage tracking
+* WhatsApp pricing
+* Wallet and billing ledger
 
-`GET /api/v1/leads`
+Always review database changes before applying migrations to a production database.
 
-Query params:
+## Security
 
-- `status` optional: `Hot`, `Warm`, `Cold`, `Booked`.
-- `search` optional. Searches lead name.
+Never commit:
 
-Response:
-
-```json
-[
-  {
-    "id": "contact-uuid",
-    "name": "Priya Sharma",
-    "phone": "+919999999999",
-    "source": "Instagram",
-    "status": "Hot",
-    "lastMessage": "Can you send pricing?",
-    "value": "25000.00"
-  }
-]
+```text
+.env
+.env.*
+.dev.vars
+.wrangler/
+*-credentials.json
 ```
 
-`POST /api/v1/leads`
+Use environment variables for:
 
-Request:
+* Database credentials
+* JWT secrets
+* Redis credentials
+* WhatsApp / Meta credentials
+* API keys
+* AI provider credentials
+* Cloudflare credentials
 
-```json
-{
-  "name": "Priya Sharma",
-  "phone": "+919999999999",
-  "source": "Instagram",
-  "status": "Warm",
-  "value": 25000
-}
+The repository's `.gitignore` is configured to prevent sensitive and generated files from being committed.
+
+## Development Guidelines
+
+When modifying the project:
+
+1. Keep frontend and backend responsibilities separated.
+2. Validate external input before processing it.
+3. Never expose secrets in source code.
+4. Use structured logging for backend operations.
+5. Handle API and database errors centrally.
+6. Keep WhatsApp webhook processing reliable and idempotent.
+7. Test database changes before deployment.
+8. Keep generated build files out of version control.
+9. Run linting and formatting before committing.
+10. Review security-sensitive changes carefully.
+
+## Realtime Architecture
+
+Realtime communication is implemented using Socket.IO.
+
+The frontend uses:
+
+```text
+socket.io-client
 ```
 
-Response:
+The backend uses:
 
-```json
-{
-  "id": "contact-uuid",
-  "name": "Priya Sharma",
-  "phone": "+919999999999",
-  "source": "Instagram",
-  "status": "Warm",
-  "lastMessage": "",
-  "value": "25000.00"
-}
+```text
+socket.io
 ```
 
-`PATCH /api/v1/leads/:id`
+This layer is intended for realtime dashboard updates and communication-related events.
 
-Request:
+## Error Handling & Observability
 
-```json
-{
-  "status": "Booked",
-  "value": 30000
-}
+The project includes dedicated error handling and logging components.
+
+Frontend includes error capture and error-page utilities.
+
+Backend uses:
+
+* Pino
+* Pino HTTP
+* Centralized error middleware
+* Structured application logging
+
+## Testing
+
+Backend tests are located under:
+
+```text
+whatsapp-dashboard-backend/tests/
 ```
 
-Notes:
+Run the project's configured test commands from the backend directory as additional test coverage is added.
 
-- At least one of `status` or `value` is required.
-- When status changes to `Booked`, the backend creates a row in `bookings`.
+## Deployment
 
-Response:
+The project can be deployed by separating the frontend application and backend API according to the target infrastructure.
 
-```json
-{
-  "id": "contact-uuid",
-  "name": "Priya Sharma",
-  "phone": "+919999999999",
-  "source": "Instagram",
-  "status": "Booked",
-  "lastMessage": "Can you send pricing?",
-  "value": "30000.00"
-}
+Before production deployment:
+
+* Configure production environment variables.
+* Configure PostgreSQL.
+* Configure Redis if required.
+* Apply database migrations.
+* Configure WhatsApp / Meta credentials.
+* Configure webhook URLs.
+* Configure Cloudflare infrastructure if required.
+* Run the production frontend build.
+* Verify backend health.
+* Verify authentication.
+* Verify WhatsApp webhook delivery.
+* Verify realtime communication.
+* Verify billing and usage functionality.
+
+## Repository Safety
+
+Generated files, local configuration, credentials, dependencies, and build output should remain outside Git version control.
+
+Important files that should remain version controlled include:
+
+```text
+src/
+whatsapp-dashboard-backend/src/
+whatsapp-dashboard-backend/db/
+whatsapp-dashboard-backend/prisma/
+package.json
+whatsapp-dashboard-backend/package.json
+.env.example
+whatsapp-dashboard-backend/.env.example
+.gitignore
 ```
 
-### Analytics
+## Project Status
 
-| Method | Endpoint                     | Auth | Purpose                         |
-| ------ | ---------------------------- | ---: | ------------------------------- |
-| GET    | `/api/v1/analytics/overview` |  Yes | Get dashboard overview metrics. |
-| GET    | `/api/v1/analytics/bookings` |  Yes | Get booking chart data.         |
-| GET    | `/api/v1/analytics/activity` |  Yes | Get recent activity feed.       |
-| GET    | `/api/v1/analytics/summary`  |  Yes | Get summary counters.           |
+This repository contains an actively developed full-stack WhatsApp CRM and automation platform.
 
-`GET /api/v1/analytics/overview?range=today`
+The architecture is organized around separate frontend, backend, database, integration, automation, realtime, and billing responsibilities to allow the platform to evolve as additional WhatsApp Business features are implemented.
 
-Query params:
+## License
 
-- `range`: `today`, `week`, or `month`. Defaults to `today`.
+No open-source license has been specified for this repository yet.
 
-Response:
-
-```json
-{
-  "leaks": 3,
-  "todaysCash": "50000.00",
-  "onDeck": 4,
-  "responseRate": 92.5,
-  "bookingRate": 18.2
-}
-```
-
-`GET /api/v1/analytics/bookings?range=7days`
-
-Query params:
-
-- `range`: `7days` or `30days`. Defaults to `7days`.
-
-Response:
-
-```json
-[
-  {
-    "date": "2026-07-06T00:00:00.000Z",
-    "revenue": "50000.00",
-    "bookings": 2
-  }
-]
-```
-
-`GET /api/v1/analytics/activity?limit=10`
-
-Query params:
-
-- `limit` optional, default `10`, max `50`.
-
-Response:
-
-```json
-[
-  {
-    "id": "activity-uuid",
-    "type": "lead_created",
-    "description": "New lead: Priya Sharma",
-    "contactName": "Priya Sharma",
-    "time": "2026-07-06T10:00:00.000Z"
-  }
-]
-```
-
-`GET /api/v1/analytics/summary`
-
-Response:
-
-```json
-{
-  "weeklyBookings": 5,
-  "monthlyBookings": 20,
-  "annualBookings": 180,
-  "hotLeads": 12
-}
-```
-
-### Settings
-
-| Method | Endpoint                    | Auth | Purpose                                            |
-| ------ | --------------------------- | ---: | -------------------------------------------------- |
-| PUT    | `/api/v1/settings/profile`  |  Yes | Update workspace name and email.                   |
-| PUT    | `/api/v1/settings/whatsapp` |  Yes | Update WhatsApp phone, API token, and webhook URL. |
-| GET    | `/api/v1/webhooks/whatsapp` |   No | Meta webhook verification challenge. |
-| POST   | `/api/v1/webhooks/whatsapp` |   No | Receive WhatsApp Business message and status webhooks. |
-| PUT    | `/api/v1/settings/rules`    |  Yes | Update automation preferences.                     |
-
-`PUT /api/v1/settings/profile`
-
-Request:
-
-```json
-{
-  "name": "Acme Sales",
-  "email": "owner@example.com"
-}
-```
-
-Response:
-
-```json
-{
-  "id": "workspace-uuid",
-  "name": "Acme Sales",
-  "email": "owner@example.com"
-}
-```
-
-`PUT /api/v1/settings/whatsapp`
-
-Request:
-
-```json
-{
-  "phone": "+15550000000",
-  "apiToken": "whatsapp-api-token",
-  "webhookUrl": "https://example.com/webhook"
-}
-```
-
-Notes:
-
-- `apiToken` is optional.
-- If provided, it is encrypted before storage.
-
-Response:
-
-```json
-{
-  "phone": "+15550000000",
-  "webhookUrl": "https://example.com/webhook",
-  "connected": true
-}
-```
-
-`PUT /api/v1/settings/rules`
-
-Request:
-
-```json
-{
-  "autoReply": true,
-  "notifyNewLeads": true,
-  "flagLeaks": true
-}
-```
-
-Response:
-
-```json
-{
-  "auto_reply": true,
-  "notify_new_leads": true,
-  "flag_leaks": true
-}
-```
-
-### Integrations
-
-| Method | Endpoint                                |           Auth | Purpose                                                 |
-| ------ | --------------------------------------- | -------------: | ------------------------------------------------------- |
-| POST   | `/api/v1/integrations/whatsapp/inbound` | Internal token | Receive inbound WhatsApp messages from another service. |
-
-This route is not for normal browser users. It is for your WhatsApp webhook or automation service.
-
-Required header:
-
-```http
-x-internal-token: <INTERNAL_INTEGRATION_TOKEN>
-```
-
-Request:
-
-```json
-{
-  "workspaceId": "workspace-uuid",
-  "phone": "+919999999999",
-  "name": "Priya Sharma",
-  "text": "I want pricing",
-  "mediaUrl": "https://example.com/file.jpg",
-  "source": "Instagram"
-}
-```
-
-Response:
-
-```json
-{
-  "contact": {
-    "id": "contact-uuid",
-    "name": "Priya Sharma",
-    "preview": "I want pricing",
-    "time": "2026-07-06T10:00:00.000Z",
-    "unread": 1,
-    "online": false
-  },
-  "message": {
-    "id": "message-uuid",
-    "text": "I want pricing",
-    "isAgent": false,
-    "time": "2026-07-06T10:00:00.000Z",
-    "read": false,
-    "mediaUrl": "https://example.com/file.jpg"
-  }
-}
-```
-
-## Realtime Socket.IO Events
-
-Frontend connects with:
-
-```ts
-io("http://localhost:4000", {
-  auth: {
-    token: accessToken,
-  },
-});
-```
-
-Server emits:
-
-| Event          | Payload                   | Purpose                                       |
-| -------------- | ------------------------- | --------------------------------------------- |
-| `message:new`  | `{ contactId, message }`  | A new inbound or outbound message was stored. |
-| `typing`       | `{ contactId, isTyping }` | A user is typing in a conversation.           |
-| `lead:created` | `lead`                    | A new lead was created.                       |
-| `lead:updated` | `lead`                    | A lead was updated.                           |
-
-## WhatsApp Integration Flow
-
-This backend is the dashboard API, not the public Meta webhook receiver.
-
-Expected production flow:
-
-1. Customer sends a WhatsApp message.
-2. Your WhatsApp automation/webhook service receives it from Meta or your BSP.
-3. That service calls `POST /api/v1/integrations/whatsapp/inbound`.
-4. Dashboard backend stores or updates the contact.
-5. Dashboard backend stores the inbound message.
-6. Dashboard backend emits `message:new` and `lead:updated` over Socket.IO.
-7. Frontend updates conversations in realtime.
-
-Outbound flow:
-
-1. Agent sends a message from the dashboard.
-2. Frontend calls `POST /api/v1/conversations/:id/messages`.
-3. Backend stores the message.
-4. Backend emits `message:new`.
-5. If `WHATSAPP_SEND_URL` is configured, backend forwards the message to your WhatsApp sending service.
-6. If `WHATSAPP_SEND_STRICT=true`, outbound delivery failure causes the API request to fail.
-
-## Security Notes
-
-- Passwords are hashed with bcrypt.
-- Access tokens are JWTs.
-- Refresh tokens are randomly generated, hashed in the database, rotated on refresh, and revoked on logout.
-- Google OAuth uses the authorization-code flow.
-- Protected API data is scoped by `workspaceId` from the verified JWT.
-- Request bodies are validated with Zod.
-- Login, signup, and OAuth endpoints are rate limited.
-- WhatsApp API tokens are encrypted at rest.
-- Internal integration endpoint requires `x-internal-token`.
-
-## Common Commands
-
-Frontend:
-
-```bash
-npm run dev
-npm run build
-npm run preview
-npm run lint
-npm run format
-```
-
-Backend:
-
-```bash
-cd whatsapp-dashboard-backend
-npm run dev
-npm start
-npm run migrate
-node test-db.js
-```
-
-## Current Limitations
-
-- Media upload is not built yet. The API expects `mediaUrl` to already point to a hosted file.
-- The Prisma schema is currently only datasource/client configuration; the backend uses raw SQL through `pg`.
-- Inbound WhatsApp delivery depends on an external webhook or automation service calling the internal integration endpoint.
-- Outbound WhatsApp sending depends on `WHATSAPP_SEND_URL` and the external sending service.
+````
