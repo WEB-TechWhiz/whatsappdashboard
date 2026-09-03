@@ -34,3 +34,24 @@ cloudflared.yml
 *.njsproj
 *.sln
 *.sw?
+
+# Excluded documentation / audit / planning files
+AGENTS.md
+AUTH-AUDIT-SUMMARY.md
+AUTH-SECURITY-AUDIT.md
+DEPLOYMENT_OPTIMIZATION.md
+F0-AUDIT-REPORT.md
+FRONTEND-API_OVERVIEW.md
+IMPLEMENTATION_SUMMARY.md
+IMPLEMENTATION-PLAN.md
+IMPLEMENTATION-STATUS.md
+PHASE-0-CHECKLIST.md
+PHASE-1-COMPLETE.md
+PHASE-1-IMPLEMENTATION.md
+scratch_docx_extracted.txt
+SIGNUP-LOGIN-TEST-REPORT.md
+WHATSAPP-AUTOMATION_GUIDE.md
+WhatsApp_CRM_Master_Feature_Wise_Implementation_Roadmap.docx
+whatsapp-dashboard-backend.zip
+scratch_docx/
+.env
