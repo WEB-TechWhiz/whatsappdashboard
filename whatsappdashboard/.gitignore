@@ -1,7 +1,4 @@
-```gitignore
-# ============================================================
 # Logs
-# ============================================================
 logs/
 *.log
 npm-debug.log*
@@ -10,16 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-
-# ============================================================
 # Dependencies
-# ============================================================
 node_modules/
 
-
-# ============================================================
-# Build & Framework Output
-# ============================================================
+# Build output
 dist/
 dist-ssr/
 .output/
@@ -27,39 +18,23 @@ dist-ssr/
 .tanstack/
 .nitro/
 
-
-# ============================================================
-# Environment & Local Configuration
-# ============================================================
+# Environment files
 .env
 .env.*
 *.local
-
-# Allow example environment files
 !.env.example
 
-
-# ============================================================
-# Wrangler / Cloudflare
-# ============================================================
+# Cloudflare / Wrangler
 .wrangler/
 .dev.vars
 
-
-# ============================================================
 # Cloudflare Tunnel
-# Generated tunnel configuration / credentials
-# ============================================================
 cloudflared.yml
 *-credentials.json
 
-
-# ============================================================
-# Editor / IDE Files
-# ============================================================
+# Editor / IDE
 .vscode/*
 !.vscode/extensions.json
-
 .idea/
 .DS_Store
 *.suo
@@ -68,17 +43,11 @@ cloudflared.yml
 *.sln
 *.sw?
 
-
-# ============================================================
-# Temporary / Scratch Files
-# ============================================================
+# Temporary / Scratch
 scratch_docx/
 scratch_docx_extracted.txt
 
-
-# ============================================================
-# Documentation / Audit / Planning Files
-# ============================================================
+# Documentation / Audit files
 AGENTS.md
 AUTH-AUDIT-SUMMARY.md
 AUTH-SECURITY-AUDIT.md
@@ -95,28 +64,5 @@ SIGNUP-LOGIN-TEST-REPORT.md
 WHATSAPP-AUTOMATION_GUIDE.md
 WhatsApp_CRM_Master_Feature_Wise_Implementation_Roadmap.docx
 
-
-# ============================================================
-# Archives / Large Generated Files
-# ============================================================
+# Archives
 whatsapp-dashboard-backend.zip
-```
-
-**Important:** If files such as `node_modules`, `.env`, `dist`, or the documentation files were already committed to Git, this `.gitignore` alone won't remove them from tracking.
-
-Run:
-
-```powershell
-git rm -r --cached .
-git add .
-git status
-```
-
-Then:
-
-```powershell
-git commit -m "fix gitignore"
-git push
-```
-
-This will re-evaluate the entire repository against the new `.gitignore`.
