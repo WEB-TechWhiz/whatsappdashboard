@@ -1,0 +1,11 @@
+{
+  "name": "whatsappdashboard-root",
+  "private": true,
+  "workspaces": [
+    "whatsappdashboard"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=whatsappdashboard",
+    "deploy": "npm run deploy --workspace=whatsappdashboard"
+  }
+}

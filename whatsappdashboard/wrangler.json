@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "whatsappdashboard",
+  "main": "dist/server/server.js",
+  "compatibility_date": "2026-09-03",
+  "assets": {
+    "directory": "dist/client"
+  },
+  "build": {
+    "command": "npm run build"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
