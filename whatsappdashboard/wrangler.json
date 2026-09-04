@@ -6,6 +6,9 @@
   "assets": {
     "directory": "dist/client"
   },
+  "build": {
+    "command": "npm run build"
+  },
   "observability": {
     "enabled": true
   }

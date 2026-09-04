@@ -6,6 +6,9 @@
   "assets": {
     "directory": "whatsappdashboard/dist/client"
   },
+  "build": {
+    "command": "npm run build"
+  },
   "observability": {
     "enabled": true
   }
