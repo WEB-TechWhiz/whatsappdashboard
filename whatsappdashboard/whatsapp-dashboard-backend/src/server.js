@@ -54,16 +54,16 @@ app.use(express.json({ limit: "1mb" }));
 
 const API_PREFIX = "/api/v1";
 app.use(`${API_PREFIX}/webhooks`, webhookRoutes);
+app.use(API_PREFIX, integrationsRoutes);
 app.use(API_PREFIX, authRoutes);
+app.use(API_PREFIX, billingRoutes);
 app.use(API_PREFIX, conversationsRoutes);
 app.use(API_PREFIX, leadsRoutes);
 app.use(API_PREFIX, analyticsRoutes);
 app.use(API_PREFIX, settingsRoutes);
-app.use(API_PREFIX, integrationsRoutes);
 app.use(API_PREFIX, whatsappRoutes);
 app.use(API_PREFIX, dashboardRoutes);
 app.use(API_PREFIX, notificationsRoutes);
-app.use(API_PREFIX, billingRoutes);
 app.use(API_PREFIX, adminRoutes);
 app.use(`${API_PREFIX}/automation`, automationRoutes);
 app.use(`${API_PREFIX}/automation/leads`, leadsAutomationRoutes);
