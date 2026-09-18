@@ -1,9 +1,12 @@
 import { io, Socket } from "socket.io-client";
 
+// Client-side: use the current origin so it works behind any domain/CDN.
+// Server-side (SSR): read BACKEND_URL from the deployment environment — never
+// hardcode localhost here because it breaks in production containers/VMs.
 export const API_BASE_URL =
   typeof window !== "undefined"
     ? import.meta.env.VITE_API_URL || `${window.location.origin}/api/v1`
-    : "http://localhost:4000/api/v1";
+    : `${process.env.BACKEND_URL ?? "http://localhost:4000"}/api/v1`;
 
 export const SOCKET_BASE_URL =
   typeof window !== "undefined"
