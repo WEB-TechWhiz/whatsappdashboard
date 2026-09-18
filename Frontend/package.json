@@ -2,6 +2,9 @@
   "name": "tanstack_start_ts",
   "private": true,
   "sideEffects": false,
+  "engines": {
+    "node": "20.x"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite dev",
@@ -88,6 +91,6 @@
     "prettier": "^3.7.3",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^7.0.0"
   }
 }
