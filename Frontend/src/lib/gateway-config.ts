@@ -14,69 +14,71 @@ export interface ServiceConfig {
   timeout?: number;
 }
 
+const DEFAULT_SERVICE_URL = process.env.BACKEND_URL || "https://whatsappdashboardbackend.onrender.com";
+
 export const SERVICES: Record<string, ServiceConfig> = {
   auth: {
-    url: process.env.AUTH_SERVICE_URL || "http://localhost:4000",
+    url: process.env.AUTH_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   whatsapp: {
-    url: process.env.WHATSAPP_SERVICE_URL || "http://localhost:4000",
+    url: process.env.WHATSAPP_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   conversations: {
-    url: process.env.CONVERSATIONS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.CONVERSATIONS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   leads: {
-    url: process.env.LEADS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.LEADS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   analytics: {
-    url: process.env.ANALYTICS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.ANALYTICS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   settings: {
-    url: process.env.SETTINGS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.SETTINGS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   integrations: {
-    url: process.env.INTEGRATIONS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.INTEGRATIONS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   dashboard: {
-    url: process.env.DASHBOARD_SERVICE_URL || "http://localhost:4000",
+    url: process.env.DASHBOARD_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   notifications: {
-    url: process.env.NOTIFICATIONS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.NOTIFICATIONS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   billing: {
-    url: process.env.BILLING_SERVICE_URL || "http://localhost:4000",
+    url: process.env.BILLING_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   admin: {
-    url: process.env.ADMIN_SERVICE_URL || "http://localhost:4000",
+    url: process.env.ADMIN_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   automation: {
-    url: process.env.AUTOMATION_SERVICE_URL || "http://localhost:4000",
+    url: process.env.AUTOMATION_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },
   webhooks: {
-    url: process.env.WEBHOOKS_SERVICE_URL || "http://localhost:4000",
+    url: process.env.WEBHOOKS_SERVICE_URL || DEFAULT_SERVICE_URL,
     healthCheckPath: "/health",
     timeout: 30000,
   },

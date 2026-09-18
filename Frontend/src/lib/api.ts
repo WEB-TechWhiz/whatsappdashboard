@@ -1,18 +1,19 @@
 import { io, Socket } from "socket.io-client";
 
-// Client-side: use the current origin so it works behind any domain/CDN.
-// Server-side (SSR): read BACKEND_URL from the deployment environment — never
-// hardcode localhost here because it breaks in production containers/VMs.
+// Default backend production URL
+const BACKEND_URL = "https://whatsappdashboardbackend.onrender.com";
+
+// Direct backend URL for all API calls — never calls the frontend origin itself
 export const API_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || `${window.location.origin}/api/v1`
-    : `${process.env.BACKEND_URL ?? "http://localhost:4000"}/api/v1`;
+    ? import.meta.env.VITE_API_URL || `${BACKEND_URL}/api/v1`
+    : `${process.env.BACKEND_URL ?? BACKEND_URL}/api/v1`;
 
+// Direct backend URL for WebSocket connections
 export const SOCKET_BASE_URL =
   typeof window !== "undefined"
-    ? import.meta.env.VITE_SOCKET_URL ||
-      (import.meta.env.DEV ? "http://localhost:4000" : window.location.origin)
-    : "http://localhost:4000";
+    ? import.meta.env.VITE_SOCKET_URL || BACKEND_URL
+    : BACKEND_URL;
 
 let socket: Socket | null = null;
 
