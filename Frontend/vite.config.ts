@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteTsConfigPaths from "vite-tsconfig-paths";
 import path from "path";
 
@@ -19,26 +19,29 @@ export default defineConfig({
   },
 
   plugins: [
-    // vite-tsconfig-paths must come FIRST so it reads tsconfig paths
-    // (@/* -> ./src/*) before any other plugin processes imports.
+    // 1. vite-tsconfig-paths: MUST be first — reads tsconfig "@/*" -> "./src/*"
+    //    so every downstream plugin (TanStack, Rollup) already knows the alias.
     viteTsConfigPaths(),
 
+    // 2. TanStack Start: framework plugin (SSR routing, file-based routes)
     tanstackStart({
-      // Redirect TanStack Start's bundled server entry to src/server.ts (SSR error wrapper).
       server: { entry: "server" },
       router: {
         routeFileIgnorePattern: "^(health|\\[\\.\\.\\.path\\]|gateway)\\.ts$",
       },
     }),
 
+    // 4. React: JSX transform
     react(),
+
+    // 5. Tailwind CSS v4 via Vite plugin
     tailwindcss(),
   ],
 
   resolve: {
     alias: {
-      // Explicit alias as a safety net for Rollup/bundler even if
-      // vite-tsconfig-paths is present — prevents "failed to resolve @/..." errors.
+      // Explicit Rollup-level alias — acts as a safety net alongside
+      // vite-tsconfig-paths so "@/components/ui/button" NEVER fails to resolve.
       "@": path.resolve(__dirname, "./src"),
     },
   },
