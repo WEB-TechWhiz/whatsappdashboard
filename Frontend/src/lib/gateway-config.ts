@@ -2,10 +2,11 @@
  * API Gateway Service Registry
  *
  * This configuration maps API route patterns to their respective microservices.
- * During Phase 1, all services point to the monolith (localhost:4000).
- * As new services are built (Phase 2+), update environment variables to route traffic to them.
+ * During Phase 1, all services point to the monolith (Render backend).
+ * As new services are built (Phase 2+), update the env vars (VITE_*) to route traffic.
  *
- * Pattern: Each service has a URL and optional health check endpoint.
+ * IMPORTANT: Only VITE_* prefixed env vars are available in browser.
+ *            Never use process.env in client-side code.
  */
 
 export interface ServiceConfig {
@@ -14,71 +15,105 @@ export interface ServiceConfig {
   timeout?: number;
 }
 
-const DEFAULT_SERVICE_URL = process.env.BACKEND_URL || "https://whatsappdashboardbackend.onrender.com";
+/**
+ * Safely read a Vite env var (works in browser + SSR).
+ * Falls back to the provided default if not set.
+ */
+function readEnv(key: string, fallback: string): string {
+  try {
+    // Browser + Vite build-time env
+    if (typeof import.meta !== "undefined" && import.meta.env) {
+      const value = (import.meta.env as Record<string, string | undefined>)[key];
+      if (value && value.trim()) return value.trim();
+    }
+  } catch {
+    // ignore
+  }
+
+  // SSR fallback (Node) — only if process exists
+  try {
+    if (typeof process !== "undefined" && process.env) {
+      const value = process.env[key];
+      if (value && value.trim()) return value.trim();
+    }
+  } catch {
+    // ignore
+  }
+
+  return fallback;
+}
+
+// Base backend URL (without /api/v1)
+const BACKEND_URL = readEnv(
+  "VITE_API_URL",
+  "https://whatsappdashboardbackend.onrender.com/api/v1",
+).replace(/\/api\/v1\/?$/, "");
+
+const DEFAULT_SERVICE_URL = BACKEND_URL;
 
 export const SERVICES: Record<string, ServiceConfig> = {
   auth: {
-    url: process.env.AUTH_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_AUTH_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   whatsapp: {
-    url: process.env.WHATSAPP_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_WHATSAPP_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   conversations: {
-    url: process.env.CONVERSATIONS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_CONVERSATIONS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   leads: {
-    url: process.env.LEADS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_LEADS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   analytics: {
-    url: process.env.ANALYTICS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_ANALYTICS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   settings: {
-    url: process.env.SETTINGS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_SETTINGS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   integrations: {
-    url: process.env.INTEGRATIONS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_INTEGRATIONS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   dashboard: {
-    url: process.env.DASHBOARD_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_DASHBOARD_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   notifications: {
-    url: process.env.NOTIFICATIONS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_NOTIFICATIONS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   billing: {
-    url: process.env.BILLING_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_BILLING_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   admin: {
-    url: process.env.ADMIN_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_ADMIN_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   automation: {
-    url: process.env.AUTOMATION_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_AUTOMATION_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
   webhooks: {
-    url: process.env.WEBHOOKS_SERVICE_URL || DEFAULT_SERVICE_URL,
+    url: readEnv("VITE_WEBHOOKS_SERVICE_URL", DEFAULT_SERVICE_URL),
     healthCheckPath: "/health",
     timeout: 30000,
   },
@@ -89,7 +124,6 @@ export const SERVICES: Record<string, ServiceConfig> = {
  * Maps URL patterns to service names
  *
  * Example: /api/v1/auth/login -> routes to AUTH service
- *          /api/v1/conversations -> routes to CONVERSATIONS service
  */
 export const ROUTE_PATTERNS: Record<string, string> = {
   "/api/v1/auth": "auth",
@@ -111,8 +145,6 @@ export const ROUTE_PATTERNS: Record<string, string> = {
 
 /**
  * Get the target service for a given API path
- * @param path - API path (e.g., /api/v1/auth/login)
- * @returns Service name or null if no match
  */
 export function getServiceForPath(path: string): string | null {
   for (const [pattern, service] of Object.entries(ROUTE_PATTERNS)) {
@@ -125,8 +157,6 @@ export function getServiceForPath(path: string): string | null {
 
 /**
  * Get full service URL for making requests
- * @param serviceName - Service name from ROUTE_PATTERNS
- * @returns Service config or null if not found
  */
 export function getServiceConfig(serviceName: string): ServiceConfig | null {
   return SERVICES[serviceName] || null;
