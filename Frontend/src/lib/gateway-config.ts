@@ -43,10 +43,10 @@ function readEnv(key: string, fallback: string): string {
   return fallback;
 }
 
-// Base backend URL (without /api/v1)
+// Base backend URL derived strictly from env, fallback to localhost:4000 for local dev only
 const BACKEND_URL = readEnv(
   "VITE_API_URL",
-  "https://whatsappdashboardbackend.onrender.com/api/v1",
+  readEnv("BACKEND_URL", "http://localhost:4000"),
 ).replace(/\/api\/v1\/?$/, "");
 
 const DEFAULT_SERVICE_URL = BACKEND_URL;

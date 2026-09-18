@@ -1,19 +1,46 @@
 import { io, Socket } from "socket.io-client";
 
-// Default backend production URL
-const BACKEND_URL = "https://whatsappdashboardbackend.onrender.com";
+// Resolve API base URL strictly from env (VITE_API_URL or BACKEND_URL).
+// Only falls back to localhost:4000 in development — no production URLs are hardcoded.
+export const API_BASE_URL: string = (() => {
+  const envUrl =
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_API_URL) ||
+    (typeof process !== "undefined" && process.env?.VITE_API_URL) ||
+    (typeof process !== "undefined" && process.env?.BACKEND_URL
+      ? `${process.env.BACKEND_URL}/api/v1`
+      : "");
 
-// Direct backend URL for all API calls — never calls the frontend origin itself
-export const API_BASE_URL =
-  typeof window !== "undefined"
-    ? import.meta.env.VITE_API_URL || `${BACKEND_URL}/api/v1`
-    : `${process.env.BACKEND_URL ?? BACKEND_URL}/api/v1`;
+  if (envUrl && typeof envUrl === "string" && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, "");
+  }
 
-// Direct backend URL for WebSocket connections
-export const SOCKET_BASE_URL =
-  typeof window !== "undefined"
-    ? import.meta.env.VITE_SOCKET_URL || BACKEND_URL
-    : BACKEND_URL;
+  // Local development fallback
+  if (typeof import.meta !== "undefined" && import.meta.env?.DEV) {
+    return "http://localhost:4000/api/v1";
+  }
+
+  return "/api/v1";
+})();
+
+// Resolve WebSocket URL strictly from env (VITE_SOCKET_URL or derived from API_BASE_URL).
+export const SOCKET_BASE_URL: string = (() => {
+  const envSocketUrl =
+    (typeof import.meta !== "undefined" && import.meta.env?.VITE_SOCKET_URL) ||
+    (typeof process !== "undefined" && process.env?.VITE_SOCKET_URL);
+
+  if (envSocketUrl && typeof envSocketUrl === "string" && envSocketUrl.trim()) {
+    return envSocketUrl.trim().replace(/\/+$/, "");
+  }
+
+  // If API_BASE_URL is a full URL (e.g. https://.../api/v1), strip /api/v1 to get origin
+  if (API_BASE_URL.startsWith("http://") || API_BASE_URL.startsWith("https://")) {
+    return API_BASE_URL.replace(/\/api\/v1\/?$/, "");
+  }
+
+  return typeof import.meta !== "undefined" && import.meta.env?.DEV
+    ? "http://localhost:4000"
+    : (typeof window !== "undefined" ? window.location.origin : "http://localhost:4000");
+})();
 
 let socket: Socket | null = null;
 
