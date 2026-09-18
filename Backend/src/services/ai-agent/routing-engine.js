@@ -2,7 +2,6 @@ import logger from "../../config/logger.js";
 import db from "../../database.js";
 import { v4 as uuidv4 } from "uuid";
 import webhookHandler from "./webhook-handler.js";
-import { de } from "date-fns/locale/de";
 import { ExternalServiceError } from "../../utils/errors.js";
 
 /**

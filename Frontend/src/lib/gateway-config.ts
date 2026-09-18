@@ -17,37 +17,67 @@ export interface ServiceConfig {
 export const SERVICES: Record<string, ServiceConfig> = {
   auth: {
     url: process.env.AUTH_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/auth",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
   whatsapp: {
     url: process.env.WHATSAPP_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/whatsapp",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
   conversations: {
     url: process.env.CONVERSATIONS_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/conversations",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
   leads: {
     url: process.env.LEADS_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/leads",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
   analytics: {
     url: process.env.ANALYTICS_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/analytics",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
   settings: {
     url: process.env.SETTINGS_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/settings",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
   integrations: {
     url: process.env.INTEGRATIONS_SERVICE_URL || "http://localhost:4000",
-    healthCheckPath: "/health/integrations",
+    healthCheckPath: "/health",
+    timeout: 30000,
+  },
+  dashboard: {
+    url: process.env.DASHBOARD_SERVICE_URL || "http://localhost:4000",
+    healthCheckPath: "/health",
+    timeout: 30000,
+  },
+  notifications: {
+    url: process.env.NOTIFICATIONS_SERVICE_URL || "http://localhost:4000",
+    healthCheckPath: "/health",
+    timeout: 30000,
+  },
+  billing: {
+    url: process.env.BILLING_SERVICE_URL || "http://localhost:4000",
+    healthCheckPath: "/health",
+    timeout: 30000,
+  },
+  admin: {
+    url: process.env.ADMIN_SERVICE_URL || "http://localhost:4000",
+    healthCheckPath: "/health",
+    timeout: 30000,
+  },
+  automation: {
+    url: process.env.AUTOMATION_SERVICE_URL || "http://localhost:4000",
+    healthCheckPath: "/health",
+    timeout: 30000,
+  },
+  webhooks: {
+    url: process.env.WEBHOOKS_SERVICE_URL || "http://localhost:4000",
+    healthCheckPath: "/health",
     timeout: 30000,
   },
 };
@@ -61,6 +91,7 @@ export const SERVICES: Record<string, ServiceConfig> = {
  */
 export const ROUTE_PATTERNS: Record<string, string> = {
   "/api/v1/auth": "auth",
+  "/api/v1/workspace": "auth",
   "/api/v1/whatsapp": "whatsapp",
   "/api/v1/conversations": "conversations",
   "/api/v1/messages": "whatsapp",
@@ -68,6 +99,12 @@ export const ROUTE_PATTERNS: Record<string, string> = {
   "/api/v1/analytics": "analytics",
   "/api/v1/settings": "settings",
   "/api/v1/integrations": "integrations",
+  "/api/v1/dashboard": "dashboard",
+  "/api/v1/notifications": "notifications",
+  "/api/v1/billing": "billing",
+  "/api/v1/admin": "admin",
+  "/api/v1/automation": "automation",
+  "/api/v1/webhooks": "webhooks",
 };
 
 /**
