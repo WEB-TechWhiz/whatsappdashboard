@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { nitro } from "nitro/vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import viteTsConfigPaths from "vite-tsconfig-paths";
@@ -30,6 +31,9 @@ export default defineConfig({
         routeFileIgnorePattern: "^(health|\\[\\.\\.\\.path\\]|gateway)\\.ts$",
       },
     }),
+
+    // 3. Nitro: server-side bundler / edge-runtime plugin
+    nitro(),
 
     // 4. React: JSX transform
     react(),
